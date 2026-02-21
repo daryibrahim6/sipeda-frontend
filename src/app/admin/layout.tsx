@@ -1,42 +1,53 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, createContext, useContext } from 'react';
 import { Sidebar } from '@/components/admin/Sidebar';
+import { getAdminSession } from '@/lib/auth';
+import { Loader2 } from 'lucide-react';
+
+// ─── Context for sidebar toggle ───────────────────────────────────────────────
+
+const SidebarToggleCtx = createContext<() => void>(() => { });
+export const useSidebarToggle = () => useContext(SidebarToggleCtx);
+
+// ─── Auth gate — blocks ALL admin children until session confirmed ─────────────
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [authState, setAuthState] = useState<'checking' | 'ok' | 'denied'>('checking');
+
+  useEffect(() => {
+    let cancelled = false;
+    getAdminSession().then(session => {
+      if (cancelled) return;
+      if (session) {
+        setAuthState('ok');
+      } else {
+        setAuthState('denied');
+        window.location.replace('/admin/login?expired=1');
+      }
+    });
+    return () => { cancelled = true; };
+  }, []);
+
+  // Tampilkan full-screen loader — TIDAK ada konten admin yang terlihat
+  // sebelum session dikonfirmasi. Ini mencegah flash of admin content.
+  if (authState === 'checking' || authState === 'denied') {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <Loader2 className="w-6 h-6 text-red-500 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* TopBar is injected by each page via slot pattern — each page imports TopBar */}
-        {/* We expose the toggle fn via a custom event or prop drilling */}
-        {/* Simpler: pass via context */}
-        <SidebarToggleProvider onToggle={() => setSidebarOpen(o => !o)}>
+        <SidebarToggleCtx.Provider value={() => setSidebarOpen(o => !o)}>
           {children}
-        </SidebarToggleProvider>
+        </SidebarToggleCtx.Provider>
       </div>
     </div>
-  );
-}
-
-// ─── Context for sidebar toggle ───────────────────────────────────────────────
-import { createContext, useContext } from 'react';
-
-const SidebarToggleCtx = createContext<() => void>(() => {});
-export const useSidebarToggle = () => useContext(SidebarToggleCtx);
-
-function SidebarToggleProvider({
-  children,
-  onToggle,
-}: {
-  children: React.ReactNode;
-  onToggle: () => void;
-}) {
-  return (
-    <SidebarToggleCtx.Provider value={onToggle}>
-      {children}
-    </SidebarToggleCtx.Provider>
   );
 }
