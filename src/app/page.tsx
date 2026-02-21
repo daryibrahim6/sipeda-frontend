@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import {
   Droplets, MapPin, Calendar, AlertTriangle,
@@ -7,6 +8,11 @@ import {
 import { ScheduleCard } from '@/components/jadwal/ScheduleCard';
 import { getStats, getSchedules, getArticles, getAnnouncements } from '@/lib/api';
 import { formatDate } from '@/lib/utils';
+
+export const metadata: Metadata = {
+  title: 'SIPEDA — Sistem Informasi Pendonoran Darah',
+  description: 'Platform informasi pendonoran darah resmi PMI Kabupaten Indramayu. Cek jadwal, stok darah, dan daftar donor online.',
+};
 
 export const revalidate = 60;
 

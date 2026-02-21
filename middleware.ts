@@ -1,47 +1,43 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 
 /**
  * middleware.ts — Route Protection untuk Admin
- * 
- * PENTING: Middleware berjalan di Edge Runtime.
- * Jangan import modul Node.js biasa di sini.
- * 
- * File ini WAJIB ada di root /src/ atau root project.
- * Letakkan di: src/middleware.ts
+ *
+ * Menggunakan cookie parsing manual karena @supabase/ssr
+ * tidak tersedia / menyebabkan bundle issue di Edge Runtime.
+ *
+ * Supabase menyimpan session di cookie bernama:
+ * sb-<ref>-auth-token   (format lama)
+ * sbat-<ref>            (format baru pkce)
+ * Kalau salah satu ada → user dianggap sudah login.
  */
 
-export async function middleware(request: NextRequest) {
+const SUPABASE_REF = 'aevkwrwoogefmyxszkpb';
+
+function hasSupabaseSession(request: NextRequest): boolean {
+  const cookieHeader = request.headers.get('cookie') ?? '';
+
+  // Supabase cookie formats
+  const patterns = [
+    `sb-${SUPABASE_REF}-auth-token`,
+    `sbat-${SUPABASE_REF}`,
+    `sb-access-token`,
+  ];
+
+  return patterns.some(p => cookieHeader.includes(p));
+}
+
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Hanya protect route /admin/** kecuali /admin/login
+  // Hanya protect /admin/** kecuali /admin/login
   if (!pathname.startsWith('/admin') || pathname.startsWith('/admin/login')) {
     return NextResponse.next();
   }
 
-  // Baca cookie session dari Supabase
-  const supabaseUrl  = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-  const supabase = createClient(supabaseUrl, supabaseAnon, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-      detectSessionInUrl: false,
-    },
-    global: {
-      headers: {
-        // Forward cookies dari request ke Supabase client
-        cookie: request.headers.get('cookie') ?? '',
-      },
-    },
-  });
-
-  const { data: { session } } = await supabase.auth.getSession();
-
-  // Kalau tidak ada session → redirect ke login
-  if (!session) {
+  // Fast cookie check — tidak perlu network call ke Supabase
+  if (!hasSupabaseSession(request)) {
     const loginUrl = new URL('/admin/login', request.url);
     loginUrl.searchParams.set('expired', '1');
     return NextResponse.redirect(loginUrl);
@@ -51,8 +47,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Matcher: semua route /admin/** kecuali static files dan /admin/login
-  matcher: [
-    '/admin/((?!login).*)',
-  ],
+  matcher: ['/admin/((?!login).*)'],
 };
