@@ -13,19 +13,12 @@ import type { NextRequest } from 'next/server';
  * Kalau salah satu ada → user dianggap sudah login.
  */
 
-const SUPABASE_REF = 'aevkwrwoogefmyxszkpb';
-
-function hasSupabaseSession(request: NextRequest): boolean {
-  const cookieHeader = request.headers.get('cookie') ?? '';
-
-  // Supabase cookie formats
-  const patterns = [
-    `sb-${SUPABASE_REF}-auth-token`,
-    `sbat-${SUPABASE_REF}`,
-    `sb-access-token`,
-  ];
-
-  return patterns.some(p => cookieHeader.includes(p));
+// Marker cookie yang di-set oleh login form setelah Supabase auth berhasil.
+// Supabase JS v2 menyimpan session di localStorage (bukan cookie),
+// sehingga kita tidak bisa cek session Supabase langsung dari middleware.
+// Solusi: set cookie 'sipeda_admin' setelah login, clear saat logout.
+function hasAdminSession(request: NextRequest): boolean {
+  return request.cookies.has('sipeda_admin');
 }
 
 export function middleware(request: NextRequest) {
@@ -36,8 +29,8 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Fast cookie check — tidak perlu network call ke Supabase
-  if (!hasSupabaseSession(request)) {
+  // Cek marker cookie — instant, tanpa network call
+  if (!hasAdminSession(request)) {
     const loginUrl = new URL('/admin/login', request.url);
     loginUrl.searchParams.set('expired', '1');
     return NextResponse.redirect(loginUrl);

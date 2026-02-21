@@ -45,6 +45,10 @@ export async function loginAdmin(email: string, password: string) {
 
 export async function logoutAdmin() {
   await supabase.auth.signOut();
+  // Clear marker cookie yang dipakai middleware
+  if (typeof document !== 'undefined') {
+    document.cookie = 'sipeda_admin=; path=/; max-age=0; SameSite=Lax';
+  }
 }
 
 // ─── Get current session ──────────────────────────────────────────────────────

@@ -7,12 +7,12 @@ import { loginAdmin } from '@/lib/auth';
 
 // ─── Inner component ──────────────────────────────────────────────────────────
 function LoginForm() {
-  const router       = useRouter();
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const [email, setEmail]       = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPw, setShowPw]     = useState(false);
-  const [status, setStatus]     = useState<'idle' | 'loading' | 'error'>('idle');
+  const [showPw, setShowPw] = useState(false);
+  const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
 
   const isExpired = searchParams.get('expired') === '1';
@@ -23,6 +23,9 @@ function LoginForm() {
     setErrorMsg('');
     try {
       await loginAdmin(email, password);
+      // Set marker cookie agar middleware tahu session aktif
+      // (Supabase v2 pakai localStorage, bukan cookie, jadi middleware perlu cookie terpisah)
+      document.cookie = 'sipeda_admin=1; path=/; max-age=86400; SameSite=Lax';
       router.push('/admin/dashboard');
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : 'Login gagal. Coba lagi.');
