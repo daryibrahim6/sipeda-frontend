@@ -1,7 +1,5 @@
 import type { Metadata } from 'next';
 import { Calendar } from 'lucide-react';
-import Navbar from '@/components/layout/Navbar';
-import Footer from '@/components/layout/Footer';
 import { ScheduleCard } from '@/components/jadwal/ScheduleCard';
 import { getSchedules, getLocations } from '@/lib/api';
 import { MONTHS_ID } from '@/lib/utils';
@@ -43,8 +41,7 @@ export default async function JadwalPage({
 
   return (
     <>
-      <Navbar />
-      <main id="main" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+<main id="main" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
         {/* Header */}
         <div className="mb-8">
@@ -148,7 +145,6 @@ export default async function JadwalPage({
         )}
 
       </main>
-      <Footer />
-    </>
+</>
   );
 }

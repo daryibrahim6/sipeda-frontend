@@ -7,15 +7,18 @@ import {
   ClipboardList, FileText, LogOut, X, ChevronRight,
   User,
 } from 'lucide-react';
-import { clearToken, getUser } from '@/lib/auth';
+// FIX: clearToken dan getUser TIDAK ADA di auth.ts (sudah dihapus saat migrasi ke Supabase Auth).
+// Sidebar lama: import { clearToken, getUser } from '@/lib/auth' → runtime crash
+// Sidebar baru: pakai logoutAdmin() + getAdminSession() yang benar
+import { logoutAdmin, getAdminSession } from '@/lib/auth';
 import { useEffect, useState } from 'react';
 
 const navItems = [
-  { href: '/admin/dashboard',   label: 'Dashboard',    icon: LayoutDashboard },
-  { href: '/admin/jadwal',      label: 'Jadwal Donor', icon: Calendar },
-  { href: '/admin/stok-darah',  label: 'Stok Darah',   icon: Tally4 },
-  { href: '/admin/registrasi',  label: 'Registrasi',   icon: ClipboardList },
-  { href: '/admin/artikel',     label: 'Artikel',      icon: FileText },
+  { href: '/admin/dashboard',  label: 'Dashboard',    icon: LayoutDashboard },
+  { href: '/admin/jadwal',     label: 'Jadwal Donor', icon: Calendar },
+  { href: '/admin/stok-darah', label: 'Stok Darah',   icon: Tally4 },
+  { href: '/admin/registrasi', label: 'Registrasi',   icon: ClipboardList },
+  { href: '/admin/artikel',    label: 'Artikel',      icon: FileText },
 ];
 
 type Props = {
@@ -29,11 +32,21 @@ export function Sidebar({ open, onClose }: Props) {
   const [user, setUser] = useState<{ name: string; email: string; role: string } | null>(null);
 
   useEffect(() => {
-    setUser(getUser());
+    // FIX: getAdminSession() adalah async — dulu getUser() adalah sync mock
+    getAdminSession().then(session => {
+      if (session?.user) {
+        setUser({
+          name:  session.user.name,
+          email: session.user.email,
+          role:  session.user.role,
+        });
+      }
+    });
   }, []);
 
-  function handleLogout() {
-    clearToken();
+  async function handleLogout() {
+    // FIX: logoutAdmin() dari Supabase Auth, bukan clearToken() yang sudah dihapus
+    await logoutAdmin();
     router.push('/admin/login');
   }
 
@@ -51,7 +64,11 @@ export function Sidebar({ open, onClose }: Props) {
           <span className="font-bold text-white text-sm tracking-tight">SIPEDA</span>
           <span className="text-[10px] font-semibold text-gray-600 bg-white/5 px-1.5 py-0.5 rounded uppercase tracking-widest">Admin</span>
         </Link>
-        <button onClick={onClose} className="lg:hidden p-1 rounded-lg text-gray-600 hover:text-white hover:bg-white/5 transition-colors" aria-label="Tutup menu">
+        <button
+          onClick={onClose}
+          className="lg:hidden p-1 rounded-lg text-gray-600 hover:text-white hover:bg-white/5 transition-colors"
+          aria-label="Tutup menu"
+        >
           <X className="w-4 h-4" />
         </button>
       </div>
@@ -61,7 +78,9 @@ export function Sidebar({ open, onClose }: Props) {
         {navItems.map(item => {
           const active = isActive(item.href);
           return (
-            <Link key={item.href} href={item.href}
+            <Link
+              key={item.href}
+              href={item.href}
               onClick={onClose}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group ${
                 active
@@ -80,8 +99,11 @@ export function Sidebar({ open, onClose }: Props) {
 
       {/* Bottom: user + logout */}
       <div className="border-t border-white/5 p-3">
-        <Link href="/" target="_blank"
-          className="flex items-center gap-2 px-3 py-2 text-xs text-gray-600 hover:text-gray-400 transition-colors rounded-lg hover:bg-white/5 mb-1">
+        <Link
+          href="/"
+          target="_blank"
+          className="flex items-center gap-2 px-3 py-2 text-xs text-gray-600 hover:text-gray-400 transition-colors rounded-lg hover:bg-white/5 mb-1"
+        >
           <Droplets className="w-3.5 h-3.5" />
           Lihat Situs Publik
         </Link>
@@ -90,10 +112,15 @@ export function Sidebar({ open, onClose }: Props) {
             <User className="w-4 h-4 text-red-400" />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-xs font-semibold text-gray-300 truncate">{user?.name ?? 'Admin'}</div>
-            <div className="text-[10px] text-gray-600 truncate">{user?.role ?? '—'}</div>
+            <div className="text-xs font-semibold text-gray-300 truncate">
+              {user?.name ?? 'Admin'}
+            </div>
+            <div className="text-[10px] text-gray-600 truncate capitalize">
+              {user?.role ?? '—'}
+            </div>
           </div>
-          <button onClick={handleLogout}
+          <button
+            onClick={handleLogout}
             className="p-1.5 rounded-lg text-gray-600 hover:text-red-400 hover:bg-red-400/10 transition-colors"
             title="Logout"
             aria-label="Logout"

@@ -3,45 +3,35 @@
 import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Droplets, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
-import { loginMock, saveToken, getToken, isTokenValid } from '@/lib/auth';
+import { loginAdmin } from '@/lib/auth';
 
-// ─── Inner component yang pakai useSearchParams ────────────────────────────────
-// Harus dipisah agar bisa di-wrap Suspense dari parent
+// ─── Inner component ──────────────────────────────────────────────────────────
 function LoginForm() {
   const router       = useRouter();
   const searchParams = useSearchParams();
-  const [email, setEmail]       = useState('admin@sipeda.id');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail]       = useState('');
+  const [password, setPassword] = useState('');
   const [showPw, setShowPw]     = useState(false);
   const [status, setStatus]     = useState<'idle' | 'loading' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
 
   const isExpired = searchParams.get('expired') === '1';
 
-  useEffect(() => {
-    const token = getToken();
-    if (token && isTokenValid(token)) {
-      router.replace('/admin/dashboard');
-    }
-  }, [router]);
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setStatus('loading');
     setErrorMsg('');
     try {
-      const { token, ...user } = await loginMock(email, password);
-      saveToken(token, user);
+      await loginAdmin(email, password);
       router.push('/admin/dashboard');
     } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : 'Login gagal.');
+      setErrorMsg(err instanceof Error ? err.message : 'Login gagal. Coba lagi.');
       setStatus('error');
     }
   }
 
   return (
     <>
-      {/* Expired banner */}
       {isExpired && (
         <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm rounded-xl px-4 py-3 mb-5">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
@@ -49,7 +39,6 @@ function LoginForm() {
         </div>
       )}
 
-      {/* Card */}
       <div className="bg-white/5 border border-white/10 backdrop-blur rounded-2xl p-8">
         <form onSubmit={handleSubmit} className="space-y-5">
 
@@ -64,6 +53,7 @@ function LoginForm() {
               autoComplete="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
+              placeholder="admin@sipeda.id"
               className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
             />
           </div>
@@ -111,37 +101,15 @@ function LoginForm() {
             }
           </button>
         </form>
-
-        {/* Demo hint */}
-        <div className="mt-6 pt-5 border-t border-white/10">
-          <p className="text-xs text-gray-600 text-center mb-3">Demo credentials:</p>
-          <div className="space-y-1.5">
-            {[
-              { label: 'Super Admin', email: 'admin@sipeda.id',    pw: 'admin123' },
-              { label: 'Operator',   email: 'operator@sipeda.id', pw: 'operator123' },
-            ].map(c => (
-              <button key={c.email}
-                type="button"
-                onClick={() => { setEmail(c.email); setPassword(c.pw); }}
-                className="w-full text-left px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
-              >
-                <span className="text-xs font-semibold text-gray-400">{c.label}</span>
-                <span className="text-xs text-gray-600 ml-2">{c.email}</span>
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
     </>
   );
 }
 
-// ─── Page wrapper dengan Suspense ─────────────────────────────────────────────
+// ─── Page wrapper ─────────────────────────────────────────────────────────────
 export default function AdminLoginPage() {
   return (
     <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
-
-      {/* Background grid */}
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
         style={{
           backgroundImage: `linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px),
@@ -152,8 +120,6 @@ export default function AdminLoginPage() {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-red-700/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="relative w-full max-w-sm">
-
-        {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-14 h-14 bg-red-600 rounded-2xl mb-4 shadow-lg shadow-red-600/30">
             <Droplets className="w-7 h-7 text-white fill-white" />
@@ -162,7 +128,6 @@ export default function AdminLoginPage() {
           <p className="text-gray-500 text-sm mt-1">Sistem Informasi Pendonoran Darah</p>
         </div>
 
-        {/* Suspense wrapper — diperlukan karena LoginForm pakai useSearchParams */}
         <Suspense fallback={
           <div className="bg-white/5 border border-white/10 rounded-2xl p-8 animate-pulse">
             <div className="h-10 bg-white/10 rounded-xl mb-4" />
@@ -174,7 +139,7 @@ export default function AdminLoginPage() {
         </Suspense>
 
         <p className="text-center text-xs text-gray-700 mt-6">
-          © 2026 SIPEDA — PMI Kabupaten Indramayu
+          © {new Date().getFullYear()} SIPEDA — PMI Kabupaten Indramayu
         </p>
       </div>
     </div>

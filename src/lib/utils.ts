@@ -1,53 +1,173 @@
-import type { StockStatus, ScheduleStatus, BloodType } from './types';
+import type { BloodType, ScheduleStatus, StockStatus } from './types';
 
-export const BLOOD_TYPES: BloodType[] = ['A+','A-','B+','B-','AB+','AB-','O+','O-'];
+// ─── Konstanta ────────────────────────────────────────────────────────────────
 
-export const DAYS_ID: Record<string, string> = {
-  senin: 'Senin', selasa: 'Selasa', rabu: 'Rabu',
-  kamis: 'Kamis', jumat: 'Jumat', sabtu: 'Sabtu', minggu: 'Minggu',
-};
+export const BLOOD_TYPES: BloodType[] = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
 export const MONTHS_ID = [
-  'Januari','Februari','Maret','April','Mei','Juni',
-  'Juli','Agustus','September','Oktober','November','Desember',
+  'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+  'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
 ];
 
-export function formatDate(iso: string, opts?: Intl.DateTimeFormatOptions): string {
-  return new Date(iso).toLocaleDateString('id-ID', opts ?? {
-    day: 'numeric', month: 'long', year: 'numeric',
+export const DAYS_ID = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+
+// ─── Formatting ───────────────────────────────────────────────────────────────
+
+/**
+ * Format tanggal ke bahasa Indonesia.
+ * Menerima string ISO, Date object, atau null/undefined.
+ * @example formatDate('2025-02-21') → "21 Februari 2025"
+ */
+export function formatDate(
+  date: string | Date | null | undefined,
+  opts?: { short?: boolean; withDay?: boolean },
+): string {
+  if (!date) return '—';
+  const d = typeof date === 'string' ? new Date(date) : date;
+  if (isNaN(d.getTime())) return '—';
+
+  if (opts?.withDay) {
+    return d.toLocaleDateString('id-ID', {
+      weekday: 'long',
+      day:     'numeric',
+      month:   'long',
+      year:    'numeric',
+    });
+  }
+
+  if (opts?.short) {
+    return d.toLocaleDateString('id-ID', {
+      day:   'numeric',
+      month: 'short',
+      year:  'numeric',
+    });
+  }
+
+  return d.toLocaleDateString('id-ID', {
+    day:   'numeric',
+    month: 'long',
+    year:  'numeric',
   });
 }
 
-export function formatTime(time: string): string {
-  return time.substring(0, 5); // "08:00:00" → "08:00"
+/**
+ * Format waktu TIME dari DB (HH:MM:SS atau HH:MM) ke HH:MM.
+ * @example formatTime('08:30:00') → "08:30"
+ */
+export function formatTime(time: string | null | undefined): string {
+  if (!time) return '—';
+  // HH:MM:SS → HH:MM
+  return time.length >= 5 ? time.substring(0, 5) : time;
 }
 
-export function stockStatusLabel(s: StockStatus) {
-  return { normal: 'Normal', kritis: 'Kritis', kosong: 'Kosong' }[s];
+/**
+ * Format waktu mulai - selesai.
+ * @example formatTimeRange('08:00', '14:00') → "08:00 – 14:00 WIB"
+ */
+export function formatTimeRange(start: string, end: string): string {
+  return `${formatTime(start)} – ${formatTime(end)} WIB`;
 }
 
-export function stockStatusColor(s: StockStatus) {
+/**
+ * Format tanggal relatif (untuk artikel, dll).
+ * @example formatDateRelative('2025-02-20') → "kemarin" / "2 hari lalu" / "21 Feb 2025"
+ */
+export function formatDateRelative(date: string | Date | null | undefined): string {
+  if (!date) return '—';
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const now = new Date();
+  const diffMs  = now.getTime() - d.getTime();
+  const diffDay = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDay < 0)  return formatDate(date);
+  if (diffDay === 0) {
+    const diffHr = Math.floor(diffMs / (1000 * 60 * 60));
+    if (diffHr < 1) return 'Baru saja';
+    if (diffHr < 24) return `${diffHr} jam lalu`;
+    return 'Hari ini';
+  }
+  if (diffDay === 1) return 'Kemarin';
+  if (diffDay < 7)   return `${diffDay} hari lalu`;
+  if (diffDay < 30)  return `${Math.floor(diffDay / 7)} minggu lalu`;
+  return formatDate(date, { short: true });
+}
+
+// ─── Jadwal ───────────────────────────────────────────────────────────────────
+
+/**
+ * Hitung persentase kuota terisi (0–100).
+ * @example quotaPercent(30, 50) → 40
+ */
+export function quotaPercent(sisa_kuota: number, kuota: number): number {
+  if (kuota <= 0) return 100;
+  const filled = kuota - sisa_kuota;
+  return Math.round((filled / kuota) * 100);
+}
+
+/** Label Indonesia untuk status jadwal */
+export function scheduleStatusLabel(status: ScheduleStatus): string {
   return {
-    normal: 'text-green-600 bg-green-50 border-green-200',
-    kritis: 'text-amber-600 bg-amber-50 border-amber-200',
-    kosong: 'text-red-600  bg-red-50  border-red-200',
-  }[s];
+    aktif:      'Aktif',
+    penuh:      'Penuh',
+    dibatalkan: 'Dibatalkan',
+    selesai:    'Selesai',
+  }[status] ?? status;
 }
 
-export function scheduleStatusLabel(s: ScheduleStatus) {
-  return { aktif: 'Tersedia', penuh: 'Penuh', dibatalkan: 'Dibatalkan', selesai: 'Selesai' }[s];
-}
-
-export function scheduleStatusColor(s: ScheduleStatus) {
+/** Tailwind color classes untuk status jadwal (text + bg + border) */
+export function scheduleStatusColor(status: ScheduleStatus): string {
   return {
-    aktif:      'text-green-700 bg-green-50 border-green-200',
-    penuh:      'text-amber-700 bg-amber-50 border-amber-200',
-    dibatalkan: 'text-red-700   bg-red-50   border-red-200',
-    selesai:    'text-gray-600  bg-gray-50  border-gray-200',
-  }[s];
+    aktif:      'text-green-700  bg-green-50  border border-green-200',
+    penuh:      'text-amber-700  bg-amber-50  border border-amber-200',
+    dibatalkan: 'text-gray-500   bg-gray-50   border border-gray-200',
+    selesai:    'text-blue-700   bg-blue-50   border border-blue-200',
+  }[status] ?? 'text-gray-500 bg-gray-50';
 }
 
-export function quotaPercent(sisa: number, total: number): number {
-  if (total === 0) return 0;
-  return Math.round(((total - sisa) / total) * 100);
+// ─── Stok Darah ──────────────────────────────────────────────────────────────
+
+/** Tailwind color classes untuk status stok */
+export function stockStatusColor(status: StockStatus): string {
+  return {
+    normal: 'text-green-700 bg-green-50 border border-green-200',
+    kritis: 'text-amber-700 bg-amber-50 border border-amber-200',
+    kosong: 'text-red-700   bg-red-50   border border-red-200',
+  }[status] ?? 'text-gray-500 bg-gray-50';
+}
+
+/** Label Indonesia untuk status stok */
+export function stockStatusLabel(status: StockStatus): string {
+  return {
+    normal: 'Tersedia',
+    kritis: 'Kritis',
+    kosong: 'Kosong',
+  }[status] ?? status;
+}
+
+// ─── Misc ─────────────────────────────────────────────────────────────────────
+
+/** Generate kode registrasi format REG-YYYY-NNNNN */
+export function generateRegCode(seq: number): string {
+  const year = new Date().getFullYear();
+  return `REG-${year}-${String(seq).padStart(5, '0')}`;
+}
+
+/** Truncate string dengan ellipsis */
+export function truncate(str: string, max = 100): string {
+  return str.length > max ? str.slice(0, max) + '…' : str;
+}
+
+/** Slug generator sederhana (untuk artikel) */
+export function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .trim();
+}
+
+/** Format angka dengan titik ribuan (Indonesia) */
+export function formatNumber(n: number): string {
+  return n.toLocaleString('id-ID');
 }

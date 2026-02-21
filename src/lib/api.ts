@@ -1,188 +1,525 @@
 /**
- * lib/api.ts
+ * lib/api.ts — Supabase API Layer
  *
- * Mock toggle: set NEXT_PUBLIC_USE_MOCK=true di .env.local untuk pakai data lokal.
- * Saat backend Laravel sudah siap, ubah ke false dan set NEXT_PUBLIC_API_URL.
+ * PENTING: Semua type didefinisikan di lib/types.ts.
+ * File ini HANYA berisi fungsi-fungsi query ke Supabase.
  */
 
+import { supabase } from './supabase';
 import type {
-  Location, Schedule, BloodStockRow, Article,
-  SiteStats, FAQ, Announcement,
-  RegistrationPayload, Registration,
-  ApiResponse, PaginatedResponse,
+  Location,
+  Schedule,
+  Article,
+  Announcement,
+  SiteStats,
+  BloodStockItem,
 } from './types';
 
-import {
-  MOCK_STATS,
-  MOCK_LOCATIONS,
-  MOCK_SCHEDULES,
-  MOCK_BLOOD_STOCK,
-  MOCK_ARTICLES,
-  MOCK_FAQS,
-  MOCK_ANNOUNCEMENTS,
-} from './mockData';
+// ─── Re-export types yang sering dipakai ─────────────────────────────────────
+export type { Location, Schedule, Article, Announcement, SiteStats };
 
-// ─── CONFIG ──────────────────────────────────────────────────────────────────
-const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true';
-const API_URL  = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api';
+// ─── BloodStock public (alias dari BloodStockItem) ────────────────────────────
+export type BloodStock = BloodStockItem;
 
-// Simulasi delay jaringan di mode mock (ms)
-const MOCK_DELAY = 200;
+// ─── Stats homepage ───────────────────────────────────────────────────────────
 
-function sleep(ms: number) {
-  return new Promise(r => setTimeout(r, ms));
-}
-
-// ─── HTTP HELPER ─────────────────────────────────────────────────────────────
-async function get<T>(path: string, params?: Record<string, string>): Promise<T> {
-  const url = new URL(`${API_URL}${path}`);
-  if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-  const res = await fetch(url.toString(), {
-    next: { revalidate: 60 },
-    headers: { Accept: 'application/json' },
-  });
-  if (!res.ok) throw new Error(`API error ${res.status}: ${path}`);
-  return res.json();
-}
-
-// ─── STATS ───────────────────────────────────────────────────────────────────
 export async function getStats(): Promise<SiteStats> {
-  if (USE_MOCK) {
-    await sleep(MOCK_DELAY);
-    return MOCK_STATS;
-  }
-  return get<ApiResponse<SiteStats>>('/stats').then(r => r.data);
+  const { data, error } = await supabase
+    .from('v_stats')
+    .select('*')
+    .single();
+
+  if (error) throw error;
+  return {
+    total_stok: Number(data?.total_stok ?? 0),
+    lokasi_aktif: Number(data?.lokasi_aktif ?? 0),
+    jadwal_aktif: Number(data?.jadwal_aktif ?? 0),
+    total_stok_kritis: Number(data?.total_stok_kritis ?? 0),
+  };
 }
 
-// ─── LOCATIONS ───────────────────────────────────────────────────────────────
+// ─── Dashboard Stats (real data, replaces MOCK_STATS) ────────────────────────
+
+export async function getDashboardStats(): Promise<{
+  total_stok: number;
+  jadwal_aktif: number;
+  lokasi_aktif: number;
+  total_stok_kritis: number;
+  registrasi_bulan_ini: number;
+}> {
+  const now = new Date();
+  const start = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+
+  const [statsRes, regRes] = await Promise.allSettled([
+    supabase.from('v_stats').select('*').single(),
+    supabase
+      .from('registrasi_donor')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', start),
+  ]);
+
+  const stats = statsRes.status === 'fulfilled' ? statsRes.value.data : null;
+  const regCount = regRes.status === 'fulfilled' ? (regRes.value.count ?? 0) : 0;
+
+  return {
+    total_stok: Number(stats?.total_stok ?? 0),
+    jadwal_aktif: Number(stats?.jadwal_aktif ?? 0),
+    lokasi_aktif: Number(stats?.lokasi_aktif ?? 0),
+    total_stok_kritis: Number(stats?.total_stok_kritis ?? 0),
+    registrasi_bulan_ini: regCount,
+  };
+}
+
+// ─── Lokasi Donor ─────────────────────────────────────────────────────────────
+
 export async function getLocations(): Promise<Location[]> {
-  if (USE_MOCK) {
-    await sleep(MOCK_DELAY);
-    return MOCK_LOCATIONS.filter(l => l.aktif);
-  }
-  return get<ApiResponse<Location[]>>('/locations').then(r => r.data);
+  const { data: locations, error } = await supabase
+    .from('lokasi_donor')
+    .select('*')
+    .eq('aktif', true)
+    .order('nama_lokasi');
+
+  if (error) throw error;
+
+  // Fetch semua stok sekaligus (bukan N+1)
+  const lokasiIds = locations.map(l => l.id);
+  const { data: stocks } = lokasiIds.length > 0
+    ? await supabase
+      .from('stok_darah')
+      .select('lokasi_id, golongan_darah, status')
+      .in('lokasi_id', lokasiIds)
+    : { data: [] };
+
+  return locations.map(loc => ({
+    ...loc,
+    koordinat_lat: Number(loc.koordinat_lat),
+    koordinat_lng: Number(loc.koordinat_lng),
+    stok_ringkas: stocks
+      ?.filter(s => s.lokasi_id === loc.id)
+      .map(s => ({ golongan_darah: s.golongan_darah, status: s.status })) ?? [],
+  })) as Location[];
 }
 
-export async function getLocation(id: number): Promise<Location | null> {
-  if (USE_MOCK) {
-    await sleep(MOCK_DELAY);
-    return MOCK_LOCATIONS.find(l => l.id === id) ?? null;
-  }
-  return get<ApiResponse<Location>>(`/locations/${id}`).then(r => r.data);
+export async function getLocationById(id: number): Promise<Location | null> {
+  const { data, error } = await supabase
+    .from('lokasi_donor')
+    .select('*')
+    .eq('id', id)
+    .eq('aktif', true)
+    .single();
+
+  if (error) return null;
+  return {
+    ...data,
+    koordinat_lat: Number(data.koordinat_lat),
+    koordinat_lng: Number(data.koordinat_lng),
+  } as Location;
 }
 
-// ─── SCHEDULES ───────────────────────────────────────────────────────────────
+// ─── Jadwal Donor ─────────────────────────────────────────────────────────────
+
 export async function getSchedules(month?: number, year?: number): Promise<Schedule[]> {
-  if (USE_MOCK) {
-    await sleep(MOCK_DELAY);
-    let result = [...MOCK_SCHEDULES];
-    if (month && year) {
-      result = result.filter(s => {
-        const d = new Date(s.tanggal);
-        return d.getMonth() + 1 === month && d.getFullYear() === year;
-      });
-    } else if (month) {
-      result = result.filter(s => new Date(s.tanggal).getMonth() + 1 === month);
-    }
-    return result.sort((a, b) => a.tanggal.localeCompare(b.tanggal));
-  }
+  const now = new Date();
+  const m = month ?? now.getMonth() + 1;
+  const y = year ?? now.getFullYear();
 
-  const params: Record<string, string> = {};
-  if (month) params.month = String(month);
-  if (year)  params.year  = String(year);
-  return get<ApiResponse<Schedule[]>>('/schedules', params).then(r => r.data);
+  const start = `${y}-${String(m).padStart(2, '0')}-01`;
+  const end = new Date(y, m, 0).toISOString().split('T')[0];
+
+  const { data, error } = await supabase
+    .from('jadwal_donor')
+    .select(`
+      id, lokasi_id, tanggal, waktu_mulai, waktu_selesai,
+      kuota, sisa_kuota, deskripsi, status,
+      lokasi:lokasi_donor (
+        id, nama_lokasi, alamat, kecamatan, koordinat_lat, koordinat_lng
+      )
+    `)
+    .gte('tanggal', start)
+    .lte('tanggal', end)
+    .neq('status', 'dibatalkan')
+    .order('tanggal')
+    .order('waktu_mulai');
+
+  if (error) throw error;
+  return (data ?? []) as unknown as Schedule[];
 }
 
-export async function getSchedule(id: number): Promise<Schedule | null> {
-  if (USE_MOCK) {
-    await sleep(MOCK_DELAY);
-    return MOCK_SCHEDULES.find(s => s.id === id) ?? null;
-  }
-  return get<ApiResponse<Schedule>>(`/schedules/${id}`).then(r => r.data);
+/** Fetch jadwal untuk dashboard admin (upcoming N entries) */
+export async function getUpcomingSchedules(limit = 5): Promise<Schedule[]> {
+  const today = new Date().toISOString().split('T')[0];
+  const { data, error } = await supabase
+    .from('jadwal_donor')
+    .select(`
+      id, lokasi_id, tanggal, waktu_mulai, waktu_selesai,
+      kuota, sisa_kuota, deskripsi, status,
+      lokasi:lokasi_donor (
+        id, nama_lokasi, alamat, kecamatan, koordinat_lat, koordinat_lng
+      )
+    `)
+    .eq('status', 'aktif')
+    .gte('tanggal', today)
+    .order('tanggal')
+    .order('waktu_mulai')
+    .limit(limit);
+
+  if (error) return [];
+  return (data ?? []) as unknown as Schedule[];
 }
 
-// ─── BLOOD STOCK ─────────────────────────────────────────────────────────────
-export async function getBloodStock(locationId?: number): Promise<BloodStockRow[]> {
-  if (USE_MOCK) {
-    await sleep(MOCK_DELAY);
-    // Mock: filter per lokasi hanya bisa simulasi, return sama saja
-    return MOCK_BLOOD_STOCK;
-  }
-  const params = locationId ? { location_id: String(locationId) } : undefined;
-  return get<ApiResponse<BloodStockRow[]>>('/blood-stock', params).then(r => r.data);
+/** FIX: tersedia sebagai getScheduleById DAN getSchedule (alias) */
+export async function getScheduleById(id: number): Promise<Schedule | null> {
+  const { data, error } = await supabase
+    .from('jadwal_donor')
+    .select(`
+      id, lokasi_id, tanggal, waktu_mulai, waktu_selesai,
+      kuota, sisa_kuota, deskripsi, status,
+      lokasi:lokasi_donor (
+        id, nama_lokasi, alamat, kecamatan, koordinat_lat, koordinat_lng
+      )
+    `)
+    .eq('id', id)
+    .single();
+
+  if (error) return null;
+  return data as unknown as Schedule;
 }
 
-// ─── ARTICLES ────────────────────────────────────────────────────────────────
-const ARTICLES_PER_PAGE = 6;
+/** Alias untuk kompatibilitas import lama */
+export const getSchedule = getScheduleById;
 
-export async function getArticles(page = 1): Promise<PaginatedResponse<Article>> {
-  if (USE_MOCK) {
-    await sleep(MOCK_DELAY);
-    const total   = MOCK_ARTICLES.length;
-    const start   = (page - 1) * ARTICLES_PER_PAGE;
-    const data    = MOCK_ARTICLES.slice(start, start + ARTICLES_PER_PAGE);
+// ─── Artikel ──────────────────────────────────────────────────────────────────
+
+export async function getArticles(
+  page = 1,
+  perPage = 9,
+  kategoriSlug?: string,
+): Promise<{ data: Article[]; total: number; totalPages: number }> {
+  let query = supabase
+    .from('artikel')
+    .select(`
+      id, judul, slug, excerpt, gambar, gambar_alt,
+      penulis, published_at, views, unggulan, kategori_id,
+      kategori:kategori_artikel (nama, slug)
+    `, { count: 'exact' })
+    .eq('status', 'published')
+    .order('published_at', { ascending: false });
+
+  if (kategoriSlug) {
+    const { data: kat } = await supabase
+      .from('kategori_artikel')
+      .select('id')
+      .eq('slug', kategoriSlug)
+      .single();
+    if (kat) query = query.eq('kategori_id', kat.id);
+  }
+
+  const from = (page - 1) * perPage;
+  const to = from + perPage - 1;
+  query = query.range(from, to);
+
+  const { data, error, count } = await query;
+  if (error) throw error;
+
+  const articles: Article[] = (data ?? []).map(row => {
+    const r = row as Record<string, unknown>;
+    const kat = r.kategori as { nama?: string } | null;
     return {
-      data,
-      meta: {
-        current_page: page,
-        last_page: Math.ceil(total / ARTICLES_PER_PAGE),
-        per_page: ARTICLES_PER_PAGE,
-        total,
-      },
+      id: r.id as number,
+      judul: r.judul as string,
+      slug: r.slug as string,
+      excerpt: (r.excerpt as string | null) ?? null,
+      gambar: (r.gambar as string | null) ?? null,
+      gambar_alt: (r.gambar_alt as string | null) ?? null,
+      penulis: r.penulis as string,
+      published_at: (r.published_at as string | null) ?? null,
+      views: (r.views as number) ?? 0,
+      unggulan: (r.unggulan as boolean) ?? false,
+      kategori_id: (r.kategori_id as number) ?? 0,
+      kategori_nama: kat?.nama ?? '',
     };
-  }
-  return get<PaginatedResponse<Article>>('/articles', { page: String(page) });
-}
-
-export async function getArticle(slug: string): Promise<Article | null> {
-  if (USE_MOCK) {
-    await sleep(MOCK_DELAY);
-    return MOCK_ARTICLES.find(a => a.slug === slug) ?? null;
-  }
-  return get<ApiResponse<Article>>(`/articles/${slug}`).then(r => r.data);
-}
-
-// ─── FAQs ─────────────────────────────────────────────────────────────────────
-export async function getFAQs(): Promise<FAQ[]> {
-  if (USE_MOCK) {
-    await sleep(MOCK_DELAY);
-    return MOCK_FAQS;
-  }
-  return get<ApiResponse<FAQ[]>>('/faqs').then(r => r.data);
-}
-
-// ─── ANNOUNCEMENTS ────────────────────────────────────────────────────────────
-export async function getAnnouncements(): Promise<Announcement[]> {
-  if (USE_MOCK) {
-    await sleep(MOCK_DELAY);
-    return MOCK_ANNOUNCEMENTS;
-  }
-  return get<ApiResponse<Announcement[]>>('/announcements').then(r => r.data);
-}
-
-// ─── REGISTRATIONS ────────────────────────────────────────────────────────────
-export async function registerDonor(payload: RegistrationPayload): Promise<Registration> {
-  if (USE_MOCK) {
-    await sleep(600); // simulasi proses
-    const kode = `REG-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 99999)).padStart(5, '0')}`;
-    return {
-      ...payload,
-      id: Math.floor(Math.random() * 1000),
-      kode_registrasi: kode,
-      status: 'confirmed',
-      created_at: new Date().toISOString(),
-    };
-  }
-
-  const res = await fetch(`${API_URL}/registrations`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: JSON.stringify(payload),
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error((err as { message?: string }).message ?? 'Gagal mendaftar, coba lagi.');
+
+  const total = count ?? 0;
+  const totalPages = Math.ceil(total / perPage);
+  return { data: articles, total, totalPages };
+}
+
+export async function getArticleBySlug(slug: string): Promise<Article | null> {
+  const { data, error } = await supabase
+    .from('artikel')
+    .select(`
+      id, judul, slug, excerpt, konten, gambar, gambar_alt,
+      penulis, published_at, views, unggulan, kategori_id,
+      kategori:kategori_artikel (nama, slug)
+    `)
+    .eq('slug', slug)
+    .eq('status', 'published')
+    .single();
+
+  if (error) return null;
+
+  // FIX: Atomic increment views via RPC (mencegah race condition)
+  supabase.rpc('increment_article_views', { article_id: data.id as number }).then(() => { });
+
+  const r = data as Record<string, unknown>;
+  const kat = r.kategori as { nama?: string } | null;
+  return {
+    id: r.id as number,
+    judul: r.judul as string,
+    slug: r.slug as string,
+    excerpt: (r.excerpt as string | null) ?? null,
+    konten: (r.konten as string) ?? '',
+    gambar: (r.gambar as string | null) ?? null,
+    gambar_alt: (r.gambar_alt as string | null) ?? null,
+    penulis: r.penulis as string,
+    published_at: (r.published_at as string | null) ?? null,
+    views: (r.views as number) ?? 0,
+    unggulan: (r.unggulan as boolean) ?? false,
+    kategori_id: (r.kategori_id as number) ?? 0,
+    kategori_nama: kat?.nama ?? '',
+  };
+}
+
+// ─── Pengumuman ───────────────────────────────────────────────────────────────
+
+export async function getAnnouncements(): Promise<Announcement[]> {
+  const { data, error } = await supabase
+    .from('v_pengumuman_aktif')
+    .select('id, judul, isi, tipe, link, link_teks');
+
+  if (error) return [];
+  return (data ?? []) as Announcement[];
+}
+
+// ─── Stok Darah ──────────────────────────────────────────────────────────────
+
+/**
+ * FIX: bulk fetch — jika lokasiId tidak diberikan, fetch semua sekaligus (bukan N+1).
+ */
+export async function getBloodStock(lokasiId?: number): Promise<BloodStock[]> {
+  let query = supabase
+    .from('stok_darah')
+    .select(`
+      id, lokasi_id, golongan_darah, jumlah, status, updated_at,
+      batas_kritis,
+      komponen:komponen_darah (kode, nama)
+    `)
+    .order('golongan_darah');
+
+  if (lokasiId) query = query.eq('lokasi_id', lokasiId);
+
+  const { data, error } = await query;
+  if (error) throw error;
+
+  return (data ?? []).map(s => {
+    const r = s as Record<string, unknown>;
+    const kom = r.komponen as { kode?: string; nama?: string } | null;
+    return {
+      id: r.id as number,
+      lokasi_id: r.lokasi_id as number,
+      komponen_id: 0,
+      komponen_kode: kom?.kode ?? '',
+      komponen_nama: kom?.nama ?? '',
+      golongan_darah: r.golongan_darah as BloodStock['golongan_darah'],
+      jumlah: r.jumlah as number,
+      jumlah_kritis: r.batas_kritis as number,
+      status: r.status as BloodStock['status'],
+      terakhir_update: r.updated_at as string,
+    };
+  });
+}
+
+/**
+ * FIX: Bulk fetch stok untuk banyak lokasi sekaligus — menghapus N+1 di stok-darah page.
+ */
+export async function getBloodStockByMultipleLocations(
+  lokasiIds: number[],
+): Promise<Record<number, BloodStock[]>> {
+  if (lokasiIds.length === 0) return {};
+
+  const { data, error } = await supabase
+    .from('stok_darah')
+    .select(`
+      id, lokasi_id, golongan_darah, jumlah, status, updated_at,
+      batas_kritis,
+      komponen:komponen_darah (kode, nama)
+    `)
+    .in('lokasi_id', lokasiIds)
+    .order('golongan_darah');
+
+  if (error) return {};
+
+  const result: Record<number, BloodStock[]> = {};
+  for (const s of data ?? []) {
+    const r = s as Record<string, unknown>;
+    const kom = r.komponen as { kode?: string; nama?: string } | null;
+    const item: BloodStock = {
+      id: r.id as number,
+      lokasi_id: r.lokasi_id as number,
+      komponen_id: 0,
+      komponen_kode: kom?.kode ?? '',
+      komponen_nama: kom?.nama ?? '',
+      golongan_darah: r.golongan_darah as BloodStock['golongan_darah'],
+      jumlah: r.jumlah as number,
+      jumlah_kritis: r.batas_kritis as number,
+      status: r.status as BloodStock['status'],
+      terakhir_update: r.updated_at as string,
+    };
+    const lid = r.lokasi_id as number;
+    if (!result[lid]) result[lid] = [];
+    result[lid].push(item);
   }
-  const data: ApiResponse<Registration> = await res.json();
-  return data.data;
+  return result;
+}
+
+export async function getBloodStockSummary(): Promise<{
+  golongan_darah: string;
+  total: number;
+  status: 'normal' | 'kritis' | 'kosong';
+}[]> {
+  const { data, error } = await supabase
+    .from('stok_darah')
+    .select('golongan_darah, jumlah, status')
+    .order('golongan_darah');
+
+  if (error) throw error;
+
+  const agg: Record<string, { total: number; hasKritis: boolean; hasKosong: boolean }> = {};
+  for (const s of data ?? []) {
+    if (!agg[s.golongan_darah]) {
+      agg[s.golongan_darah] = { total: 0, hasKritis: false, hasKosong: false };
+    }
+    agg[s.golongan_darah].total += s.jumlah;
+    if (s.status === 'kritis') agg[s.golongan_darah].hasKritis = true;
+    if (s.status === 'kosong') agg[s.golongan_darah].hasKosong = true;
+  }
+
+  return Object.entries(agg).map(([golongan_darah, v]) => ({
+    golongan_darah,
+    total: v.total,
+    status: v.hasKosong ? 'kosong' : v.hasKritis ? 'kritis' : 'normal',
+  }));
+}
+
+// ─── FAQ ──────────────────────────────────────────────────────────────────────
+
+export async function getFAQ(): Promise<{
+  id: number; pertanyaan: string; jawaban: string; kategori: string;
+}[]> {
+  const { data, error } = await supabase
+    .from('faq')
+    .select('id, pertanyaan, jawaban, kategori')
+    .eq('aktif', true)
+    .order('kategori')
+    .order('urutan');
+
+  if (error) return [];
+  return data ?? [];
+}
+
+// ─── Testimonial ──────────────────────────────────────────────────────────────
+
+export async function getTestimonials(): Promise<{
+  id: number; nama: string; jabatan: string | null;
+  isi: string; rating: number; foto: string | null;
+}[]> {
+  const { data, error } = await supabase
+    .from('testimonial')
+    .select('id, nama, jabatan, isi, rating, foto')
+    .eq('aktif', true)
+    .order('urutan');
+
+  if (error) return [];
+  return data ?? [];
+}
+
+// ─── Registrasi ──────────────────────────────────────────────────────────────
+
+export async function createRegistrasi(payload: {
+  jadwal_id: number;
+  nama: string;
+  email?: string;
+  telepon: string;
+  golongan_darah: string;
+  tanggal_lahir?: string;
+  jenis_kelamin?: 'L' | 'P';
+  alamat?: string;
+  riwayat_donor: boolean;
+}): Promise<{ kode_registrasi: string }> {
+  // FIX: Kode registrasi dihasilkan dengan timestamp + random untuk menghindari race condition.
+  // Di production, gunakan Supabase RPC function dengan sequence untuk yang benar-benar atomic.
+  const year = new Date().getFullYear();
+  const ts = Date.now().toString(36).toUpperCase();
+  const rand = Math.floor(Math.random() * 999).toString().padStart(3, '0');
+  const kode = `REG-${year}-${ts}${rand}`;
+
+  const { data: reg, error } = await supabase
+    .from('registrasi_donor')
+    .insert({ ...payload, kode_registrasi: kode })
+    .select('kode_registrasi')
+    .single();
+
+  if (error) {
+    if (error.code === '23505') {
+      // Jika nomor telepon sudah terdaftar untuk jadwal yang sama
+      if (error.message?.includes('telepon') || error.message?.includes('jadwal')) {
+        throw new Error('Nomor WhatsApp ini sudah terdaftar untuk jadwal tersebut.');
+      }
+      // Jika kode duplikat (sangat jarang), coba sekali lagi dengan kode baru
+      const kode2 = `REG-${year}-${Date.now().toString(36).toUpperCase()}${Math.floor(Math.random() * 9999).toString().padStart(4, '0')}`;
+      const { data: reg2, error: err2 } = await supabase
+        .from('registrasi_donor')
+        .insert({ ...payload, kode_registrasi: kode2 })
+        .select('kode_registrasi')
+        .single();
+      if (err2) throw new Error('Gagal mendaftar. Silakan coba lagi.');
+      return { kode_registrasi: (reg2 as { kode_registrasi: string }).kode_registrasi };
+    }
+    throw error;
+  }
+
+  return { kode_registrasi: (reg as { kode_registrasi: string }).kode_registrasi };
+}
+
+/** Alias untuk kompatibilitas (RegisterForm menggunakan registerDonor) */
+export const registerDonor = createRegistrasi;
+
+// ─── Registrasi Status (untuk tracker page) ───────────────────────────────────
+
+export async function getRegistrasiByKode(kode: string): Promise<{
+  kode_registrasi: string;
+  nama: string;
+  status: string;
+  jadwal: {
+    tanggal: string;
+    waktu_mulai: string;
+    waktu_selesai: string;
+    lokasi: { nama_lokasi: string; alamat: string; kecamatan: string };
+  };
+} | null> {
+  const { data, error } = await supabase
+    .from('registrasi_donor')
+    .select(`
+      kode_registrasi, nama, status,
+      jadwal:jadwal_donor (
+        tanggal, waktu_mulai, waktu_selesai,
+        lokasi:lokasi_donor (nama_lokasi, alamat, kecamatan)
+      )
+    `)
+    .eq('kode_registrasi', kode.toUpperCase())
+    .single();
+
+  if (error) return null;
+  return data as unknown as {
+    kode_registrasi: string;
+    nama: string;
+    status: string;
+    jadwal: {
+      tanggal: string;
+      waktu_mulai: string;
+      waktu_selesai: string;
+      lokasi: { nama_lokasi: string; alamat: string; kecamatan: string };
+    };
+  };
 }

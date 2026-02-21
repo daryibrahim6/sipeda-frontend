@@ -1,8 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowRight, Droplets } from 'lucide-react';
-import Navbar from '@/components/layout/Navbar';
-import Footer from '@/components/layout/Footer';
 import { getArticles } from '@/lib/api';
 import { formatDate } from '@/lib/utils';
 
@@ -23,12 +21,11 @@ export default async function ArtikelPage({
 
   const result = await getArticles(page).catch(() => null);
   const articles = result?.data ?? [];
-  const meta = result?.meta;
+  const totalPages = result?.totalPages ?? 1;
 
   return (
     <>
-      <Navbar />
-      <main id="main">
+<main id="main">
 
         {/* Header */}
         <section className="bg-gray-950 text-white py-16">
@@ -123,7 +120,7 @@ export default async function ArtikelPage({
               </div>
 
               {/* Pagination */}
-              {meta && meta.last_page > 1 && (
+              {totalPages > 1 && (
                 <div className="flex items-center justify-center gap-2 mt-12">
                   {page > 1 && (
                     <a href={`/artikel?page=${page - 1}`}
@@ -132,9 +129,9 @@ export default async function ArtikelPage({
                     </a>
                   )}
                   <span className="px-4 py-2 text-sm text-gray-500">
-                    Halaman {page} dari {meta.last_page}
+                    Halaman {page} dari {totalPages}
                   </span>
-                  {page < meta.last_page && (
+                  {page < totalPages && (
                     <a href={`/artikel?page=${page + 1}`}
                       className="px-4 py-2 text-sm font-medium rounded-xl border border-gray-200 text-gray-600 hover:border-red-300 hover:text-red-600 transition-colors">
                       Selanjutnya →
@@ -146,7 +143,6 @@ export default async function ArtikelPage({
           )}
         </div>
       </main>
-      <Footer />
-    </>
+</>
   );
 }

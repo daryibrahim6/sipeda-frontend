@@ -1,10 +1,9 @@
-// src/app/tentang/page.tsx
-
 import type { Metadata } from 'next';
 import { Droplets, MapPin, Phone, Mail, Clock, Users, Heart, Shield } from 'lucide-react';
-import Navbar from '@/components/layout/Navbar';
-import Footer from '@/components/layout/Footer';
 import Link from 'next/link';
+import { getStats } from '@/lib/api';
+
+export const revalidate = 300; // revalidate setiap 5 menit
 
 export const metadata: Metadata = {
   title: 'Tentang SIPEDA',
@@ -37,16 +36,14 @@ const values = [
 ];
 
 const team = [
-  { name: 'dr. Slamet Riyadi', role: 'Kepala UDD PMI Indramayu', initial: 'SR' },
-  { name: 'dr. Ani Rahayu', role: 'Dokter Koordinator Donor', initial: 'AR' },
-  { name: 'Budi Santoso, S.Kom', role: 'Koordinator Sistem & Data', initial: 'BS' },
+  { name: 'Dary Ibrahim Akram', role: 'Pengembang Sistem & Frontend', initial: 'DI' },
+  { name: 'PMI Kabupaten Indramayu', role: 'Mitra & Pengelola Data', initial: 'PM' },
 ];
 
-export default function TentangPage() {
+export default async function TentangPage() {
+  const stats = await getStats().catch(() => ({ total_stok: 0, lokasi_aktif: 0, jadwal_aktif: 0, total_stok_kritis: 0 }));
   return (
-    <>
-      <Navbar />
-      <main id="main">
+    <main id="main">
 
         {/* ── Hero ── */}
         <section className="bg-gray-950 text-white py-20">
@@ -100,10 +97,10 @@ export default function TentangPage() {
               {/* Stats visual */}
               <div className="grid grid-cols-2 gap-4">
                 {[
-                  { value: '5+', label: 'Lokasi Aktif', icon: MapPin },
-                  { value: '300+', label: 'Stok Kantong Darah', icon: Droplets },
+                  { value: `${stats.lokasi_aktif}`, label: 'Lokasi Aktif', icon: MapPin },
+                  { value: `${stats.total_stok}+`, label: 'Stok Kantong Darah', icon: Droplets },
                   { value: '24/7', label: 'Akses Informasi', icon: Clock },
-                  { value: '1000+', label: 'Pendonor Terdaftar', icon: Users },
+                  { value: `${stats.jadwal_aktif}`, label: 'Jadwal Aktif Bulan Ini', icon: Users },
                 ].map(item => (
                   <div key={item.label}
                     className="bg-gray-50 rounded-2xl border border-gray-100 p-6 flex flex-col gap-3">
@@ -254,7 +251,5 @@ export default function TentangPage() {
         </section>
 
       </main>
-      <Footer />
-    </>
   );
 }

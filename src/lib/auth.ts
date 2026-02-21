@@ -1,69 +1,86 @@
 /**
- * lib/auth.ts
- * Mock auth — swap fungsi login() ke real API call saat backend siap.
- * Token disimpan di cookie HttpOnly-compatible (via middleware).
+ * lib/auth.ts — Supabase Auth untuk Admin
+ * 
+ * Menggantikan loginMock() yang sebelumnya dipakai.
+ * Gunakan Supabase Auth — lebih aman, session management otomatis.
  */
 
-export const AUTH_COOKIE = 'sipeda_admin_token';
+import { supabase } from './supabase';
 
-// Mock credentials — ganti dengan API call ke Laravel nanti
-const MOCK_USERS = [
-  { email: 'admin@sipeda.id',    password: 'admin123',    name: 'Super Admin',  role: 'superadmin' as const },
-  { email: 'operator@sipeda.id', password: 'operator123', name: 'Budi Santoso', role: 'operator'   as const },
-];
+// ─── Admin login ──────────────────────────────────────────────────────────────
 
-export type AdminRole = 'superadmin' | 'admin' | 'operator';
+export async function loginAdmin(email: string, password: string) {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
 
-export type AdminUser = {
-  name:  string;
-  email: string;
-  role:  AdminRole;
-  token: string;
-};
-
-// ─── Mock login ───────────────────────────────────────────────────────────────
-export async function loginMock(email: string, password: string): Promise<AdminUser> {
-  await new Promise(r => setTimeout(r, 600)); // simulasi latency
-
-  const user = MOCK_USERS.find(u => u.email === email && u.password === password);
-  if (!user) throw new Error('Email atau password salah.');
-
-  const token = btoa(JSON.stringify({ email: user.email, role: user.role, exp: Date.now() + 86400000 }));
-
-  return { name: user.name, email: user.email, role: user.role, token };
-}
-
-// ─── Token helpers (client-side) ─────────────────────────────────────────────
-export function saveToken(token: string, user: Omit<AdminUser, 'token'>) {
-  if (typeof document === 'undefined') return;
-  document.cookie = `${AUTH_COOKIE}=${token}; path=/; max-age=86400; SameSite=Lax`;
-  sessionStorage.setItem('sipeda_user', JSON.stringify(user));
-}
-
-export function clearToken() {
-  if (typeof document === 'undefined') return;
-  document.cookie = `${AUTH_COOKIE}=; path=/; max-age=0`;
-  sessionStorage.removeItem('sipeda_user');
-}
-
-export function getUser(): Omit<AdminUser, 'token'> | null {
-  if (typeof window === 'undefined') return null;
-  const raw = sessionStorage.getItem('sipeda_user');
-  if (!raw) return null;
-  try { return JSON.parse(raw); } catch { return null; }
-}
-
-export function getToken(): string | null {
-  if (typeof document === 'undefined') return null;
-  const match = document.cookie.match(new RegExp(`(?:^|; )${AUTH_COOKIE}=([^;]*)`));
-  return match ? decodeURIComponent(match[1]) : null;
-}
-
-export function isTokenValid(token: string): boolean {
-  try {
-    const payload = JSON.parse(atob(token));
-    return payload.exp > Date.now();
-  } catch {
-    return false;
+  if (error) {
+    throw new Error('Email atau password salah. Silakan coba lagi.');
   }
+
+  // Cek apakah user ini terdaftar sebagai admin
+  const { data: adminData, error: adminError } = await supabase
+    .from('admins')
+    .select('id, name, email, role')
+    .eq('auth_user_id', data.user.id)
+    .single();
+
+  if (adminError || !adminData) {
+    await supabase.auth.signOut();
+    throw new Error('Akun ini tidak memiliki akses admin.');
+  }
+
+  // Update last_login
+  await supabase
+    .from('admins')
+    .update({ last_login: new Date().toISOString() })
+    .eq('id', adminData.id);
+
+  return {
+    session: data.session,
+    user: {
+      id:    adminData.id,
+      name:  adminData.name,
+      email: adminData.email,
+      role:  adminData.role,
+    },
+  };
 }
+
+// ─── Logout ───────────────────────────────────────────────────────────────────
+
+export async function logoutAdmin() {
+  await supabase.auth.signOut();
+}
+
+// ─── Get current session ──────────────────────────────────────────────────────
+
+export async function getAdminSession() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return null;
+
+  const { data: adminData } = await supabase
+    .from('admins')
+    .select('id, name, email, role')
+    .eq('auth_user_id', session.user.id)
+    .single();
+
+  if (!adminData) return null;
+  return { session, user: adminData };
+}
+
+// ─── Check if logged in (client-side guard) ───────────────────────────────────
+
+export async function requireAdminAuth() {
+  const sessionData = await getAdminSession();
+  if (!sessionData) {
+    window.location.href = '/admin/login?expired=1';
+    return null;
+  }
+  return sessionData;
+}
+
+// ─── DEPRECATED: fungsi mock yang lama — HAPUS setelah migration ──────────────
+// loginMock(), saveToken(), getToken(), isTokenValid() sudah tidak diperlukan.
+// Semua digantikan oleh fungsi di atas menggunakan Supabase Auth.

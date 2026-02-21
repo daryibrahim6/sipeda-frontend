@@ -1,7 +1,11 @@
+// ─── Primitive types ─────────────────────────────────────────────────────────
+
 export type BloodType = 'A+' | 'A-' | 'B+' | 'B-' | 'AB+' | 'AB-' | 'O+' | 'O-';
 export type StockStatus = 'normal' | 'kritis' | 'kosong';
 export type ScheduleStatus = 'aktif' | 'penuh' | 'dibatalkan' | 'selesai';
 export type LocationType = 'PMI' | 'RS' | 'Klinik' | 'Puskesmas' | 'Lainnya';
+
+// ─── Location ─────────────────────────────────────────────────────────────────
 
 export type Location = {
   id: number;
@@ -25,6 +29,8 @@ export type Location = {
   jadwal_aktif?: number;
 };
 
+// ─── Schedule ─────────────────────────────────────────────────────────────────
+
 export type Schedule = {
   id: number;
   lokasi_id: number;
@@ -37,6 +43,8 @@ export type Schedule = {
   deskripsi: string | null;
   status: ScheduleStatus;
 };
+
+// ─── Registration ─────────────────────────────────────────────────────────────
 
 export type RegistrationPayload = {
   jadwal_id: number;
@@ -56,6 +64,8 @@ export type Registration = RegistrationPayload & {
   status: 'pending' | 'confirmed' | 'hadir' | 'tidak_hadir' | 'dibatalkan';
   created_at: string;
 };
+
+// ─── Blood Stock ──────────────────────────────────────────────────────────────
 
 export type BloodStockItem = {
   id: number;
@@ -84,6 +94,8 @@ export type BloodStockRow = {
   total: number;
 };
 
+// ─── Article ──────────────────────────────────────────────────────────────────
+
 export type Article = {
   id: number;
   judul: string;
@@ -97,8 +109,14 @@ export type Article = {
   gambar_alt: string | null;
   unggulan: boolean;
   views: number;
-  published_at: string;
+  // FIX: published_at nullable — kolom DB adalah TIMESTAMPTZ NULL
+  // Error sebelumnya: formatDate(a.published_at) gagal karena tipe 'string | null'
+  // tidak diterima oleh formatDate yang hanya accept 'string'
+  // Solusi: (1) tipe diubah ke string | null, (2) formatDate diupdate terima null
+  published_at: string | null;
 };
+
+// ─── Stats ────────────────────────────────────────────────────────────────────
 
 export type SiteStats = {
   total_stok: number;
@@ -107,12 +125,16 @@ export type SiteStats = {
   total_stok_kritis: number;
 };
 
+// ─── FAQ ──────────────────────────────────────────────────────────────────────
+
 export type FAQ = {
   id: number;
   pertanyaan: string;
   jawaban: string;
   kategori: 'umum' | 'syarat' | 'proses' | 'stok' | 'lainnya';
 };
+
+// ─── Testimonial ──────────────────────────────────────────────────────────────
 
 export type Testimonial = {
   id: number;
@@ -123,6 +145,8 @@ export type Testimonial = {
   rating: number;
 };
 
+// ─── Announcement ─────────────────────────────────────────────────────────────
+
 export type Announcement = {
   id: number;
   judul: string;
@@ -131,6 +155,8 @@ export type Announcement = {
   link: string | null;
   link_teks: string | null;
 };
+
+// ─── API Wrappers ─────────────────────────────────────────────────────────────
 
 export type ApiResponse<T> = { data: T; message?: string };
 export type PaginatedResponse<T> = {
