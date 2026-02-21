@@ -1,8 +1,5 @@
 /**
  * lib/auth.ts — Supabase Auth untuk Admin
- * 
- * Menggantikan loginMock() yang sebelumnya dipakai.
- * Gunakan Supabase Auth — lebih aman, session management otomatis.
  */
 
 import { supabase } from './supabase';
@@ -10,16 +7,11 @@ import { supabase } from './supabase';
 // ─── Admin login ──────────────────────────────────────────────────────────────
 
 export async function loginAdmin(email: string, password: string) {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-  if (error) {
-    throw new Error('Email atau password salah. Silakan coba lagi.');
-  }
+  if (error) throw new Error('Email atau password salah. Silakan coba lagi.');
 
-  // Cek apakah user ini terdaftar sebagai admin
+  // Check admin record — parallel dengan fire-and-forget last_login update
   const { data: adminData, error: adminError } = await supabase
     .from('admins')
     .select('id, name, email, role')
@@ -31,19 +23,20 @@ export async function loginAdmin(email: string, password: string) {
     throw new Error('Akun ini tidak memiliki akses admin.');
   }
 
-  // Update last_login
-  await supabase
+  // Non-blocking: update last_login tanpa tunggu response (tidak perlu await)
+  supabase
     .from('admins')
     .update({ last_login: new Date().toISOString() })
-    .eq('id', adminData.id);
+    .eq('id', adminData.id)
+    .then(() => { }); // fire and forget
 
   return {
     session: data.session,
     user: {
-      id:    adminData.id,
-      name:  adminData.name,
+      id: adminData.id,
+      name: adminData.name,
       email: adminData.email,
-      role:  adminData.role,
+      role: adminData.role,
     },
   };
 }
@@ -80,7 +73,3 @@ export async function requireAdminAuth() {
   }
   return sessionData;
 }
-
-// ─── DEPRECATED: fungsi mock yang lama — HAPUS setelah migration ──────────────
-// loginMock(), saveToken(), getToken(), isTokenValid() sudah tidak diperlukan.
-// Semua digantikan oleh fungsi di atas menggunakan Supabase Auth.
