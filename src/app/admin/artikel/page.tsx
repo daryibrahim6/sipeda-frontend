@@ -11,6 +11,7 @@ import {
   getAdminArtikel, createArtikel, updateArtikel, deleteArtikel,
   getKategoriArtikel, type AdminArtikel, type AdminArtikelPayload,
 } from '@/lib/admin-api';
+import { requireAdminAuth } from '@/lib/auth';
 import { formatDate } from '@/lib/utils';
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
@@ -195,6 +196,9 @@ export default function AdminArtikelPage() {
   const [form, setForm] = useState<FormData>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
+
+  // Auth guard (middleware disabled — Supabase v2 uses localStorage)
+  useEffect(() => { requireAdminAuth(); }, []);
 
   function showToast(msg: string, type: 'success' | 'error' = 'success') {
     setToast({ msg, type });

@@ -6,6 +6,7 @@ import { TopBar } from '@/components/admin/TopBar';
 import { Loader2, Check, X, Save, RefreshCw, MapPin } from 'lucide-react';
 import { getAdminStok, updateStokDarah, type AdminStokRow } from '@/lib/admin-api';
 import { getLocations } from '@/lib/api';
+import { requireAdminAuth } from '@/lib/auth';
 import type { Location } from '@/lib/types';
 
 type StockStatus = 'normal' | 'kritis' | 'kosong';
@@ -67,6 +68,9 @@ export default function AdminStokPage() {
   const [editing, setEditing] = useState<{ id: number; val: string } | null>(null);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+
+  // Auth guard (middleware disabled — Supabase v2 uses localStorage)
+  useEffect(() => { requireAdminAuth(); }, []);
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
