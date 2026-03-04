@@ -23,6 +23,12 @@ export async function loginAdmin(email: string, password: string) {
     throw new Error('Akun ini tidak memiliki akses admin.');
   }
 
+  // Blokir petugas_lapangan dari admin panel — mereka hanya boleh di /petugas
+  if (adminData.role === 'petugas_lapangan') {
+    await supabase.auth.signOut();
+    throw new Error('Akun petugas lapangan tidak memiliki akses admin. Silakan login di halaman petugas.');
+  }
+
   // Non-blocking: update last_login tanpa tunggu response (tidak perlu await)
   supabase
     .from('admins')
@@ -64,6 +70,8 @@ export async function getAdminSession() {
     .single();
 
   if (!adminData) return null;
+  // Blokir petugas_lapangan dari admin session — mereka hanya boleh di /petugas
+  if (adminData.role === 'petugas_lapangan') return null;
   return { session, user: adminData };
 }
 

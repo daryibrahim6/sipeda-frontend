@@ -10,6 +10,7 @@ import {
 import { getDashboardStats, getUpcomingSchedules, getBloodStockSummary } from '@/lib/api';
 import { formatDate, BLOOD_TYPES } from '@/lib/utils';
 import type { Schedule } from '@/lib/types';
+import Link from 'next/link';
 
 // ─── Mini stat card ───────────────────────────────────────────────────────────
 function StatCard({
@@ -154,10 +155,10 @@ export default function DashboardPage() {
                 <h2 className="font-bold text-gray-900">Stok Darah</h2>
                 <p className="text-xs text-gray-400 mt-0.5">Per golongan darah (semua komponen)</p>
               </div>
-              <a href="/admin/stok-darah"
+              <Link href="/admin/stok-darah"
                 className="text-xs font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-1">
                 Kelola <ArrowUpRight className="w-3 h-3" />
-              </a>
+              </Link>
             </div>
             {loading
               ? <div className="h-40 animate-pulse bg-gray-100 rounded-xl" />
@@ -198,8 +199,8 @@ export default function DashboardPage() {
                         </div>
                       </div>
                       <span className={`text-xs font-bold px-2 py-0.5 rounded-full capitalize ${item.status === 'kosong'
-                          ? 'bg-red-100 text-red-700'
-                          : 'bg-amber-100 text-amber-700'
+                        ? 'bg-red-100 text-red-700'
+                        : 'bg-amber-100 text-amber-700'
                         }`}>
                         {item.status}
                       </span>
@@ -218,10 +219,10 @@ export default function DashboardPage() {
               <h2 className="font-bold text-gray-900">Jadwal Upcoming</h2>
               <p className="text-xs text-gray-400 mt-0.5">5 jadwal terdekat yang masih aktif</p>
             </div>
-            <a href="/admin/jadwal"
+            <Link href="/admin/jadwal"
               className="text-xs font-medium text-red-600 hover:text-red-700 flex items-center gap-1">
               Kelola <ArrowUpRight className="w-3 h-3" />
-            </a>
+            </Link>
           </div>
           {loading ? (
             <div className="space-y-3">
@@ -272,13 +273,13 @@ export default function DashboardPage() {
             { href: '/admin/registrasi', label: 'Registrasi', icon: ClipboardList, color: 'text-green-600 bg-green-50' },
             { href: '/admin/artikel', label: 'Artikel', icon: TrendingUp, color: 'text-purple-600 bg-purple-50' },
           ].map(item => (
-            <a key={item.href} href={item.href}
+            <Link key={item.href} href={item.href}
               className="flex flex-col items-center gap-2 p-4 bg-white rounded-2xl border border-gray-100 hover:shadow-md hover:-translate-y-0.5 transition-all text-center">
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${item.color}`}>
                 <item.icon className="w-5 h-5" />
               </div>
               <span className="text-xs font-semibold text-gray-700">{item.label}</span>
-            </a>
+            </Link>
           ))}
         </div>
 

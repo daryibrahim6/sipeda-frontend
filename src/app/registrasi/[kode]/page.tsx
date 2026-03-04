@@ -94,15 +94,15 @@ export default async function RegistrasiDetailPage({ params }: Props) {
                     <div className="space-y-2.5">
                         <div className="flex items-center gap-2.5 text-sm text-gray-700">
                             <Calendar className="w-4 h-4 text-red-500 flex-shrink-0" />
-                            {formatDate(data.jadwal.tanggal, { withDay: true })}
+                            {formatDate(data.jadwal?.tanggal, { withDay: true })}
                         </div>
                         <div className="flex items-center gap-2.5 text-sm text-gray-700">
                             <Clock className="w-4 h-4 text-red-500 flex-shrink-0" />
-                            {formatTime(data.jadwal.waktu_mulai)} – {formatTime(data.jadwal.waktu_selesai)} WIB
+                            {formatTime(data.jadwal?.waktu_mulai)} – {formatTime(data.jadwal?.waktu_selesai)} WIB
                         </div>
                         <div className="flex items-center gap-2.5 text-sm text-gray-700">
                             <MapPin className="w-4 h-4 text-red-500 flex-shrink-0" />
-                            {data.jadwal.lokasi.nama_lokasi} · {data.jadwal.lokasi.kecamatan}
+                            {data.jadwal?.lokasi?.nama_lokasi ?? '—'} · {data.jadwal?.lokasi?.kecamatan ?? '—'}
                         </div>
                     </div>
                 </div>

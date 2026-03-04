@@ -12,9 +12,9 @@ import Footer from './Footer';
  */
 export function PublicShell({ children }: { children: ReactNode }) {
     const pathname = usePathname();
-    const isAdmin = pathname?.startsWith('/admin');
+    const isExcluded = pathname?.startsWith('/admin') || pathname?.startsWith('/petugas');
 
-    if (isAdmin) return <>{children}</>;
+    if (isExcluded) return <>{children}</>;
 
     return (
         <>
