@@ -156,6 +156,37 @@ export type Announcement = {
   link_teks: string | null;
 };
 
+// ─── Pencatatan Donor ─────────────────────────────────────────────────────────
+
+export type StatusDonor = 'berhasil' | 'gagal' | 'tidak_memenuhi_syarat';
+
+export type PencatatanDonor = {
+  id: number;
+  jadwal_id: number;
+  nama_pendonor: string;
+  golongan_darah: BloodType | 'Tidak Tahu';
+  status_donor: StatusDonor;
+  catatan: string | null;
+  dicatat_oleh: number | null;
+  created_at: string;
+  // joined
+  jadwal?: Pick<Schedule, 'tanggal' | 'waktu_mulai' | 'waktu_selesai'> & {
+    lokasi: Pick<Location, 'nama_lokasi'>;
+  };
+};
+
+export type RekapPencatatan = {
+  jadwal_id: number;
+  tanggal: string;
+  waktu_mulai: string;
+  waktu_selesai: string;
+  nama_lokasi: string;
+  total_catat: number;
+  berhasil: number;
+  gagal: number;
+  tidak_memenuhi: number;
+};
+
 // ─── API Wrappers ─────────────────────────────────────────────────────────────
 
 export type ApiResponse<T> = { data: T; message?: string };

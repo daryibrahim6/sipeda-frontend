@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   Droplets, LayoutDashboard, Calendar, Tally4,
   ClipboardList, FileText, LogOut, X, ChevronRight,
-  User,
+  User, ClipboardCheck,
 } from 'lucide-react';
 // FIX: clearToken dan getUser TIDAK ADA di auth.ts (sudah dihapus saat migrasi ke Supabase Auth).
 // Sidebar lama: import { clearToken, getUser } from '@/lib/auth' → runtime crash
@@ -14,11 +14,12 @@ import { logoutAdmin, getAdminSession } from '@/lib/auth';
 import { useEffect, useState } from 'react';
 
 const navItems = [
-  { href: '/admin/dashboard',  label: 'Dashboard',    icon: LayoutDashboard },
-  { href: '/admin/jadwal',     label: 'Jadwal Donor', icon: Calendar },
-  { href: '/admin/stok-darah', label: 'Stok Darah',   icon: Tally4 },
-  { href: '/admin/registrasi', label: 'Registrasi',   icon: ClipboardList },
-  { href: '/admin/artikel',    label: 'Artikel',      icon: FileText },
+  { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/admin/jadwal', label: 'Jadwal Donor', icon: Calendar },
+  { href: '/admin/stok-darah', label: 'Stok Darah', icon: Tally4 },
+  { href: '/admin/registrasi', label: 'Registrasi', icon: ClipboardList },
+  { href: '/admin/pencatatan', label: 'Pencatatan', icon: ClipboardCheck },
+  { href: '/admin/artikel', label: 'Artikel', icon: FileText },
 ];
 
 type Props = {
@@ -28,7 +29,7 @@ type Props = {
 
 export function Sidebar({ open, onClose }: Props) {
   const pathname = usePathname();
-  const router   = useRouter();
+  const router = useRouter();
   const [user, setUser] = useState<{ name: string; email: string; role: string } | null>(null);
 
   useEffect(() => {
@@ -36,9 +37,9 @@ export function Sidebar({ open, onClose }: Props) {
     getAdminSession().then(session => {
       if (session?.user) {
         setUser({
-          name:  session.user.name,
+          name: session.user.name,
           email: session.user.email,
-          role:  session.user.role,
+          role: session.user.role,
         });
       }
     });
@@ -82,11 +83,10 @@ export function Sidebar({ open, onClose }: Props) {
               key={item.href}
               href={item.href}
               onClick={onClose}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group ${
-                active
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group ${active
                   ? 'bg-red-600 text-white shadow-lg shadow-red-600/20'
                   : 'text-gray-500 hover:text-white hover:bg-white/5'
-              }`}
+                }`}
               aria-current={active ? 'page' : undefined}
             >
               <item.icon className={`w-4 h-4 flex-shrink-0 ${active ? 'text-white' : 'text-gray-600 group-hover:text-gray-400'}`} />
