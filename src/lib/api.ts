@@ -86,7 +86,7 @@ export async function getLocations(): Promise<Location[]> {
   const { data: stocks } = lokasiIds.length > 0
     ? await supabase
       .from('stok_darah')
-      .select('lokasi_id, golongan_darah, status')
+      .select('lokasi_id, golongan_darah, jumlah, status')
       .in('lokasi_id', lokasiIds)
     : { data: [] };
 
@@ -96,7 +96,7 @@ export async function getLocations(): Promise<Location[]> {
     koordinat_lng: Number(loc.koordinat_lng),
     stok_ringkas: stocks
       ?.filter(s => s.lokasi_id === loc.id)
-      .map(s => ({ golongan_darah: s.golongan_darah, status: s.status })) ?? [],
+      .map(s => ({ golongan_darah: s.golongan_darah, total: s.jumlah, status: s.status })) ?? [],
   })) as Location[];
 }
 
