@@ -23,9 +23,6 @@ function LoginForm() {
     setErrorMsg('');
     try {
       await loginAdmin(email, password);
-      // Set marker cookie agar middleware tahu session aktif
-      // (Supabase v2 pakai localStorage, bukan cookie, jadi middleware perlu cookie terpisah)
-      document.cookie = 'sipeda_admin=1; path=/; max-age=86400; SameSite=Lax';
       router.push('/admin/dashboard');
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : 'Login gagal. Coba lagi.');
