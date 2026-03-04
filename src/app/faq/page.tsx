@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { ChevronDown, HelpCircle, Search } from 'lucide-react';
+import { ChevronDown, HelpCircle, Search, Phone, MessageCircle } from 'lucide-react';
 import { getFAQ } from '@/lib/api';
 import Link from 'next/link';
 
@@ -47,7 +47,7 @@ export default async function FAQPage() {
 
     return (
         <>
-<main id="main">
+            <main id="main">
                 {/* ── Header ── */}
                 <section className="bg-gray-950 text-white py-16">
                     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -127,11 +127,11 @@ export default async function FAQPage() {
                         <div className="flex flex-col sm:flex-row gap-3 justify-center">
                             <a href="tel:+62234271648"
                                 className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-red-600 text-white font-semibold text-sm rounded-xl hover:bg-red-700 transition-colors">
-                                📞 Telepon 0234-271648
+                                <Phone className="w-4 h-4" /> Telepon 0234-271648
                             </a>
                             <a href="https://wa.me/62234271648" target="_blank" rel="noopener noreferrer"
                                 className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-green-600 text-white font-semibold text-sm rounded-xl hover:bg-green-700 transition-colors">
-                                💬 WhatsApp PMI
+                                <MessageCircle className="w-4 h-4" /> WhatsApp PMI
                             </a>
                             <Link href="/tentang"
                                 className="inline-flex items-center justify-center gap-2 px-5 py-2.5 border border-gray-200 text-gray-700 font-semibold text-sm rounded-xl hover:bg-gray-50 transition-colors">
@@ -142,6 +142,6 @@ export default async function FAQPage() {
 
                 </div>
             </main>
-</>
+        </>
     );
 }

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowRight, Droplets } from 'lucide-react';
+import { ArrowRight, Droplets, FileText } from 'lucide-react';
 import { getArticles } from '@/lib/api';
 import { formatDate } from '@/lib/utils';
 
@@ -25,7 +25,7 @@ export default async function ArtikelPage({
 
   return (
     <>
-<main id="main">
+      <main id="main">
 
         {/* Header */}
         <section className="bg-gray-950 text-white py-16">
@@ -58,8 +58,9 @@ export default async function ArtikelPage({
                       <img src={articles[0].gambar} alt={articles[0].gambar_alt ?? articles[0].judul}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Droplets className="w-16 h-16 text-red-200" />
+                      <div className="w-full h-full flex flex-col items-center justify-center p-8 bg-gradient-to-br from-red-600 to-red-800">
+                        <FileText className="w-12 h-12 text-white/40 mb-3" />
+                        <span className="text-white/70 text-sm font-semibold text-center line-clamp-2 max-w-[200px]">{articles[0].judul}</span>
                       </div>
                     )}
                   </div>
@@ -98,8 +99,16 @@ export default async function ArtikelPage({
                         <img src={a.gambar} alt={a.gambar_alt ?? a.judul}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Droplets className="w-10 h-10 text-gray-300" />
+                        <div className={`w-full h-full flex flex-col items-center justify-center p-6 ${['bg-gradient-to-br from-red-500 to-orange-600',
+                            'bg-gradient-to-br from-blue-500 to-indigo-600',
+                            'bg-gradient-to-br from-emerald-500 to-teal-600',
+                            'bg-gradient-to-br from-purple-500 to-pink-600',
+                            'bg-gradient-to-br from-amber-500 to-red-600',
+                            'bg-gradient-to-br from-cyan-500 to-blue-600',
+                          ][a.id % 6]
+                          }`}>
+                          <FileText className="w-8 h-8 text-white/40 mb-2" />
+                          <span className="text-white/80 text-xs font-semibold text-center line-clamp-2">{a.judul}</span>
                         </div>
                       )}
                     </div>
@@ -143,6 +152,6 @@ export default async function ArtikelPage({
           )}
         </div>
       </main>
-</>
+    </>
   );
 }
