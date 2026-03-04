@@ -47,6 +47,34 @@ export async function loginAdmin(email: string, password: string) {
   };
 }
 
+// ─── Unified Login (for /login page) ──────────────────────────────────────────
+
+export async function loginUnified(email: string, password: string) {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) throw new Error('Email atau password salah. Silakan coba lagi.');
+
+  const { data: adminData, error: adminError } = await supabase
+    .from('admins')
+    .select('id, name, email, role')
+    .eq('auth_user_id', data.user.id)
+    .single();
+
+  if (adminError || !adminData) {
+    await supabase.auth.signOut();
+    throw new Error('Akun ini tidak terdaftar di sistem.');
+  }
+
+  return {
+    session: data.session,
+    user: {
+      id: adminData.id,
+      name: adminData.name,
+      email: adminData.email,
+      role: adminData.role as string,
+    },
+  };
+}
+
 // ─── Logout ───────────────────────────────────────────────────────────────────
 
 export async function logoutAdmin() {
@@ -76,7 +104,7 @@ export async function getAdminSession() {
 export async function requireAdminAuth() {
   const sessionData = await getAdminSession();
   if (!sessionData) {
-    window.location.href = '/admin/login?expired=1';
+    window.location.href = '/login?expired=1';
     return null;
   }
   return sessionData;
@@ -137,7 +165,7 @@ export async function getPetugasSession() {
 export async function requirePetugasAuth() {
   const sessionData = await getPetugasSession();
   if (!sessionData) {
-    window.location.href = '/petugas/login?expired=1';
+    window.location.href = '/login?expired=1';
     return null;
   }
   return sessionData;
