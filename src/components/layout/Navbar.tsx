@@ -14,6 +14,7 @@ const mainNav = [
 
 const infoNav = [
   { href: '/syarat-donor', label: 'Syarat Donor' },
+  { href: '/riwayat', label: 'Riwayat Donor' },
   { href: '/faq', label: 'FAQ' },
   { href: '/tentang', label: 'Tentang SIPEDA' },
 ];
@@ -81,8 +82,8 @@ export default function Navbar() {
           {mainNav.map(l => (
             <Link key={l.href} href={l.href}
               className={`px-3.5 py-2 text-sm rounded-lg font-medium transition-colors ${isActive(l.href)
-                  ? 'text-red-700 bg-red-50'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                ? 'text-red-700 bg-red-50'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                 }`}
               aria-current={isActive(l.href) ? 'page' : undefined}
             >
@@ -95,8 +96,8 @@ export default function Navbar() {
             <button
               onClick={() => setDropdownOpen(p => !p)}
               className={`flex items-center gap-1 px-3.5 py-2 text-sm rounded-lg font-medium transition-colors ${infoIsActive
-                  ? 'text-red-700 bg-red-50'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                ? 'text-red-700 bg-red-50'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                 }`}
               aria-expanded={dropdownOpen}
             >
@@ -109,8 +110,8 @@ export default function Navbar() {
                 {infoNav.map(l => (
                   <Link key={l.href} href={l.href}
                     className={`block px-4 py-2.5 text-sm font-medium transition-colors ${isActive(l.href)
-                        ? 'text-red-700 bg-red-50'
-                        : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                      ? 'text-red-700 bg-red-50'
+                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
                       }`}
                   >
                     {l.label}
@@ -155,8 +156,8 @@ export default function Navbar() {
           {[...mainNav, ...infoNav].map(l => (
             <Link key={l.href} href={l.href}
               className={`flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${isActive(l.href)
-                  ? 'text-red-700 bg-red-50'
-                  : 'text-gray-700 hover:bg-gray-50'
+                ? 'text-red-700 bg-red-50'
+                : 'text-gray-700 hover:bg-gray-50'
                 }`}
               aria-current={isActive(l.href) ? 'page' : undefined}
             >

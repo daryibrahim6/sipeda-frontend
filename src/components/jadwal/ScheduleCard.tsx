@@ -1,27 +1,26 @@
 import Link from 'next/link';
-import { MapPin, Clock, Users, AlertTriangle } from 'lucide-react';
+import { MapPin, Clock, Users, AlertTriangle, Share2 } from 'lucide-react';
 import type { Schedule } from '@/lib/types';
 import { ScheduleBadge } from '@/components/ui/Badge';
 import { formatDate, formatTime, quotaPercent } from '@/lib/utils';
 
 export function ScheduleCard({ schedule }: { schedule: Schedule }) {
-  const filled  = schedule.kuota - schedule.sisa_kuota;
-  const pct     = quotaPercent(schedule.sisa_kuota, schedule.kuota);
-  const isFull  = schedule.status === 'penuh' || schedule.sisa_kuota === 0;
+  const filled = schedule.kuota - schedule.sisa_kuota;
+  const pct = quotaPercent(schedule.sisa_kuota, schedule.kuota);
+  const isFull = schedule.status === 'penuh' || schedule.sisa_kuota === 0;
   const isAlmost = !isFull && pct >= 75; // sisa <= 25%
 
   // Bar color berdasarkan isian (bukan sisa)
   const barColor =
-    isFull      ? 'bg-red-500' :
-    isAlmost    ? 'bg-amber-400' :
-    pct >= 50   ? 'bg-blue-400' : 'bg-green-500';
+    isFull ? 'bg-red-500' :
+      isAlmost ? 'bg-amber-400' :
+        pct >= 50 ? 'bg-blue-400' : 'bg-green-500';
 
   return (
-    <div className={`bg-white rounded-2xl border shadow-sm hover:shadow-md transition-all flex flex-col gap-0 overflow-hidden ${
-      isFull    ? 'border-gray-200 opacity-75' :
-      isAlmost  ? 'border-amber-200' :
-      'border-gray-200 hover:-translate-y-0.5'
-    }`}>
+    <div className={`bg-white rounded-2xl border shadow-sm hover:shadow-md transition-all flex flex-col gap-0 overflow-hidden ${isFull ? 'border-gray-200 opacity-75' :
+      isAlmost ? 'border-amber-200' :
+        'border-gray-200 hover:-translate-y-0.5'
+      }`}>
       {/* ── Urgency banner — hanya jika hampir penuh ── */}
       {isAlmost && !isFull && (
         <div className="bg-amber-50 border-b border-amber-200 px-5 py-2 flex items-center gap-2">
@@ -71,9 +70,8 @@ export function ScheduleCard({ schedule }: { schedule: Schedule }) {
               <Users className="w-3 h-3" />
               <span>Kuota terisi</span>
             </div>
-            <span className={`text-xs font-bold ${
-              isFull ? 'text-red-600' : isAlmost ? 'text-amber-600' : 'text-gray-700'
-            }`}>
+            <span className={`text-xs font-bold ${isFull ? 'text-red-600' : isAlmost ? 'text-amber-600' : 'text-gray-700'
+              }`}>
               {filled} / {schedule.kuota}
             </span>
           </div>
@@ -98,20 +96,30 @@ export function ScheduleCard({ schedule }: { schedule: Schedule }) {
         )}
       </div>
 
-      {/* ── CTA ── */}
-      <div className="px-5 pb-5">
+      {/* ── CTA + Share ── */}
+      <div className="px-5 pb-5 flex items-center gap-2">
         <Link
           href={`/jadwal/${schedule.id}`}
-          className={`block text-center py-2.5 rounded-xl text-sm font-bold transition-all ${
-            isFull
-              ? 'bg-gray-100 text-gray-400 cursor-not-allowed pointer-events-none'
-              : isAlmost
+          className={`flex-1 block text-center py-2.5 rounded-xl text-sm font-bold transition-all ${isFull
+            ? 'bg-gray-100 text-gray-400 cursor-not-allowed pointer-events-none'
+            : isAlmost
               ? 'bg-amber-500 text-white hover:bg-amber-600 shadow-sm shadow-amber-200'
               : 'bg-red-600 text-white hover:bg-red-700 shadow-sm shadow-red-200'
-          }`}
+            }`}
         >
           {isFull ? 'Kuota Penuh' : isAlmost ? 'Daftar Sebelum Penuh!' : 'Daftar Sekarang'}
         </Link>
+        <a
+          href={`https://wa.me/?text=${encodeURIComponent(
+            `📢 *Jadwal Donor Darah*\n\n📍 ${schedule.lokasi?.nama_lokasi ?? 'PMI Indramayu'}\n📅 ${formatDate(schedule.tanggal)}\n🕐 ${formatTime(schedule.waktu_mulai)} – ${formatTime(schedule.waktu_selesai)} WIB\n👥 Sisa kuota: ${schedule.sisa_kuota} slot\n\nDaftar di:\n🔗 https://sipeda.vercel.app/jadwal/${schedule.id}`
+          )}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Bagikan ke WhatsApp"
+          className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl border border-gray-200 text-gray-400 hover:text-green-600 hover:border-green-200 hover:bg-green-50 transition-colors"
+        >
+          <Share2 className="w-4 h-4" />
+        </a>
       </div>
     </div>
   );

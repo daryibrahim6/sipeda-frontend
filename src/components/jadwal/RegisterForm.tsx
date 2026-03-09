@@ -4,11 +4,13 @@ import { useState, useRef } from 'react';
 import type { Schedule, RegistrationPayload, BloodType } from '@/lib/types';
 import { registerDonor } from '@/lib/api';
 import { formatDate, formatTime } from '@/lib/utils';
-import { CheckCircle, Loader2, MessageCircle, Copy, Check } from 'lucide-react';
+import { CheckCircle, Loader2, MessageCircle, Copy, Check, ChevronRight } from 'lucide-react';
+import { PreScreening, type PreScreeningData } from './PreScreening';
 
 const BLOOD_OPTIONS = ['Tidak Tahu', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as const;
 
 type Props = { schedule: Schedule; onRegistrationSuccess?: () => void };
+type Step = 'form' | 'screening' | 'loading' | 'success';
 
 export function RegisterForm({ schedule, onRegistrationSuccess }: Props) {
   const [form, setForm] = useState({
@@ -24,7 +26,8 @@ export function RegisterForm({ schedule, onRegistrationSuccess }: Props) {
     // A4: Honeypot field — hidden from humans, filled by bots
     _website: '',
   });
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [step, setStep] = useState<Step>('form');
+  const [screeningData, setScreeningData] = useState<PreScreeningData | null>(null);
   const [kode, setKode] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [copied, setCopied] = useState(false);
@@ -40,36 +43,43 @@ export function RegisterForm({ schedule, onRegistrationSuccess }: Props) {
     ? 'NIK harus 16 digit angka sesuai KTP'
     : '';
 
-  async function handleSubmit(e: React.FormEvent) {
+  // Step 1: Form → go to pre-screening
+  function handleFormNext(e: React.FormEvent) {
     e.preventDefault();
 
-    // A4: Honeypot check — if bot filled hidden field, silently reject
+    // A4: Honeypot check
     if (form._website) return;
 
-    // A4: Cooldown — 30 second minimum between submissions
+    // A4: Cooldown
     const now = Date.now();
     if (now - lastSubmitRef.current < 30_000) {
       setErrorMsg('Mohon tunggu 30 detik sebelum mendaftar lagi.');
-      setStatus('error');
       return;
     }
 
     // B1: NIK format validation
     if (form.nik && !/^\d{16}$/.test(form.nik)) {
       setErrorMsg('NIK harus 16 digit angka sesuai KTP.');
-      setStatus('error');
       return;
     }
 
-    setStatus('loading');
+    setErrorMsg('');
+    setStep('screening');
+  }
+
+  // Step 2: Pre-screening passed → submit registration
+  async function handleScreeningPass(data: PreScreeningData) {
+    setScreeningData(data);
+    setStep('loading');
     setErrorMsg('');
     try {
-      const payload: RegistrationPayload = {
+      const payload: RegistrationPayload & { pre_screening?: PreScreeningData } = {
         jadwal_id: schedule.id,
         nama: form.nama,
         telepon: form.telepon,
         golongan_darah: form.golongan_darah,
         riwayat_donor: form.riwayat_donor,
+        pre_screening: data,
         ...(form.nik && { nik: form.nik }),
         ...(form.email && { email: form.email }),
         ...(form.tanggal_lahir && { tanggal_lahir: form.tanggal_lahir }),
@@ -78,13 +88,12 @@ export function RegisterForm({ schedule, onRegistrationSuccess }: Props) {
       };
       const result = await registerDonor(payload);
       setKode(result.kode_registrasi);
-      setStatus('success');
+      setStep('success');
       lastSubmitRef.current = Date.now();
-      // Notify parent to refetch kuota from Supabase
       onRegistrationSuccess?.();
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : 'Terjadi kesalahan. Coba lagi.');
-      setStatus('error');
+      setStep('screening');
     }
   }
 
@@ -110,7 +119,7 @@ export function RegisterForm({ schedule, onRegistrationSuccess }: Props) {
 
   // ─── Success state ─────────────────────────────────────────────────────────
 
-  if (status === 'success') {
+  if (step === 'success') {
     return (
       <div className="text-center py-4">
         <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -155,13 +164,44 @@ export function RegisterForm({ schedule, onRegistrationSuccess }: Props) {
     );
   }
 
-  // ─── Form ──────────────────────────────────────────────────────────────────
+  // ─── Loading state ─────────────────────────────────────────────────────────
+
+  if (step === 'loading') {
+    return (
+      <div className="text-center py-12">
+        <Loader2 className="w-8 h-8 text-red-500 animate-spin mx-auto mb-3" />
+        <p className="text-sm text-gray-500">Mendaftarkan Anda...</p>
+      </div>
+    );
+  }
+
+  // ─── Pre-screening step ────────────────────────────────────────────────────
+
+  if (step === 'screening') {
+    return (
+      <div>
+        <PreScreening
+          tanggalLahir={form.tanggal_lahir}
+          jenisKelamin={form.jenis_kelamin}
+          onPass={handleScreeningPass}
+          onBack={() => setStep('form')}
+        />
+        {errorMsg && (
+          <div className="mt-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3">
+            {errorMsg}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ─── Form step ─────────────────────────────────────────────────────────────
 
   const inputClass = "w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all";
   const labelClass = "block text-sm font-medium text-gray-700 mb-1";
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleFormNext} className="space-y-4">
 
       {/* A4: Honeypot — invisible to humans, bots will fill this */}
       <div className="absolute -left-[9999px]" aria-hidden="true">
@@ -269,20 +309,17 @@ export function RegisterForm({ schedule, onRegistrationSuccess }: Props) {
       </label>
 
       {/* Error */}
-      {status === 'error' && (
+      {errorMsg && (
         <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3">
           {errorMsg}
         </div>
       )}
 
-      {/* Submit */}
-      <button type="submit" disabled={status === 'loading' || !!nikError}
+      {/* Next → Pre-Screening */}
+      <button type="submit" disabled={!!nikError}
         className="w-full py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-        {status === 'loading' ? (
-          <><Loader2 className="w-4 h-4 animate-spin" /> Mendaftarkan...</>
-        ) : (
-          'Daftar Donor Sekarang →'
-        )}
+        Lanjut ke Pre-Screening
+        <ChevronRight className="w-4 h-4" />
       </button>
 
       <p className="text-xs text-gray-400 text-center">

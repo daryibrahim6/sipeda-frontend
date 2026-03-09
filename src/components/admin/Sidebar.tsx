@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   Droplets, LayoutDashboard, Calendar, Tally4,
   ClipboardList, FileText, LogOut, X, ChevronRight,
-  User, ClipboardCheck,
+  User, ClipboardCheck, MapPin, Users,
 } from 'lucide-react';
 // FIX: clearToken dan getUser TIDAK ADA di auth.ts (sudah dihapus saat migrasi ke Supabase Auth).
 // Sidebar lama: import { clearToken, getUser } from '@/lib/auth' → runtime crash
@@ -15,11 +15,13 @@ import { useEffect, useState } from 'react';
 
 const navItems = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/admin/lokasi', label: 'Lokasi Donor', icon: MapPin },
   { href: '/admin/jadwal', label: 'Jadwal Donor', icon: Calendar },
   { href: '/admin/stok-darah', label: 'Stok Darah', icon: Tally4 },
   { href: '/admin/registrasi', label: 'Registrasi', icon: ClipboardList },
   { href: '/admin/pencatatan', label: 'Pencatatan', icon: ClipboardCheck },
   { href: '/admin/artikel', label: 'Artikel', icon: FileText },
+  { href: '/admin/pengguna', label: 'Kelola Pengguna', icon: Users },
 ];
 
 type Props = {
@@ -84,8 +86,8 @@ export function Sidebar({ open, onClose }: Props) {
               href={item.href}
               onClick={onClose}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group ${active
-                  ? 'bg-red-600 text-white shadow-lg shadow-red-600/20'
-                  : 'text-gray-500 hover:text-white hover:bg-white/5'
+                ? 'bg-red-600 text-white shadow-lg shadow-red-600/20'
+                : 'text-gray-500 hover:text-white hover:bg-white/5'
                 }`}
               aria-current={active ? 'page' : undefined}
             >

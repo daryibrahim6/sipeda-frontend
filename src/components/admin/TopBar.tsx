@@ -1,6 +1,6 @@
 'use client';
 
-import { Menu, Bell } from 'lucide-react';
+import { Menu } from 'lucide-react';
 
 type Props = {
   title: string;
@@ -33,13 +33,6 @@ export function TopBar({ title, subtitle, onMenuClick, actions }: Props) {
       {/* Actions */}
       <div className="flex items-center gap-2">
         {actions}
-        <button
-          className="relative p-2 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
-          aria-label="Notifikasi"
-        >
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
-        </button>
       </div>
     </header>
   );

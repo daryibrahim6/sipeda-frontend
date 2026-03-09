@@ -11,6 +11,7 @@ const layanan = [
 const informasi = [
   { label: 'Syarat Donor', href: '/syarat-donor' },
   { label: 'Artikel', href: '/artikel' },
+  { label: 'Riwayat Donor', href: '/riwayat' },
   { label: 'FAQ', href: '/faq' },
   { label: 'Cek Registrasi', href: '/registrasi' },
   { label: 'Tentang SIPEDA', href: '/tentang' },

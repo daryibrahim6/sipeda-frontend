@@ -524,3 +524,75 @@ export async function getRegistrasiByKode(kode: string): Promise<{
     };
   };
 }
+
+// ─── Donor History: Lookup by telepon + kode verifikasi ───────────────────────
+
+export type DonorHistoryItem = {
+  id: number;
+  kode_registrasi: string;
+  nama: string;
+  telepon: string;
+  golongan_darah: string;
+  status: string;
+  status_kehadiran: string | null;
+  created_at: string;
+  jadwal: {
+    id: number;
+    tanggal: string;
+    waktu_mulai: string;
+    waktu_selesai: string;
+    status: string;
+    lokasi: { nama_lokasi: string; kecamatan: string };
+  } | null;
+};
+
+export type DonorHistoryResult = {
+  nama: string;
+  telepon: string;
+  golongan_darah: string;
+  registrasi: DonorHistoryItem[];
+  total_donor_berhasil: number;
+};
+
+export async function lookupDonorHistory(
+  telepon: string,
+  kode: string,
+): Promise<DonorHistoryResult | null> {
+  // 1. Verify: kode registrasi must belong to this phone number
+  const { data: verify } = await supabase
+    .from('registrasi_donor')
+    .select('id, nama, telepon, golongan_darah')
+    .eq('telepon', telepon)
+    .eq('kode_registrasi', kode.toUpperCase())
+    .single();
+
+  if (!verify) return null;
+
+  // 2. Fetch all registrations for this phone
+  const { data: registrasi } = await supabase
+    .from('registrasi_donor')
+    .select(`
+      id, kode_registrasi, nama, telepon, golongan_darah,
+      status, status_kehadiran, created_at,
+      jadwal:jadwal_donor(id, tanggal, waktu_mulai, waktu_selesai, status,
+        lokasi:lokasi_donor(nama_lokasi, kecamatan)
+      )
+    `)
+    .eq('telepon', telepon)
+    .order('created_at', { ascending: false });
+
+  // 3. Count successful donations from pencatatan_donor (by name match)
+  const { count } = await supabase
+    .from('pencatatan_donor')
+    .select('*', { count: 'exact', head: true })
+    .eq('nama_pendonor', verify.nama)
+    .eq('status_donor', 'berhasil');
+
+  return {
+    nama: verify.nama,
+    telepon: verify.telepon,
+    golongan_darah: verify.golongan_darah,
+    registrasi: (registrasi ?? []) as unknown as DonorHistoryItem[],
+    total_donor_berhasil: count ?? 0,
+  };
+}

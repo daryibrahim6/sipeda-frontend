@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Droplets, MapPin, RefreshCw, AlertTriangle, CheckCircle2, Info, Phone } from 'lucide-react';
+import { Droplets, MapPin, RefreshCw, AlertTriangle, CheckCircle2, Info, Phone, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 import { getBloodStockSummary, getLocations, getBloodStockByMultipleLocations } from '@/lib/api';
 
@@ -114,7 +114,7 @@ export default async function StokDarahPage() {
 
   return (
     <>
-<main id="main">
+      <main id="main">
         {/* ── Header ── */}
         <section className="bg-gray-950 text-white py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -136,30 +136,46 @@ export default async function StokDarahPage() {
         </section>
 
         {/* ── Alert kritis ── */}
-        {totalKritis > 0 && (
-          <section className="bg-red-600">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-              <div className="flex items-center gap-3 flex-wrap">
-                <div className="flex items-center gap-3 flex-1">
-                  <span className="relative flex h-3 w-3 flex-shrink-0">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-white" />
-                  </span>
-                  <p className="text-sm text-white font-medium">
-                    <strong>{totalKritis} golongan darah</strong> dalam kondisi kritis atau kosong.
-                    Pendonor sangat dibutuhkan —{' '}
-                    <Link href="/jadwal" className="underline font-bold">daftar donor sekarang</Link>.
-                  </p>
+        {totalKritis > 0 && (() => {
+          const kritisInfo = sortedSummary
+            .filter(s => s.status !== 'normal')
+            .map(s => `${s.golongan_darah}: ${s.status === 'kosong' ? 'KOSONG' : 'KRITIS'} (${s.total} kantong)`)
+            .join('\n');
+          const waText = `🚨 *Info Stok Darah — PMI Indramayu*\n\nBeberapa golongan darah membutuhkan pendonor:\n\n${kritisInfo}\n\nAyo bantu! Cek jadwal & daftar donor:\n🔗 https://sipeda.vercel.app/jadwal`;
+          const waUrl = `https://wa.me/?text=${encodeURIComponent(waText)}`;
+          return (
+            <section className="bg-red-600">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <div className="flex items-center gap-3 flex-1">
+                    <span className="relative flex h-3 w-3 flex-shrink-0">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-white" />
+                    </span>
+                    <p className="text-sm text-white font-medium">
+                      <strong>{totalKritis} golongan darah</strong> dalam kondisi kritis atau kosong.
+                      Pendonor sangat dibutuhkan —{' '}
+                      <Link href="/jadwal" className="underline font-bold">daftar donor sekarang</Link>.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <a href={waUrl}
+                      target="_blank" rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/20 border border-white/30 text-white text-xs font-semibold rounded-xl hover:bg-white/30 transition-colors">
+                      <MessageCircle className="w-3.5 h-3.5" />
+                      Bagikan
+                    </a>
+                    <a href="tel:+62234271648"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/20 border border-white/30 text-white text-xs font-semibold rounded-xl hover:bg-white/30 transition-colors">
+                      <Phone className="w-3.5 h-3.5" />
+                      Hubungi PMI
+                    </a>
+                  </div>
                 </div>
-                <a href="tel:+62234271648"
-                  className="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/20 border border-white/30 text-white text-xs font-semibold rounded-xl hover:bg-white/30 transition-colors">
-                  <Phone className="w-3.5 h-3.5" />
-                  Hubungi PMI
-                </a>
               </div>
-            </div>
-          </section>
-        )}
+            </section>
+          );
+        })()}
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-14">
 
@@ -325,7 +341,7 @@ export default async function StokDarahPage() {
           </section>
 
         </div>
-      </main>
-</>
+      </main >
+    </>
   );
 }

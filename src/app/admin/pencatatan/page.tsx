@@ -134,7 +134,7 @@ export default function AdminPencatatanPage() {
     }
 
     return (
-        <>
+        <div className="flex flex-col min-h-full">
             {/* Header — using shared TopBar for consistency */}
             <TopBar
                 title="Pencatatan Donor"
@@ -142,13 +142,13 @@ export default function AdminPencatatanPage() {
                 onMenuClick={toggleSidebar}
                 actions={
                     <>
-                        <button onClick={loadRekap} className="p-2 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors" aria-label="Refresh">
-                            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                        <button onClick={loadRekap} className="p-2 rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" aria-label="Refresh">
+                            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-red-500' : ''}`} />
                         </button>
                         {rekap.length > 0 && (
                             <button
                                 onClick={handleExportExcel}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 text-gray-600 text-xs font-medium rounded-lg hover:bg-gray-50 transition-colors"
+                                className="flex items-center gap-1.5 px-4 py-2 bg-white border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 transition-colors"
                             >
                                 <Download className="w-3.5 h-3.5" /> Export Excel
                             </button>
@@ -157,23 +157,23 @@ export default function AdminPencatatanPage() {
                 }
             />
 
-            <div className="p-4 sm:p-6 space-y-5">
+            <main className="flex-1 p-4 sm:p-6 space-y-5">
                 {/* Summary cards */}
                 {!loading && totalCatat > 0 && (
-                    <div className="grid grid-cols-4 gap-3">
-                        <div className="bg-white rounded-xl border border-gray-200 p-4 text-center">
+                    <div className="grid grid-cols-4 gap-4">
+                        <div className="bg-white rounded-2xl border border-gray-100 p-5 text-center">
                             <div className="text-2xl font-bold text-gray-900">{totalCatat}</div>
                             <div className="text-xs text-gray-500 mt-0.5">Total Dicatat</div>
                         </div>
-                        <div className="bg-white rounded-xl border border-gray-200 p-4 text-center">
+                        <div className="bg-white rounded-2xl border border-gray-100 p-5 text-center">
                             <div className="text-2xl font-bold text-green-600">{totalBerhasil}</div>
                             <div className="text-xs text-gray-500 mt-0.5">Berhasil</div>
                         </div>
-                        <div className="bg-white rounded-xl border border-gray-200 p-4 text-center">
+                        <div className="bg-white rounded-2xl border border-gray-100 p-5 text-center">
                             <div className="text-2xl font-bold text-red-600">{totalGagal}</div>
                             <div className="text-xs text-gray-500 mt-0.5">Gagal</div>
                         </div>
-                        <div className="bg-white rounded-xl border border-gray-200 p-4 text-center">
+                        <div className="bg-white rounded-2xl border border-gray-100 p-5 text-center">
                             <div className="text-2xl font-bold text-yellow-600">{totalTidak}</div>
                             <div className="text-xs text-gray-500 mt-0.5">Tdk Memenuhi</div>
                         </div>
@@ -184,14 +184,14 @@ export default function AdminPencatatanPage() {
                 {loading ? (
                     <div className="space-y-3">
                         {[...Array(3)].map((_, i) => (
-                            <div key={i} className="bg-white rounded-xl border border-gray-200 p-5 animate-pulse">
+                            <div key={i} className="bg-white rounded-2xl border border-gray-100 p-5 animate-pulse">
                                 <div className="h-4 bg-gray-200 rounded w-1/2 mb-2" />
                                 <div className="h-3 bg-gray-100 rounded w-1/3" />
                             </div>
                         ))}
                     </div>
                 ) : rekap.length === 0 ? (
-                    <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
+                    <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
                         <ClipboardCheck className="w-8 h-8 text-gray-300 mx-auto mb-3" />
                         <div className="text-sm text-gray-500">Belum ada data pencatatan.</div>
                         <div className="text-xs text-gray-400 mt-1">Pencatatan dilakukan oleh petugas lapangan saat kegiatan.</div>
@@ -199,7 +199,7 @@ export default function AdminPencatatanPage() {
                 ) : (
                     <div className="space-y-3">
                         {rekap.map(r => (
-                            <div key={r.jadwal_id} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                            <div key={r.jadwal_id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
                                 {/* Rekap row */}
                                 <button
                                     onClick={() => toggleExpand(r.jadwal_id)}
@@ -290,7 +290,7 @@ export default function AdminPencatatanPage() {
                         ))}
                     </div>
                 )}
-            </div>
-        </>
+            </main>
+        </div>
     );
 }
