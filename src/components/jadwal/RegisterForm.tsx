@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import type { Schedule, RegistrationPayload, BloodType } from '@/lib/types';
 import { registerDonor } from '@/lib/api';
 import { formatDate, formatTime } from '@/lib/utils';
@@ -11,6 +12,7 @@ const BLOOD_OPTIONS = ['Tidak Tahu', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+',
 type Props = { schedule: Schedule };
 
 export function RegisterForm({ schedule }: Props) {
+  const router = useRouter();
   const [form, setForm] = useState({
     nama: '',
     nik: '',
@@ -80,6 +82,8 @@ export function RegisterForm({ schedule }: Props) {
       setKode(result.kode_registrasi);
       setStatus('success');
       lastSubmitRef.current = Date.now();
+      // Revalidate: re-fetch jadwal data dari server agar kuota terupdate
+      router.refresh();
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : 'Terjadi kesalahan. Coba lagi.');
       setStatus('error');
