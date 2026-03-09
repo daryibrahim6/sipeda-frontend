@@ -439,6 +439,7 @@ export async function getTestimonials(): Promise<{
 export async function createRegistrasi(payload: {
   jadwal_id: number;
   nama: string;
+  nik?: string;
   email?: string;
   telepon: string;
   golongan_darah: string;

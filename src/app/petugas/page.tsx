@@ -4,11 +4,16 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePetugasUser } from './layout';
 import { logoutAdmin } from '@/lib/auth';
-import { getTodaySchedules, createPencatatan, getPencatatanByJadwal, deletePencatatan } from '@/lib/petugas-api';
+import {
+    getTodaySchedules, createPencatatan, getPencatatanByJadwal,
+    deletePencatatan, updatePencatatan, lookupRegistrasiByKode, markRegistrasiHadir,
+} from '@/lib/petugas-api';
 import type { Schedule, PencatatanDonor, StatusDonor, BloodType } from '@/lib/types';
+import type { RegistrasiLookup } from '@/lib/petugas-api';
 import {
     Droplets, LogOut, Loader2, Plus, Calendar, MapPin,
     Clock, Check, X, AlertTriangle, Trash2, Users, ChevronDown,
+    Search, Edit3, QrCode, UserPlus,
 } from 'lucide-react';
 
 const GOLDAR_OPTIONS: (BloodType | 'Tidak Tahu')[] = [
@@ -32,6 +37,8 @@ const STATUS_LABEL: Record<StatusDonor, string> = {
     tidak_memenuhi_syarat: 'Tidak Memenuhi Syarat',
 };
 
+type InputMode = 'kode' | 'walkin';
+
 export default function PetugasPage() {
     const router = useRouter();
     const petugasUser = usePetugasUser();
@@ -53,6 +60,23 @@ export default function PetugasPage() {
     });
     const [formError, setFormError] = useState('');
     const [successMsg, setSuccessMsg] = useState('');
+
+    // B4: Dual-mode input
+    const [inputMode, setInputMode] = useState<InputMode>('kode');
+    const [kodeInput, setKodeInput] = useState('');
+    const [lookupLoading, setLookupLoading] = useState(false);
+    const [lookupResult, setLookupResult] = useState<RegistrasiLookup | null>(null);
+    const [lookupError, setLookupError] = useState('');
+
+    // B3: Edit state
+    const [editingId, setEditingId] = useState<number | null>(null);
+    const [editForm, setEditForm] = useState({
+        nama_pendonor: '',
+        golongan_darah: 'Tidak Tahu' as BloodType | 'Tidak Tahu',
+        status_donor: 'berhasil' as StatusDonor,
+        catatan: '',
+    });
+    const [editSaving, setEditSaving] = useState(false);
 
     // Load jadwal hari ini
     useEffect(() => {
@@ -79,7 +103,33 @@ export default function PetugasPage() {
         if (selectedJadwal) loadPencatatan(selectedJadwal);
     }, [selectedJadwal, loadPencatatan]);
 
-    // Submit
+    // ─── B4: Lookup kode registrasi ──────────────────────────────────────────
+
+    async function handleLookup() {
+        if (!kodeInput.trim()) return;
+        setLookupLoading(true);
+        setLookupError('');
+        setLookupResult(null);
+
+        const result = await lookupRegistrasiByKode(kodeInput.trim());
+        if (!result) {
+            setLookupError('Kode tidak ditemukan. Cek kembali atau gunakan mode Walk-in.');
+        } else if (result.status_kehadiran === 'hadir') {
+            setLookupError('Kode ini sudah diverifikasi sebelumnya.');
+        } else {
+            setLookupResult(result);
+            // Auto-fill form from registrasi data
+            setForm(f => ({
+                ...f,
+                nama_pendonor: result.nama,
+                golongan_darah: (result.golongan_darah as BloodType | 'Tidak Tahu') || 'Tidak Tahu',
+            }));
+        }
+        setLookupLoading(false);
+    }
+
+    // ─── Submit pencatatan ───────────────────────────────────────────────────
+
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
         if (!selectedJadwal || !petugasUser) return;
@@ -95,8 +145,15 @@ export default function PetugasPage() {
                 catatan: form.catatan.trim() || undefined,
             }, petugasUser.id);
 
+            // B4: If from kode registrasi, mark as hadir
+            if (lookupResult) {
+                await markRegistrasiHadir(lookupResult.id).catch(() => { });
+            }
+
             // Reset form & reload list
             setForm({ nama_pendonor: '', golongan_darah: 'Tidak Tahu', status_donor: 'berhasil', catatan: '' });
+            setLookupResult(null);
+            setKodeInput('');
             setSuccessMsg(`${form.nama_pendonor.trim()} berhasil dicatat!`);
             setTimeout(() => setSuccessMsg(''), 3000);
             loadPencatatan(selectedJadwal);
@@ -105,6 +162,34 @@ export default function PetugasPage() {
         } finally {
             setSaving(false);
         }
+    }
+
+    // ─── B3: Edit pencatatan ─────────────────────────────────────────────────
+
+    function startEdit(p: PencatatanDonor) {
+        setEditingId(p.id);
+        setEditForm({
+            nama_pendonor: p.nama_pendonor,
+            golongan_darah: p.golongan_darah as BloodType | 'Tidak Tahu',
+            status_donor: p.status_donor,
+            catatan: p.catatan ?? '',
+        });
+    }
+
+    async function handleEditSave() {
+        if (!editingId) return;
+        setEditSaving(true);
+        try {
+            await updatePencatatan(editingId, {
+                nama_pendonor: editForm.nama_pendonor.trim(),
+                golongan_darah: editForm.golongan_darah,
+                status_donor: editForm.status_donor,
+                catatan: editForm.catatan.trim() || undefined,
+            });
+            setEditingId(null);
+            if (selectedJadwal) loadPencatatan(selectedJadwal);
+        } catch { /* silent */ }
+        setEditSaving(false);
     }
 
     // Delete
@@ -118,7 +203,7 @@ export default function PetugasPage() {
 
     async function handleLogout() {
         await logoutAdmin();
-        router.push('/petugas/login');
+        router.push('/login');
     }
 
     const selectedSchedule = schedules.find(s => s.id === selectedJadwal);
@@ -186,7 +271,6 @@ export default function PetugasPage() {
                         </div>
                     )}
 
-                    {/* Selected jadwal info */}
                     {selectedSchedule && (
                         <div className="mt-2 bg-gray-900/50 rounded-lg border border-white/5 px-4 py-2.5 flex items-center gap-3 text-xs text-gray-400">
                             <MapPin className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
@@ -232,10 +316,77 @@ export default function PetugasPage() {
                                         <Users className="w-4 h-4 text-red-500" />
                                         Input Pendonor
                                     </h3>
-                                    <button onClick={() => setFormOpen(false)} className="p-1 rounded-lg text-gray-600 hover:text-white hover:bg-white/5">
+                                    <button onClick={() => { setFormOpen(false); setLookupResult(null); setKodeInput(''); setLookupError(''); }} className="p-1 rounded-lg text-gray-600 hover:text-white hover:bg-white/5">
                                         <X className="w-4 h-4" />
                                     </button>
                                 </div>
+
+                                {/* B4: Mode toggle */}
+                                <div className="grid grid-cols-2 gap-1.5 bg-gray-800 rounded-lg p-1 mb-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => { setInputMode('kode'); setLookupResult(null); setForm(f => ({ ...f, nama_pendonor: '', golongan_darah: 'Tidak Tahu' })); }}
+                                        className={`py-2 rounded-md text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${inputMode === 'kode' ? 'bg-red-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                                    >
+                                        <QrCode className="w-3.5 h-3.5" /> Kode Registrasi
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => { setInputMode('walkin'); setLookupResult(null); setKodeInput(''); setLookupError(''); }}
+                                        className={`py-2 rounded-md text-xs font-medium transition-all flex items-center justify-center gap-1.5 ${inputMode === 'walkin' ? 'bg-red-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                                    >
+                                        <UserPlus className="w-3.5 h-3.5" /> Walk-in
+                                    </button>
+                                </div>
+
+                                {/* B4: Kode registrasi lookup */}
+                                {inputMode === 'kode' && !lookupResult && (
+                                    <div className="mb-4">
+                                        <label className="block text-xs text-gray-500 mb-1">Kode Registrasi</label>
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={kodeInput}
+                                                onChange={e => setKodeInput(e.target.value.toUpperCase())}
+                                                placeholder="REG-2026-XXXXX"
+                                                className="flex-1 px-3 py-2.5 bg-gray-800 border border-white/10 rounded-lg text-sm text-white font-mono placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={handleLookup}
+                                                disabled={lookupLoading || !kodeInput.trim()}
+                                                className="px-4 py-2.5 bg-red-600 hover:bg-red-700 disabled:bg-gray-800 disabled:text-gray-600 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5"
+                                            >
+                                                {lookupLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                                            </button>
+                                        </div>
+                                        {lookupError && (
+                                            <p className="mt-2 text-xs text-red-400">{lookupError}</p>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* B4: Registrasi found — show info */}
+                                {lookupResult && (
+                                    <div className="mb-4 bg-green-500/10 border border-green-500/20 rounded-lg p-3">
+                                        <div className="flex items-center gap-2 mb-1.5">
+                                            <Check className="w-4 h-4 text-green-400" />
+                                            <span className="text-xs font-semibold text-green-400">Data registrasi ditemukan</span>
+                                        </div>
+                                        <div className="text-sm text-white font-medium">{lookupResult.nama}</div>
+                                        <div className="flex items-center gap-3 text-xs text-gray-400 mt-1">
+                                            <span>Goldar: {lookupResult.golongan_darah}</span>
+                                            {lookupResult.nik && <span>NIK: {lookupResult.nik.slice(0, 6)}...{lookupResult.nik.slice(-4)}</span>}
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setLookupResult(null); setKodeInput(''); setForm(f => ({ ...f, nama_pendonor: '', golongan_darah: 'Tidak Tahu' })); }}
+                                            className="mt-2 text-xs text-gray-500 hover:text-white transition-colors"
+                                        >
+                                            ← Cari kode lain
+                                        </button>
+                                    </div>
+                                )}
 
                                 {formError && (
                                     <div className="mb-3 p-2.5 bg-red-500/10 border border-red-500/20 rounded-lg text-xs text-red-400">{formError}</div>
@@ -246,82 +397,86 @@ export default function PetugasPage() {
                                     </div>
                                 )}
 
-                                <form onSubmit={handleSubmit} className="space-y-3">
-                                    {/* Nama */}
-                                    <div>
-                                        <label className="block text-xs text-gray-500 mb-1">Nama Pendonor <span className="text-red-500">*</span></label>
-                                        <input
-                                            type="text"
-                                            value={form.nama_pendonor}
-                                            onChange={e => setForm(f => ({ ...f, nama_pendonor: e.target.value }))}
-                                            required
-                                            placeholder="Nama lengkap pendonor"
-                                            autoFocus
-                                            className="w-full px-3 py-2.5 bg-gray-800 border border-white/10 rounded-lg text-sm text-white placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500"
-                                        />
-                                    </div>
+                                {/* Show form when: walk-in mode, OR kode found */}
+                                {(inputMode === 'walkin' || lookupResult) && (
+                                    <form onSubmit={handleSubmit} className="space-y-3">
+                                        {/* Nama */}
+                                        <div>
+                                            <label className="block text-xs text-gray-500 mb-1">Nama Pendonor <span className="text-red-500">*</span></label>
+                                            <input
+                                                type="text"
+                                                value={form.nama_pendonor}
+                                                onChange={e => setForm(f => ({ ...f, nama_pendonor: e.target.value }))}
+                                                required
+                                                placeholder="Nama lengkap pendonor"
+                                                autoFocus={inputMode === 'walkin'}
+                                                readOnly={!!lookupResult}
+                                                className={`w-full px-3 py-2.5 bg-gray-800 border border-white/10 rounded-lg text-sm text-white placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500 ${lookupResult ? 'opacity-70' : ''}`}
+                                            />
+                                        </div>
 
-                                    {/* Golongan Darah */}
-                                    <div>
-                                        <label className="block text-xs text-gray-500 mb-1">Golongan Darah <span className="text-red-500">*</span></label>
-                                        <div className="grid grid-cols-5 gap-1.5">
-                                            {GOLDAR_OPTIONS.map(g => (
-                                                <button
-                                                    key={g}
-                                                    type="button"
-                                                    onClick={() => setForm(f => ({ ...f, golongan_darah: g }))}
-                                                    className={`py-2 rounded-lg text-xs font-medium border transition-all ${form.golongan_darah === g
+                                        {/* Golongan Darah */}
+                                        <div>
+                                            <label className="block text-xs text-gray-500 mb-1">Golongan Darah <span className="text-red-500">*</span></label>
+                                            <div className="grid grid-cols-5 gap-1.5">
+                                                {GOLDAR_OPTIONS.map(g => (
+                                                    <button
+                                                        key={g}
+                                                        type="button"
+                                                        onClick={() => setForm(f => ({ ...f, golongan_darah: g }))}
+                                                        className={`py-2 rounded-lg text-xs font-medium border transition-all ${form.golongan_darah === g
                                                             ? 'bg-red-600 border-red-600 text-white'
                                                             : 'bg-gray-800 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
-                                                        } ${g === 'Tidak Tahu' ? 'col-span-2' : ''}`}
-                                                >
-                                                    {g}
-                                                </button>
-                                            ))}
+                                                            } ${g === 'Tidak Tahu' ? 'col-span-2' : ''}`}
+                                                    >
+                                                        {g}
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    {/* Status */}
-                                    <div>
-                                        <label className="block text-xs text-gray-500 mb-1">Status Donor <span className="text-red-500">*</span></label>
-                                        <div className="grid grid-cols-3 gap-1.5">
-                                            {STATUS_OPTIONS.map(s => (
-                                                <button
-                                                    key={s.value}
-                                                    type="button"
-                                                    onClick={() => setForm(f => ({ ...f, status_donor: s.value }))}
-                                                    className={`py-2.5 rounded-lg text-xs font-medium border transition-all flex items-center justify-center gap-1.5 ${form.status_donor === s.value
+                                        {/* Status */}
+                                        <div>
+                                            <label className="block text-xs text-gray-500 mb-1">Status Donor <span className="text-red-500">*</span></label>
+                                            <div className="grid grid-cols-3 gap-1.5">
+                                                {STATUS_OPTIONS.map(s => (
+                                                    <button
+                                                        key={s.value}
+                                                        type="button"
+                                                        onClick={() => setForm(f => ({ ...f, status_donor: s.value }))}
+                                                        className={`py-2.5 rounded-lg text-xs font-medium border transition-all flex items-center justify-center gap-1.5 ${form.status_donor === s.value
                                                             ? `${s.color} text-white`
                                                             : 'bg-gray-800 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
-                                                        }`}
-                                                >
-                                                    <s.icon className="w-3.5 h-3.5" />
-                                                    {s.label}
-                                                </button>
-                                            ))}
+                                                            }`}
+                                                    >
+                                                        <s.icon className="w-3.5 h-3.5" />
+                                                        {s.label}
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    {/* Catatan */}
-                                    <div>
-                                        <label className="block text-xs text-gray-500 mb-1">Catatan <span className="text-gray-700">(opsional)</span></label>
-                                        <textarea
-                                            value={form.catatan}
-                                            onChange={e => setForm(f => ({ ...f, catatan: e.target.value }))}
-                                            rows={2}
-                                            placeholder="Catatan tambahan..."
-                                            className="w-full px-3 py-2 bg-gray-800 border border-white/10 rounded-lg text-sm text-white placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
-                                        />
-                                    </div>
+                                        {/* Catatan */}
+                                        <div>
+                                            <label className="block text-xs text-gray-500 mb-1">Catatan <span className="text-gray-700">(opsional)</span></label>
+                                            <textarea
+                                                value={form.catatan}
+                                                onChange={e => setForm(f => ({ ...f, catatan: e.target.value }))}
+                                                rows={2}
+                                                placeholder="Catatan tambahan..."
+                                                className="w-full px-3 py-2 bg-gray-800 border border-white/10 rounded-lg text-sm text-white placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+                                            />
+                                        </div>
 
-                                    <button
-                                        type="submit"
-                                        disabled={saving || !form.nama_pendonor.trim()}
-                                        className="w-full py-2.5 bg-red-600 hover:bg-red-700 disabled:bg-gray-800 disabled:text-gray-600 text-white font-medium rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
-                                    >
-                                        {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> Menyimpan...</> : <><Check className="w-4 h-4" /> Simpan</>}
-                                    </button>
-                                </form>
+                                        <button
+                                            type="submit"
+                                            disabled={saving || !form.nama_pendonor.trim()}
+                                            className="w-full py-2.5 bg-red-600 hover:bg-red-700 disabled:bg-gray-800 disabled:text-gray-600 text-white font-medium rounded-lg text-sm transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> Menyimpan...</> : <><Check className="w-4 h-4" /> Simpan</>}
+                                        </button>
+                                    </form>
+                                )}
                             </div>
                         )}
                     </>
@@ -345,26 +500,103 @@ export default function PetugasPage() {
                         ) : (
                             <div className="space-y-2">
                                 {pencatatan.map((p, idx) => (
-                                    <div key={p.id} className="bg-gray-900 rounded-xl border border-white/5 px-4 py-3 flex items-center gap-3">
-                                        <div className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold text-gray-500">
-                                            {pencatatan.length - idx}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="text-sm font-medium text-white truncate">{p.nama_pendonor}</div>
-                                            <div className="flex items-center gap-2 mt-0.5">
-                                                <span className="text-xs text-gray-500">{p.golongan_darah}</span>
-                                                <span className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium ${STATUS_BADGE[p.status_donor]}`}>
-                                                    {STATUS_LABEL[p.status_donor]}
-                                                </span>
+                                    <div key={p.id}>
+                                        {/* B3: Edit mode */}
+                                        {editingId === p.id ? (
+                                            <div className="bg-gray-900 rounded-xl border border-red-500/30 p-4 space-y-3">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-xs font-semibold text-red-400 flex items-center gap-1.5">
+                                                        <Edit3 className="w-3.5 h-3.5" /> Edit Pencatatan
+                                                    </span>
+                                                    <button onClick={() => setEditingId(null)} className="p-1 text-gray-600 hover:text-white">
+                                                        <X className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </div>
+                                                <input
+                                                    type="text"
+                                                    value={editForm.nama_pendonor}
+                                                    onChange={e => setEditForm(f => ({ ...f, nama_pendonor: e.target.value }))}
+                                                    className="w-full px-3 py-2 bg-gray-800 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+                                                />
+                                                <div className="grid grid-cols-5 gap-1">
+                                                    {GOLDAR_OPTIONS.map(g => (
+                                                        <button
+                                                            key={g}
+                                                            type="button"
+                                                            onClick={() => setEditForm(f => ({ ...f, golongan_darah: g }))}
+                                                            className={`py-1.5 rounded text-[10px] font-medium border transition-all ${editForm.golongan_darah === g
+                                                                ? 'bg-red-600 border-red-600 text-white'
+                                                                : 'bg-gray-800 border-white/10 text-gray-500'
+                                                                } ${g === 'Tidak Tahu' ? 'col-span-2' : ''}`}
+                                                        >
+                                                            {g}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                                <div className="grid grid-cols-3 gap-1">
+                                                    {STATUS_OPTIONS.map(s => (
+                                                        <button
+                                                            key={s.value}
+                                                            type="button"
+                                                            onClick={() => setEditForm(f => ({ ...f, status_donor: s.value }))}
+                                                            className={`py-1.5 rounded text-[10px] font-medium border transition-all flex items-center justify-center gap-1 ${editForm.status_donor === s.value
+                                                                ? `${s.color} text-white`
+                                                                : 'bg-gray-800 border-white/10 text-gray-500'
+                                                                }`}
+                                                        >
+                                                            <s.icon className="w-3 h-3" />{s.label}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                                <textarea
+                                                    value={editForm.catatan}
+                                                    onChange={e => setEditForm(f => ({ ...f, catatan: e.target.value }))}
+                                                    rows={1}
+                                                    placeholder="Catatan..."
+                                                    className="w-full px-3 py-1.5 bg-gray-800 border border-white/10 rounded-lg text-xs text-white placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+                                                />
+                                                <button
+                                                    onClick={handleEditSave}
+                                                    disabled={editSaving || !editForm.nama_pendonor.trim()}
+                                                    className="w-full py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-800 text-white text-xs font-medium rounded-lg flex items-center justify-center gap-1.5"
+                                                >
+                                                    {editSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                                                    {editSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
+                                                </button>
                                             </div>
-                                        </div>
-                                        <button
-                                            onClick={() => handleDelete(p.id)}
-                                            className="p-1.5 rounded-lg text-gray-700 hover:text-red-400 hover:bg-red-400/10 transition-colors"
-                                            aria-label="Hapus"
-                                        >
-                                            <Trash2 className="w-3.5 h-3.5" />
-                                        </button>
+                                        ) : (
+                                            /* Normal display */
+                                            <div className="bg-gray-900 rounded-xl border border-white/5 px-4 py-3 flex items-center gap-3">
+                                                <div className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold text-gray-500">
+                                                    {pencatatan.length - idx}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="text-sm font-medium text-white truncate">{p.nama_pendonor}</div>
+                                                    <div className="flex items-center gap-2 mt-0.5">
+                                                        <span className="text-xs text-gray-500">{p.golongan_darah}</span>
+                                                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full border font-medium ${STATUS_BADGE[p.status_donor]}`}>
+                                                            {STATUS_LABEL[p.status_donor]}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-1">
+                                                    <button
+                                                        onClick={() => startEdit(p)}
+                                                        className="p-1.5 rounded-lg text-gray-700 hover:text-blue-400 hover:bg-blue-400/10 transition-colors"
+                                                        aria-label="Edit"
+                                                    >
+                                                        <Edit3 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(p.id)}
+                                                        className="p-1.5 rounded-lg text-gray-700 hover:text-red-400 hover:bg-red-400/10 transition-colors"
+                                                        aria-label="Hapus"
+                                                    >
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                             </div>

@@ -49,6 +49,7 @@ export type Schedule = {
 export type RegistrationPayload = {
   jadwal_id: number;
   nama: string;
+  nik?: string;
   email?: string;
   telepon: string;
   golongan_darah: BloodType | 'Tidak Tahu';

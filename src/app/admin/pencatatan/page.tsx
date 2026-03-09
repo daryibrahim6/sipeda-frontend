@@ -7,8 +7,9 @@ import { useSidebarToggle } from '../layout';
 import {
     Menu, RefreshCw, ClipboardCheck, Calendar,
     MapPin, Check, X, AlertTriangle, ChevronDown, ChevronUp,
-    Users,
+    Users, Download,
 } from 'lucide-react';
+import * as XLSX from 'xlsx';
 
 const STATUS_BADGE: Record<string, string> = {
     berhasil: 'bg-green-100 text-green-700',
@@ -61,6 +62,76 @@ export default function AdminPencatatanPage() {
     const totalTidak = rekap.reduce((s, r) => s + r.tidak_memenuhi, 0);
     const totalCatat = rekap.reduce((s, r) => s + r.total_catat, 0);
 
+    // C1: Excel export — 3 sheets
+    async function handleExportExcel() {
+        // Fetch all detail data for every jadwal
+        const allDetails: (PencatatanDonor & { lokasi: string; tanggal: string })[] = [];
+        for (const r of rekap) {
+            try {
+                const detail = await getAdminPencatatan(r.jadwal_id);
+                detail.forEach(d => allDetails.push({
+                    ...d,
+                    lokasi: r.nama_lokasi,
+                    tanggal: new Date(r.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+                }));
+            } catch { /* skip */ }
+        }
+
+        const wb = XLSX.utils.book_new();
+
+        // Sheet 1: Rekap per Kegiatan
+        const rekapData = rekap.map(r => ({
+            'Lokasi': r.nama_lokasi,
+            'Tanggal': new Date(r.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+            'Waktu': `${r.waktu_mulai} – ${r.waktu_selesai}`,
+            'Total Dicatat': r.total_catat,
+            'Berhasil': r.berhasil,
+            'Gagal': r.gagal,
+            'Tidak Memenuhi Syarat': r.tidak_memenuhi,
+        }));
+        const ws1 = XLSX.utils.json_to_sheet(rekapData);
+        ws1['!cols'] = [{ wch: 30 }, { wch: 12 }, { wch: 15 }, { wch: 12 }, { wch: 10 }, { wch: 8 }, { wch: 22 }];
+        XLSX.utils.book_append_sheet(wb, ws1, 'Rekap per Kegiatan');
+
+        // Sheet 2: Detail per Pendonor
+        const detailData = allDetails.map((d, i) => ({
+            'No': i + 1,
+            'Lokasi': d.lokasi,
+            'Tanggal': d.tanggal,
+            'Nama Pendonor': d.nama_pendonor,
+            'Golongan Darah': d.golongan_darah,
+            'Status': STATUS_LABEL[d.status_donor] ?? d.status_donor,
+            'Catatan': d.catatan ?? '-',
+            'Waktu Dicatat': new Date(d.created_at).toLocaleString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+        }));
+        const ws2 = XLSX.utils.json_to_sheet(detailData);
+        ws2['!cols'] = [{ wch: 5 }, { wch: 30 }, { wch: 12 }, { wch: 25 }, { wch: 15 }, { wch: 22 }, { wch: 25 }, { wch: 18 }];
+        XLSX.utils.book_append_sheet(wb, ws2, 'Detail Pendonor');
+
+        // Sheet 3: Ringkasan per Golongan Darah
+        const goldarCount: Record<string, { berhasil: number; gagal: number; tms: number }> = {};
+        allDetails.forEach(d => {
+            if (!goldarCount[d.golongan_darah]) goldarCount[d.golongan_darah] = { berhasil: 0, gagal: 0, tms: 0 };
+            if (d.status_donor === 'berhasil') goldarCount[d.golongan_darah].berhasil++;
+            else if (d.status_donor === 'gagal') goldarCount[d.golongan_darah].gagal++;
+            else goldarCount[d.golongan_darah].tms++;
+        });
+        const goldarData = Object.entries(goldarCount).map(([gol, c]) => ({
+            'Golongan Darah': gol,
+            'Berhasil': c.berhasil,
+            'Gagal': c.gagal,
+            'Tidak Memenuhi Syarat': c.tms,
+            'Total': c.berhasil + c.gagal + c.tms,
+        }));
+        const ws3 = XLSX.utils.json_to_sheet(goldarData);
+        ws3['!cols'] = [{ wch: 15 }, { wch: 10 }, { wch: 8 }, { wch: 22 }, { wch: 8 }];
+        XLSX.utils.book_append_sheet(wb, ws3, 'Per Golongan Darah');
+
+        // Download
+        const filename = `SIPEDA_Pencatatan_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        XLSX.writeFile(wb, filename);
+    }
+
     return (
         <>
             {/* Header */}
@@ -81,6 +152,14 @@ export default function AdminPencatatanPage() {
                     <button onClick={loadRekap} className="p-2 rounded-lg hover:bg-gray-100 transition-colors" aria-label="Refresh">
                         <RefreshCw className={`w-4 h-4 text-gray-500 ${loading ? 'animate-spin' : ''}`} />
                     </button>
+                    {rekap.length > 0 && (
+                        <button
+                            onClick={handleExportExcel}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 transition-colors"
+                        >
+                            <Download className="w-3.5 h-3.5" /> Export Excel
+                        </button>
+                    )}
                 </div>
             </header>
 

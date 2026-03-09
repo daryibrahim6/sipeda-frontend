@@ -1,18 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import type { Schedule, RegistrationPayload, BloodType } from '@/lib/types';
 import { registerDonor } from '@/lib/api';
 import { formatDate, formatTime } from '@/lib/utils';
-import { CheckCircle, Loader2 } from 'lucide-react';
+import { CheckCircle, Loader2, MessageCircle, Copy, Check } from 'lucide-react';
 
-const BLOOD_OPTIONS = ['Tidak Tahu','A+','A-','B+','B-','AB+','AB-','O+','O-'] as const;
+const BLOOD_OPTIONS = ['Tidak Tahu', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as const;
 
 type Props = { schedule: Schedule };
 
 export function RegisterForm({ schedule }: Props) {
   const [form, setForm] = useState({
     nama: '',
+    nik: '',
     email: '',
     telepon: '',
     golongan_darah: 'Tidak Tahu' as BloodType | 'Tidak Tahu',
@@ -20,16 +21,46 @@ export function RegisterForm({ schedule }: Props) {
     tanggal_lahir: '',
     alamat: '',
     riwayat_donor: false,
+    // A4: Honeypot field — hidden from humans, filled by bots
+    _website: '',
   });
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [kode, setKode] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [copied, setCopied] = useState(false);
+
+  // A4: Cooldown — prevent rapid re-submission
+  const lastSubmitRef = useRef<number>(0);
 
   const set = <K extends keyof typeof form>(field: K, value: typeof form[K]) =>
     setForm(prev => ({ ...prev, [field]: value }));
 
+  // B1: NIK validation (16 digits)
+  const nikError = form.nik && !/^\d{16}$/.test(form.nik)
+    ? 'NIK harus 16 digit angka sesuai KTP'
+    : '';
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    // A4: Honeypot check — if bot filled hidden field, silently reject
+    if (form._website) return;
+
+    // A4: Cooldown — 30 second minimum between submissions
+    const now = Date.now();
+    if (now - lastSubmitRef.current < 30_000) {
+      setErrorMsg('Mohon tunggu 30 detik sebelum mendaftar lagi.');
+      setStatus('error');
+      return;
+    }
+
+    // B1: NIK format validation
+    if (form.nik && !/^\d{16}$/.test(form.nik)) {
+      setErrorMsg('NIK harus 16 digit angka sesuai KTP.');
+      setStatus('error');
+      return;
+    }
+
     setStatus('loading');
     setErrorMsg('');
     try {
@@ -39,19 +70,43 @@ export function RegisterForm({ schedule }: Props) {
         telepon: form.telepon,
         golongan_darah: form.golongan_darah,
         riwayat_donor: form.riwayat_donor,
-        ...(form.email         && { email: form.email }),
+        ...(form.nik && { nik: form.nik }),
+        ...(form.email && { email: form.email }),
         ...(form.tanggal_lahir && { tanggal_lahir: form.tanggal_lahir }),
         ...(form.jenis_kelamin && { jenis_kelamin: form.jenis_kelamin }),
-        ...(form.alamat        && { alamat: form.alamat }),
+        ...(form.alamat && { alamat: form.alamat }),
       };
       const result = await registerDonor(payload);
       setKode(result.kode_registrasi);
       setStatus('success');
+      lastSubmitRef.current = Date.now();
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : 'Terjadi kesalahan. Coba lagi.');
       setStatus('error');
     }
   }
+
+  // A5: WhatsApp share message
+  function getWhatsAppUrl() {
+    const text =
+      `✅ Pendaftaran Donor Darah Berhasil!\n\n` +
+      `Kode Registrasi: *${kode}*\n\n` +
+      `📅 ${formatDate(schedule.tanggal)}\n` +
+      `🕐 ${formatTime(schedule.waktu_mulai)} – ${formatTime(schedule.waktu_selesai)} WIB\n` +
+      `📍 ${schedule.lokasi?.nama_lokasi}\n\n` +
+      `Tunjukkan kode ini ke petugas saat datang.\n` +
+      `SIPEDA — PMI Kabupaten Indramayu`;
+    return `https://wa.me/?text=${encodeURIComponent(text)}`;
+  }
+
+  function handleCopy() {
+    navigator.clipboard.writeText(kode).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  // ─── Success state ─────────────────────────────────────────────────────────
 
   if (status === 'success') {
     return (
@@ -63,10 +118,31 @@ export function RegisterForm({ schedule }: Props) {
         <p className="text-sm text-gray-500 mb-5">
           Tunjukkan kode ini kepada petugas pada hari kegiatan.
         </p>
-        <div className="bg-gray-50 border border-gray-200 rounded-xl px-6 py-4 mb-5">
+        <div className="bg-gray-50 border border-gray-200 rounded-xl px-6 py-4 mb-4">
           <div className="text-xs text-gray-400 mb-1">Kode Registrasi</div>
           <div className="text-3xl font-bold font-mono text-gray-900 tracking-widest">{kode}</div>
         </div>
+
+        {/* A5: Action buttons — Copy + WhatsApp share */}
+        <div className="flex gap-2 mb-5">
+          <button
+            onClick={handleCopy}
+            className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-700 font-medium text-sm rounded-xl hover:bg-gray-200 transition-colors"
+          >
+            {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+            {copied ? 'Tersalin!' : 'Salin Kode'}
+          </button>
+          <a
+            href={getWhatsAppUrl()}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 text-white font-medium text-sm rounded-xl hover:bg-green-700 transition-colors"
+          >
+            <MessageCircle className="w-4 h-4" />
+            Simpan ke WhatsApp
+          </a>
+        </div>
+
         <div className="text-xs text-gray-500 space-y-1 text-left bg-gray-50 rounded-xl p-4">
           <div className="font-medium text-gray-700 mb-2">Detail kegiatan:</div>
           <div>📅 {formatDate(schedule.tanggal)}</div>
@@ -77,11 +153,26 @@ export function RegisterForm({ schedule }: Props) {
     );
   }
 
+  // ─── Form ──────────────────────────────────────────────────────────────────
+
   const inputClass = "w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all";
   const labelClass = "block text-sm font-medium text-gray-700 mb-1";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+
+      {/* A4: Honeypot — invisible to humans, bots will fill this */}
+      <div className="absolute -left-[9999px]" aria-hidden="true">
+        <label htmlFor="website">Website</label>
+        <input
+          id="website"
+          type="text"
+          value={form._website}
+          onChange={e => set('_website', e.target.value)}
+          tabIndex={-1}
+          autoComplete="off"
+        />
+      </div>
 
       {/* Nama */}
       <div>
@@ -92,6 +183,28 @@ export function RegisterForm({ schedule }: Props) {
           onChange={e => set('nama', e.target.value)}
           placeholder="Nama sesuai KTP"
           className={inputClass} />
+      </div>
+
+      {/* B1: NIK */}
+      <div>
+        <label className={labelClass}>
+          NIK (Nomor Induk Kependudukan)
+        </label>
+        <input
+          type="text"
+          inputMode="numeric"
+          maxLength={16}
+          value={form.nik}
+          onChange={e => set('nik', e.target.value.replace(/\D/g, '').slice(0, 16))}
+          placeholder="16 digit sesuai KTP"
+          className={inputClass}
+        />
+        {nikError && (
+          <p className="text-xs text-red-500 mt-1">{nikError}</p>
+        )}
+        <p className="text-xs text-gray-400 mt-1">
+          Digunakan untuk verifikasi saat datang donor. Data aman dan tidak dibagikan.
+        </p>
       </div>
 
       {/* Email + Telepon */}
@@ -161,7 +274,7 @@ export function RegisterForm({ schedule }: Props) {
       )}
 
       {/* Submit */}
-      <button type="submit" disabled={status === 'loading'}
+      <button type="submit" disabled={status === 'loading' || !!nikError}
         className="w-full py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
         {status === 'loading' ? (
           <><Loader2 className="w-4 h-4 animate-spin" /> Mendaftarkan...</>

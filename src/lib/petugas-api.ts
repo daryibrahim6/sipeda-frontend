@@ -84,3 +84,73 @@ export async function deletePencatatan(id: number): Promise<void> {
 
     if (error) throw new Error(error.message);
 }
+
+// ─── B3: Update pencatatan (edit) ─────────────────────────────────────────────
+
+export type UpdatePencatatanPayload = {
+    nama_pendonor?: string;
+    golongan_darah?: BloodType | 'Tidak Tahu';
+    status_donor?: StatusDonor;
+    catatan?: string;
+};
+
+/**
+ * Update pencatatan yang sudah dicatat (untuk koreksi).
+ * Menyimpan updated_at otomatis.
+ */
+export async function updatePencatatan(
+    id: number,
+    payload: UpdatePencatatanPayload,
+): Promise<PencatatanDonor> {
+    const { data, error } = await supabase
+        .from('pencatatan_donor')
+        .update({
+            ...payload,
+            updated_at: new Date().toISOString(),
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+    if (error) throw new Error(error.message);
+    return data as PencatatanDonor;
+}
+
+// ─── B4: Lookup registrasi by kode ────────────────────────────────────────────
+
+export type RegistrasiLookup = {
+    id: number;
+    kode_registrasi: string;
+    nama: string;
+    nik: string | null;
+    telepon: string;
+    golongan_darah: string;
+    status_kehadiran: string | null;
+};
+
+/**
+ * Cari data registrasi berdasarkan kode.
+ * Dipakai oleh petugas untuk verifikasi kode saat pendonor datang.
+ */
+export async function lookupRegistrasiByKode(kode: string): Promise<RegistrasiLookup | null> {
+    const { data, error } = await supabase
+        .from('registrasi_donor')
+        .select('id, kode_registrasi, nama, nik, telepon, golongan_darah, status_kehadiran')
+        .eq('kode_registrasi', kode.trim().toUpperCase())
+        .single();
+
+    if (error) return null;
+    return data as RegistrasiLookup;
+}
+
+/**
+ * Tandai registrasi sebagai "hadir" setelah petugas memverifikasi.
+ */
+export async function markRegistrasiHadir(registrasiId: number): Promise<void> {
+    const { error } = await supabase
+        .from('registrasi_donor')
+        .update({ status_kehadiran: 'hadir' })
+        .eq('id', registrasiId);
+
+    if (error) throw new Error(error.message);
+}
