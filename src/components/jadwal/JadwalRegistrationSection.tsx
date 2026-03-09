@@ -1,15 +1,20 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import type { Schedule } from '@/lib/types';
 import { getScheduleById } from '@/lib/api';
 import { RegisterForm } from '@/components/jadwal/RegisterForm';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 /**
  * Client wrapper for RegisterForm.
- * After registration, refetches schedule from Supabase directly
- * (bypassing Vercel ISR cache) so the "Sisa Kuota" info box
- * in the header updates.
+ * Features:
+ * 1. Refetches schedule from Supabase after registration (bypass ISR)
+ * 2. Supabase Realtime subscription — kuota updates live when
+ *    another user registers for the same jadwal
  */
 export function JadwalRegistrationSection({ schedule: initialSchedule }: { schedule: Schedule }) {
     const [schedule, setSchedule] = useState(initialSchedule);
@@ -17,12 +22,38 @@ export function JadwalRegistrationSection({ schedule: initialSchedule }: { sched
     const isFull = schedule.status === 'penuh' || schedule.sisa_kuota === 0;
 
     // Refresh schedule from Supabase directly
-    const handleRegistrationSuccess = useCallback(async () => {
+    const refreshSchedule = useCallback(async () => {
         try {
             const fresh = await getScheduleById(schedule.id);
             if (fresh) setSchedule(fresh);
         } catch { /* silent */ }
     }, [schedule.id]);
+
+    // Realtime: listen for changes to registrasi_donor for this jadwal
+    useEffect(() => {
+        const client = createClient(supabaseUrl, supabaseKey);
+
+        const channel = client
+            .channel(`jadwal-kuota-${schedule.id}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'registrasi_donor',
+                    filter: `jadwal_id=eq.${schedule.id}`,
+                },
+                () => {
+                    // Small delay to let the trigger update sisa_kuota
+                    setTimeout(refreshSchedule, 500);
+                }
+            )
+            .subscribe();
+
+        return () => {
+            client.removeChannel(channel);
+        };
+    }, [schedule.id, refreshSchedule]);
 
     if (isFull) {
         return (
@@ -33,5 +64,5 @@ export function JadwalRegistrationSection({ schedule: initialSchedule }: { sched
         );
     }
 
-    return <RegisterForm schedule={schedule} onRegistrationSuccess={handleRegistrationSuccess} />;
+    return <RegisterForm schedule={schedule} onRegistrationSuccess={refreshSchedule} />;
 }

@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import { getRekapPencatatan, getAdminPencatatan } from '@/lib/admin-api';
 import type { RekapPencatatan, PencatatanDonor } from '@/lib/types';
 import { useSidebarToggle } from '../layout';
+import { TopBar } from '@/components/admin/TopBar';
 import {
-    Menu, RefreshCw, ClipboardCheck, Calendar,
+    RefreshCw, ClipboardCheck, Calendar,
     MapPin, Check, X, AlertTriangle, ChevronDown, ChevronUp,
     Users, Download,
 } from 'lucide-react';
@@ -134,34 +135,27 @@ export default function AdminPencatatanPage() {
 
     return (
         <>
-            {/* Header */}
-            <header className="sticky top-0 z-10 bg-white border-b border-gray-100">
-                <div className="flex items-center justify-between px-4 sm:px-6 py-3">
-                    <div className="flex items-center gap-3">
-                        <button onClick={toggleSidebar} className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-gray-100" aria-label="Menu">
-                            <Menu className="w-5 h-5 text-gray-700" />
+            {/* Header — using shared TopBar for consistency */}
+            <TopBar
+                title="Pencatatan Donor"
+                subtitle="Rekap kehadiran pendonor per kegiatan"
+                onMenuClick={toggleSidebar}
+                actions={
+                    <>
+                        <button onClick={loadRekap} className="p-2 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors" aria-label="Refresh">
+                            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                         </button>
-                        <div>
-                            <h1 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                                <ClipboardCheck className="w-5 h-5 text-red-600" />
-                                Pencatatan Donor
-                            </h1>
-                            <p className="text-xs text-gray-500">Rekap kehadiran pendonor per kegiatan</p>
-                        </div>
-                    </div>
-                    <button onClick={loadRekap} className="p-2 rounded-lg hover:bg-gray-100 transition-colors" aria-label="Refresh">
-                        <RefreshCw className={`w-4 h-4 text-gray-500 ${loading ? 'animate-spin' : ''}`} />
-                    </button>
-                    {rekap.length > 0 && (
-                        <button
-                            onClick={handleExportExcel}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 transition-colors"
-                        >
-                            <Download className="w-3.5 h-3.5" /> Export Excel
-                        </button>
-                    )}
-                </div>
-            </header>
+                        {rekap.length > 0 && (
+                            <button
+                                onClick={handleExportExcel}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 text-gray-600 text-xs font-medium rounded-lg hover:bg-gray-50 transition-colors"
+                            >
+                                <Download className="w-3.5 h-3.5" /> Export Excel
+                            </button>
+                        )}
+                    </>
+                }
+            />
 
             <div className="p-4 sm:p-6 space-y-5">
                 {/* Summary cards */}
