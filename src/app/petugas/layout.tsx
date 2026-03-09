@@ -30,7 +30,7 @@ export default function PetugasLayout({ children }: { children: React.ReactNode 
                 setAuthState('ok');
             } else {
                 setAuthState('denied');
-                window.location.replace('/petugas/login?expired=1');
+                window.location.replace('/login?expired=1');
             }
         });
         return () => { cancelled = true; };
