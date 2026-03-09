@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
 import type { Schedule, RegistrationPayload, BloodType } from '@/lib/types';
 import { registerDonor } from '@/lib/api';
 import { formatDate, formatTime } from '@/lib/utils';
@@ -9,10 +8,9 @@ import { CheckCircle, Loader2, MessageCircle, Copy, Check } from 'lucide-react';
 
 const BLOOD_OPTIONS = ['Tidak Tahu', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as const;
 
-type Props = { schedule: Schedule };
+type Props = { schedule: Schedule; onRegistrationSuccess?: () => void };
 
-export function RegisterForm({ schedule }: Props) {
-  const router = useRouter();
+export function RegisterForm({ schedule, onRegistrationSuccess }: Props) {
   const [form, setForm] = useState({
     nama: '',
     nik: '',
@@ -82,8 +80,8 @@ export function RegisterForm({ schedule }: Props) {
       setKode(result.kode_registrasi);
       setStatus('success');
       lastSubmitRef.current = Date.now();
-      // Revalidate: re-fetch jadwal data dari server agar kuota terupdate
-      router.refresh();
+      // Notify parent to refetch kuota from Supabase
+      onRegistrationSuccess?.();
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : 'Terjadi kesalahan. Coba lagi.');
       setStatus('error');

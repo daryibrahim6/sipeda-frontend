@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { ArrowLeft, Calendar, Clock, Users, MapPin, AlertTriangle } from 'lucide-react';
 
 import { ScheduleBadge } from '@/components/ui/Badge';
-import { RegisterForm } from '@/components/jadwal/RegisterForm';
+import { JadwalRegistrationSection } from '@/components/jadwal/JadwalRegistrationSection';
 import { getScheduleById } from '@/lib/api';
 import { formatDate, formatTime, quotaPercent } from '@/lib/utils';
 
@@ -28,9 +28,8 @@ export default async function JadwalDetailPage({ params }: Props) {
   const schedule = await getScheduleById(parseInt(id)).catch(() => null);
   if (!schedule) notFound();
 
-  const pct = quotaPercent(schedule.sisa_kuota, schedule.kuota);
-  const isFull = schedule.status === 'penuh' || schedule.sisa_kuota === 0;
   const isCancelled = schedule.status === 'dibatalkan';
+  const pct = quotaPercent(schedule.sisa_kuota, schedule.kuota);
   const terisi = schedule.kuota - schedule.sisa_kuota;
 
   return (
@@ -86,17 +85,15 @@ export default async function JadwalDetailPage({ params }: Props) {
             ))}
           </div>
 
-          {/* Quota bar */}
+          {/* Quota bar — static from server, initial load */}
           <div className="bg-white rounded-xl border border-gray-200 p-5 mb-6">
             <div className="flex justify-between text-sm mb-3">
               <span className="text-gray-600 font-medium">Pengisian kuota</span>
               <span className="font-bold text-gray-900">{pct}%</span>
             </div>
-            <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden"
-              role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+            <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all duration-700 ${pct >= 90 ? 'bg-red-500' : pct >= 60 ? 'bg-amber-400' : 'bg-green-500'
-                  }`}
+                className={`h-full rounded-full transition-all duration-700 ${pct >= 90 ? 'bg-red-500' : pct >= 60 ? 'bg-amber-400' : 'bg-green-500'}`}
                 style={{ width: `${pct}%` }}
               />
             </div>
@@ -141,7 +138,7 @@ export default async function JadwalDetailPage({ params }: Props) {
           </div>
         </div>
 
-        {/* ── Kanan — Form ── */}
+        {/* ── Kanan — Form (client component for live kuota updates) ── */}
         <div>
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sticky top-20">
             {isCancelled ? (
@@ -156,25 +153,13 @@ export default async function JadwalDetailPage({ params }: Props) {
                   Lihat Jadwal Lain
                 </Link>
               </div>
-            ) : isFull ? (
-              <div className="text-center py-8">
-                <div className="w-14 h-14 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Users className="w-7 h-7 text-gray-400" aria-hidden="true" />
-                </div>
-                <div className="font-semibold text-gray-800 mb-1">Kuota Penuh</div>
-                <p className="text-sm text-gray-500 mb-5">Slot untuk jadwal ini sudah habis.</p>
-                <Link href="/jadwal"
-                  className="inline-block px-5 py-2.5 bg-red-600 text-white text-sm font-semibold rounded-xl hover:bg-red-700">
-                  Lihat Jadwal Lain
-                </Link>
-              </div>
             ) : (
               <>
                 <h2 className="text-lg font-bold text-gray-900 mb-1">Daftar Donor</h2>
                 <p className="text-sm text-gray-500 mb-5">
                   Isi form berikut untuk mendapatkan kode registrasi.
                 </p>
-                <RegisterForm schedule={schedule} />
+                <JadwalRegistrationSection schedule={schedule} />
               </>
             )}
           </div>
