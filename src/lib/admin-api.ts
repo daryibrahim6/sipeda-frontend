@@ -44,6 +44,56 @@ export type AdminStokRow = {
     komponen: { kode: string; nama: string };
     lokasi: { nama_lokasi: string };
 };
+// ─── Dashboard Stats (admin-only) ────────────────────────────────────────────
+
+export async function getDashboardStats(): Promise<{
+  total_stok: number;
+  jadwal_aktif: number;
+  lokasi_aktif: number;
+  total_stok_kritis: number;
+  registrasi_bulan_ini: number;
+}> {
+  const now = new Date();
+  const start = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+
+  const [statsRes, regRes] = await Promise.allSettled([
+    supabase.from('v_stats').select('*').single(),
+    supabase.rpc('count_registrasi_bulan_ini'),
+  ]);
+
+  const stats = statsRes.status === 'fulfilled' ? statsRes.value.data : null;
+  const regCount = regRes.status === 'fulfilled' ? (regRes.value.data ?? 0) : 0;
+
+  return {
+    total_stok: Number(stats?.total_stok ?? 0),
+    jadwal_aktif: Number(stats?.jadwal_aktif ?? 0),
+    lokasi_aktif: Number(stats?.lokasi_aktif ?? 0),
+    total_stok_kritis: Number(stats?.total_stok_kritis ?? 0),
+    registrasi_bulan_ini: regCount,
+  };
+}
+
+/** Fetch jadwal untuk dashboard admin (upcoming N entries) */
+export async function getUpcomingSchedules(limit = 5): Promise<Schedule[]> {
+  const today = new Date().toISOString().split('T')[0];
+  const { data, error } = await supabase
+    .from('jadwal_donor')
+    .select(`
+      id, lokasi_id, tanggal, waktu_mulai, waktu_selesai,
+      kuota, sisa_kuota, deskripsi, status,
+      lokasi:lokasi_donor (
+        id, nama_lokasi, alamat, kecamatan, koordinat_lat, koordinat_lng
+      )
+    `)
+    .eq('status', 'aktif')
+    .gte('tanggal', today)
+    .order('tanggal')
+    .order('waktu_mulai')
+    .limit(limit);
+
+  if (error) return [];
+  return (data ?? []) as unknown as Schedule[];
+}
 
 // ─── Jadwal CRUD ─────────────────────────────────────────────────────────────
 
