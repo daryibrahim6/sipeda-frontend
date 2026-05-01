@@ -5,6 +5,7 @@
 
 import { supabase } from './supabase';
 import type { Schedule } from './types';
+import { sanitizeSearchInput } from './utils';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -137,9 +138,12 @@ export async function getAdminRegistrasi(opts?: {
 
     if (status && status !== 'semua') query = query.eq('status', status);
     if (search) {
-        query = query.or(
-            `nama.ilike.%${search}%,kode_registrasi.ilike.%${search}%,telepon.ilike.%${search}%`
-        );
+        const s = sanitizeSearchInput(search);
+        if (s) {
+            query = query.or(
+                `nama.ilike.%${s}%,kode_registrasi.ilike.%${s}%,telepon.ilike.%${s}%`
+            );
+        }
     }
 
     const { data, error, count } = await query;
@@ -225,7 +229,10 @@ export async function getAdminArtikel(opts?: {
         .range(from, from + perPage - 1);
 
     if (status && status !== 'semua') query = query.eq('status', status);
-    if (search) query = query.ilike('judul', `%${search}%`);
+    if (search) {
+        const s = sanitizeSearchInput(search);
+        if (s) query = query.ilike('judul', `%${s}%`);
+    }
 
     const { data, error, count } = await query;
     if (error) throw error;
@@ -315,9 +322,12 @@ export async function getAdminLocations(opts?: {
     else if (status === 'nonaktif') query = query.eq('aktif', false);
 
     if (search) {
-        query = query.or(
-            `nama_lokasi.ilike.%${search}%,alamat.ilike.%${search}%,kecamatan.ilike.%${search}%`
-        );
+        const s = sanitizeSearchInput(search);
+        if (s) {
+            query = query.or(
+                `nama_lokasi.ilike.%${s}%,alamat.ilike.%${s}%,kecamatan.ilike.%${s}%`
+            );
+        }
     }
 
     const { data, error, count } = await query;

@@ -171,3 +171,19 @@ export function slugify(text: string): string {
 export function formatNumber(n: number): string {
   return n.toLocaleString('id-ID');
 }
+
+/**
+ * Sanitasi input pencarian sebelum dimasukkan ke PostgREST filter.
+ * Menghapus karakter yang bisa memanipulasi filter syntax:
+ *   % _  → LIKE wildcards (kita tambahkan sendiri di query)
+ *   , .  → PostgREST filter separator (field.op.value, filter1,filter2)
+ *   ( )  → PostgREST grouping
+ *   " '  → String delimiters
+ *   \    → Escape character
+ */
+export function sanitizeSearchInput(input: string): string {
+  return input
+    .trim()
+    .replace(/[%_,.()"'\\]/g, '')
+    .slice(0, 100);
+}

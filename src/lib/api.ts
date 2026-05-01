@@ -52,14 +52,12 @@ export async function getDashboardStats(): Promise<{
 
   const [statsRes, regRes] = await Promise.allSettled([
     supabase.from('v_stats').select('*').single(),
-    supabase
-      .from('registrasi_donor')
-      .select('*', { count: 'exact', head: true })
-      .gte('created_at', start),
+    // FIX: Pakai RPC function — anon tidak lagi bisa SELECT langsung dari registrasi_donor
+    supabase.rpc('count_registrasi_bulan_ini'),
   ]);
 
   const stats = statsRes.status === 'fulfilled' ? statsRes.value.data : null;
-  const regCount = regRes.status === 'fulfilled' ? (regRes.value.count ?? 0) : 0;
+  const regCount = regRes.status === 'fulfilled' ? (regRes.value.data ?? 0) : 0;
 
   return {
     total_stok: Number(stats?.total_stok ?? 0),
@@ -487,6 +485,8 @@ export async function createRegistrasi(payload: {
 export const registerDonor = createRegistrasi;
 
 // ─── Registrasi Status (untuk tracker page) ───────────────────────────────────
+// FIX: Pakai RPC function SECURITY DEFINER — anon tidak lagi bisa SELECT langsung.
+// Database function hanya return data yang cocok dengan kode, tanpa expose PII lain.
 
 export async function getRegistrasiByKode(kode: string): Promise<{
   kode_registrasi: string;
@@ -499,20 +499,12 @@ export async function getRegistrasiByKode(kode: string): Promise<{
     lokasi: { nama_lokasi: string; alamat: string; kecamatan: string };
   };
 } | null> {
-  const { data, error } = await supabase
-    .from('registrasi_donor')
-    .select(`
-      kode_registrasi, nama, status,
-      jadwal:jadwal_donor (
-        tanggal, waktu_mulai, waktu_selesai,
-        lokasi:lokasi_donor (nama_lokasi, alamat, kecamatan)
-      )
-    `)
-    .eq('kode_registrasi', kode.toUpperCase())
-    .single();
+  const { data, error } = await supabase.rpc('lookup_registrasi_by_kode', {
+    p_kode: kode,
+  });
 
-  if (error) return null;
-  return data as unknown as {
+  if (error || !data) return null;
+  return data as {
     kode_registrasi: string;
     nama: string;
     status: string;
@@ -554,45 +546,33 @@ export type DonorHistoryResult = {
   total_donor_berhasil: number;
 };
 
+// FIX: Pakai RPC function SECURITY DEFINER — semua 3 query (verify + fetch + count)
+// sekarang dieksekusi di dalam satu database function yang aman.
+// Anon user tidak bisa enumerate data orang lain.
 export async function lookupDonorHistory(
   telepon: string,
   kode: string,
 ): Promise<DonorHistoryResult | null> {
-  // 1. Verify: kode registrasi must belong to this phone number
-  const { data: verify } = await supabase
-    .from('registrasi_donor')
-    .select('id, nama, telepon, golongan_darah')
-    .eq('telepon', telepon)
-    .eq('kode_registrasi', kode.toUpperCase())
-    .single();
+  const { data, error } = await supabase.rpc('lookup_donor_history', {
+    p_telepon: telepon,
+    p_kode: kode,
+  });
 
-  if (!verify) return null;
+  if (error || !data) return null;
 
-  // 2. Fetch all registrations for this phone
-  const { data: registrasi } = await supabase
-    .from('registrasi_donor')
-    .select(`
-      id, kode_registrasi, nama, telepon, golongan_darah,
-      status, status_kehadiran, created_at,
-      jadwal:jadwal_donor(id, tanggal, waktu_mulai, waktu_selesai, status,
-        lokasi:lokasi_donor(nama_lokasi, kecamatan)
-      )
-    `)
-    .eq('telepon', telepon)
-    .order('created_at', { ascending: false });
-
-  // 3. Count successful donations from pencatatan_donor (by name match)
-  const { count } = await supabase
-    .from('pencatatan_donor')
-    .select('*', { count: 'exact', head: true })
-    .eq('nama_pendonor', verify.nama)
-    .eq('status_donor', 'berhasil');
+  const result = data as {
+    nama: string;
+    telepon: string;
+    golongan_darah: string;
+    registrasi: DonorHistoryItem[];
+    total_donor_berhasil: number;
+  };
 
   return {
-    nama: verify.nama,
-    telepon: verify.telepon,
-    golongan_darah: verify.golongan_darah,
-    registrasi: (registrasi ?? []) as unknown as DonorHistoryItem[],
-    total_donor_berhasil: count ?? 0,
+    nama: result.nama,
+    telepon: result.telepon,
+    golongan_darah: result.golongan_darah,
+    registrasi: result.registrasi ?? [],
+    total_donor_berhasil: result.total_donor_berhasil ?? 0,
   };
 }
