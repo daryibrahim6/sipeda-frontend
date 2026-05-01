@@ -187,3 +187,48 @@ export function sanitizeSearchInput(input: string): string {
     .replace(/[%_,.()"'\\]/g, '')
     .slice(0, 100);
 }
+
+// ─── Error Handling Helpers ───────────────────────────────────────────────────
+
+/**
+ * Standarisasi error handling untuk Supabase queries.
+ * Jika ada error, throw dengan pesan user-friendly + log detail ke console.
+ *
+ * @param error - Error object dari Supabase response
+ * @param context - Nama operasi (untuk logging dan pesan error)
+ *
+ * @example
+ * const { data, error } = await supabase.from('jadwal_donor').select('*');
+ * handleSupabaseError(error, 'memuat jadwal');
+ */
+export function handleSupabaseError(
+  error: { message: string; code?: string; details?: string } | null,
+  context: string,
+): void {
+  if (!error) return;
+  console.error(`[SIPEDA:${context}]`, error);
+  throw new Error(`Gagal ${context}. Silakan coba lagi.`);
+}
+
+/**
+ * Eksekusi Promise di background tanpa menunggu hasilnya.
+ * Error akan di-log ke console, bukan diabaikan.
+ *
+ * Gunakan ini untuk operasi non-critical seperti:
+ * - Update last_login timestamp
+ * - Increment article views counter
+ *
+ * @example
+ * fireAndForget(
+ *   supabase.from('admins').update({ last_login: new Date().toISOString() }),
+ *   'update last_login'
+ * );
+ */
+export function fireAndForget(
+  promise: PromiseLike<unknown>,
+  context: string,
+): void {
+  Promise.resolve(promise).catch((err) =>
+    console.error(`[SIPEDA:${context}]`, err),
+  );
+}

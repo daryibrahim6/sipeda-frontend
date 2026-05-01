@@ -7,6 +7,7 @@
  */
 
 import { createClient } from './supabase-browser';
+import { fireAndForget } from './utils';
 
 // ─── Admin login ──────────────────────────────────────────────────────────────
 
@@ -34,12 +35,11 @@ export async function loginAdmin(email: string, password: string) {
     throw new Error('Akun petugas lapangan tidak memiliki akses admin. Silakan login di halaman petugas.');
   }
 
-  // Non-blocking: update last_login tanpa tunggu response (tidak perlu await)
-  supabase
-    .from('admins')
-    .update({ last_login: new Date().toISOString() })
-    .eq('id', adminData.id)
-    .then(() => { }); // fire and forget
+  // Non-blocking: update last_login tanpa tunggu response
+  fireAndForget(
+    supabase.from('admins').update({ last_login: new Date().toISOString() }).eq('id', adminData.id),
+    'update last_login',
+  );
 
   return {
     session: data.session,

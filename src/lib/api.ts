@@ -6,6 +6,7 @@
  */
 
 import { supabase } from './supabase';
+import { fireAndForget } from './utils';
 import type {
   Location,
   Schedule,
@@ -210,7 +211,10 @@ export async function getArticleBySlug(slug: string): Promise<Article | null> {
   if (error) return null;
 
   // FIX: Atomic increment views via RPC (mencegah race condition)
-  supabase.rpc('increment_article_views', { article_id: data.id as number }).then(() => { });
+  fireAndForget(
+    supabase.rpc('increment_article_views', { article_id: data.id as number }),
+    'increment article views',
+  );
 
   const r = data as Record<string, unknown>;
   const kat = r.kategori as { nama?: string } | null;
