@@ -402,36 +402,22 @@ export async function createRegistrasi(payload: {
   alamat?: string;
   riwayat_donor: boolean;
 }): Promise<{ kode_registrasi: string }> {
-  // FIX: Kode registrasi dihasilkan dengan timestamp + random untuk menghindari race condition.
-  // Di production, gunakan Supabase RPC function dengan sequence untuk yang benar-benar atomic.
-  const year = new Date().getFullYear();
-  const ts = Date.now().toString(36).toUpperCase();
-  const rand = Math.floor(Math.random() * 999).toString().padStart(3, '0');
-  const kode = `REG-${year}-${ts}${rand}`;
-
+  // Kode registrasi di-generate oleh database via DEFAULT (sequence).
+  // Tidak perlu mengirim kode_registrasi dari client.
   const { data: reg, error } = await supabase
     .from('registrasi_donor')
-    .insert({ ...payload, kode_registrasi: kode })
+    .insert(payload)
     .select('kode_registrasi')
     .single();
 
   if (error) {
     if (error.code === '23505') {
-      // Jika nomor telepon sudah terdaftar untuk jadwal yang sama
+      // Unique constraint violation: telepon + jadwal_id
       if (error.message?.includes('telepon') || error.message?.includes('jadwal')) {
         throw new Error('Nomor WhatsApp ini sudah terdaftar untuk jadwal tersebut.');
       }
-      // Jika kode duplikat (sangat jarang), coba sekali lagi dengan kode baru
-      const kode2 = `REG-${year}-${Date.now().toString(36).toUpperCase()}${Math.floor(Math.random() * 9999).toString().padStart(4, '0')}`;
-      const { data: reg2, error: err2 } = await supabase
-        .from('registrasi_donor')
-        .insert({ ...payload, kode_registrasi: kode2 })
-        .select('kode_registrasi')
-        .single();
-      if (err2) throw new Error('Gagal mendaftar. Silakan coba lagi.');
-      return { kode_registrasi: (reg2 as { kode_registrasi: string }).kode_registrasi };
     }
-    throw error;
+    throw new Error('Gagal mendaftar. Silakan coba lagi.');
   }
 
   return { kode_registrasi: (reg as { kode_registrasi: string }).kode_registrasi };
