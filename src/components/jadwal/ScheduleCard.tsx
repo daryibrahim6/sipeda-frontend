@@ -17,9 +17,9 @@ export function ScheduleCard({ schedule }: { schedule: Schedule }) {
         pct >= 50 ? 'bg-blue-400' : 'bg-green-500';
 
   return (
-    <div className={`bg-white rounded-2xl border shadow-sm hover:shadow-md transition-all flex flex-col gap-0 overflow-hidden ${isFull ? 'border-gray-200 opacity-75' :
+    <div className={`bg-white rounded-3xl border shadow-sm hover:shadow-xl hover:shadow-gray-200/50 transition-all duration-300 flex flex-col gap-0 overflow-hidden ${isFull ? 'border-gray-100 opacity-75 grayscale-[0.2]' :
       isAlmost ? 'border-amber-200' :
-        'border-gray-200 hover:-translate-y-0.5'
+        'border-gray-100 hover:-translate-y-1 hover:border-gray-200'
       }`}>
       {/* ── Urgency banner — hanya jika hampir penuh ── */}
       {isAlmost && !isFull && (

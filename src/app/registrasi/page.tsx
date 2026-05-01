@@ -38,13 +38,13 @@ export default function RegistrasiPage() {
                         value={kode}
                         onChange={e => setKode(e.target.value.toUpperCase())}
                         placeholder="Contoh: REG-2025-XXXXXX"
-                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-mono text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all uppercase mb-4"
+                        className="w-full border-2 border-gray-100 rounded-xl px-4 py-3.5 text-sm font-mono font-bold text-gray-900 placeholder:text-gray-300 placeholder:font-medium focus:outline-none focus:ring-4 focus:ring-red-500/10 focus:border-red-500 transition-all uppercase mb-5"
                     />
 
                     <button
                         type="submit"
                         disabled={!kode.trim()}
-                        className="w-full py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="w-full py-3.5 bg-gray-900 text-white font-bold rounded-xl hover:bg-red-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.98] shadow-sm hover:shadow-md"
                     >
                         <Search className="w-4 h-4" /> Cek Status
                     </button>

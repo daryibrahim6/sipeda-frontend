@@ -23,16 +23,16 @@ function StatCard({
   alert?: boolean;
 }) {
   return (
-    <div className={`bg-white rounded-2xl border p-5 flex flex-col gap-3 ${alert ? 'border-amber-200 bg-amber-50' : 'border-gray-100'}`}>
+    <div className={`bg-white rounded-3xl border shadow-sm p-6 flex flex-col gap-4 transition-all hover:shadow-md ${alert ? 'border-amber-200 bg-amber-50/50' : 'border-gray-100'}`}>
       <div className="flex items-start justify-between">
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${alert ? 'bg-amber-100' : 'bg-red-50'}`}>
-          <Icon className={`w-5 h-5 ${alert ? 'text-amber-600' : 'text-red-600'}`} />
+        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${alert ? 'bg-amber-100' : 'bg-red-50'}`}>
+          <Icon className={`w-6 h-6 ${alert ? 'text-amber-600' : 'text-red-600'}`} />
         </div>
       </div>
       <div>
-        <div className={`text-2xl font-bold ${alert ? 'text-amber-700' : 'text-gray-900'}`}>{value}</div>
-        <div className="text-sm text-gray-500 mt-0.5">{label}</div>
-        {sub && <div className="text-xs text-gray-400 mt-0.5">{sub}</div>}
+        <div className={`text-3xl font-extrabold tracking-tight ${alert ? 'text-amber-700' : 'text-gray-900'}`}>{value}</div>
+        <div className="text-sm font-bold text-gray-500 mt-1">{label}</div>
+        {sub && <div className="text-xs font-semibold text-gray-400 mt-0.5">{sub}</div>}
       </div>
     </div>
   );
@@ -149,56 +149,56 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-6">
 
           {/* Blood stock chart */}
-          <div className="bg-white rounded-2xl border border-gray-100 p-6">
-            <div className="flex items-center justify-between mb-5">
+          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 lg:p-8">
+            <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="font-bold text-gray-900">Stok Darah</h2>
-                <p className="text-xs text-gray-400 mt-0.5">Per golongan darah (semua komponen)</p>
+                <h2 className="text-lg font-extrabold text-gray-900">Stok Darah</h2>
+                <p className="text-xs font-bold text-gray-400 mt-1 uppercase tracking-wide">Per golongan darah (semua komponen)</p>
               </div>
               <Link href="/admin/stok-darah"
-                className="text-xs font-medium text-red-600 hover:text-red-700 transition-colors flex items-center gap-1">
-                Kelola <ArrowUpRight className="w-3 h-3" />
+                className="text-xs font-bold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-full transition-colors flex items-center gap-1">
+                Kelola <ArrowUpRight className="w-3.5 h-3.5" />
               </Link>
             </div>
             {loading
-              ? <div className="h-40 animate-pulse bg-gray-100 rounded-xl" />
+              ? <div className="h-40 animate-pulse bg-gray-50 rounded-2xl" />
               : <BloodStockChart data={bloodData} />
             }
           </div>
 
           {/* Critical stock alert */}
-          <div className="bg-white rounded-2xl border border-gray-100 p-6">
-            <div className="flex items-center justify-between mb-5">
+          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 lg:p-8">
+            <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="font-bold text-gray-900">Stok Perlu Perhatian</h2>
-                <p className="text-xs text-gray-400 mt-0.5">Kritis & kosong</p>
+                <h2 className="text-lg font-extrabold text-gray-900">Stok Perhatian</h2>
+                <p className="text-xs font-bold text-gray-400 mt-1 uppercase tracking-wide">Kritis & Kosong</p>
               </div>
-              <span className="text-xs bg-red-50 text-red-600 font-semibold px-2 py-1 rounded-full">
+              <span className="text-xs bg-red-50 text-red-600 font-extrabold px-3 py-1.5 rounded-full">
                 {criticalBlood.length} item
               </span>
             </div>
             {loading
-              ? <div className="h-32 animate-pulse bg-gray-100 rounded-xl" />
+              ? <div className="h-32 animate-pulse bg-gray-50 rounded-2xl" />
               : criticalBlood.length === 0 ? (
-                <div className="text-center py-8 text-gray-400 text-sm">
+                <div className="text-center py-8 text-gray-400 text-sm font-bold bg-gray-50 rounded-2xl border border-gray-100 border-dashed">
                   Semua stok dalam kondisi normal ✓
                 </div>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {criticalBlood.map((item, i) => (
-                    <div key={i} className={`flex items-center gap-3 p-3 rounded-xl ${item.status === 'kosong' ? 'bg-red-50 border border-red-100' : 'bg-amber-50 border border-amber-100'
+                    <div key={i} className={`flex items-center gap-4 p-4 rounded-2xl ${item.status === 'kosong' ? 'bg-red-50/50 border border-red-100' : 'bg-amber-50/50 border border-amber-100'
                       }`}>
-                      <div className={`w-2 h-2 rounded-full flex-shrink-0 ${item.status === 'kosong' ? 'bg-red-500' : 'bg-amber-400'
+                      <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 shadow-sm ${item.status === 'kosong' ? 'bg-red-500 shadow-red-500/50' : 'bg-amber-400 shadow-amber-400/50'
                         }`} />
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-semibold text-gray-900">
-                          Gol. {item.golongan_darah}
+                        <div className="text-sm font-extrabold text-gray-900">
+                          Golongan {item.golongan_darah}
                         </div>
-                        <div className="text-xs text-gray-500">
-                          {item.total} kantong · {item.status === 'kosong' ? 'Habis' : 'Kritis'}
+                        <div className="text-xs font-semibold text-gray-500 mt-0.5">
+                          {item.total} kantong · <span className={item.status === 'kosong' ? 'text-red-600' : 'text-amber-600'}>{item.status === 'kosong' ? 'Habis' : 'Kritis'}</span>
                         </div>
                       </div>
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full capitalize ${item.status === 'kosong'
+                      <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider ${item.status === 'kosong'
                         ? 'bg-red-100 text-red-700'
                         : 'bg-amber-100 text-amber-700'
                         }`}>
@@ -213,49 +213,49 @@ export default function DashboardPage() {
         </div>
 
         {/* ── Upcoming schedules ── */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6">
-          <div className="flex items-center justify-between mb-5">
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 lg:p-8">
+          <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="font-bold text-gray-900">Jadwal Upcoming</h2>
-              <p className="text-xs text-gray-400 mt-0.5">5 jadwal terdekat yang masih aktif</p>
+              <h2 className="text-lg font-extrabold text-gray-900">Jadwal Upcoming</h2>
+              <p className="text-xs font-bold text-gray-400 mt-1 uppercase tracking-wide">5 jadwal terdekat</p>
             </div>
             <Link href="/admin/jadwal"
-              className="text-xs font-medium text-red-600 hover:text-red-700 flex items-center gap-1">
-              Kelola <ArrowUpRight className="w-3 h-3" />
+              className="text-xs font-bold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-full transition-colors flex items-center gap-1">
+              Kelola <ArrowUpRight className="w-3.5 h-3.5" />
             </Link>
           </div>
           {loading ? (
             <div className="space-y-3">
-              {[1, 2, 3].map(i => <div key={i} className="h-16 animate-pulse bg-gray-100 rounded-xl" />)}
+              {[1, 2, 3].map(i => <div key={i} className="h-16 animate-pulse bg-gray-50 rounded-2xl" />)}
             </div>
           ) : schedules.length === 0 ? (
-            <div className="text-center py-8 text-gray-400 text-sm flex flex-col items-center gap-2">
-              <Calendar className="w-8 h-8 text-gray-200" />
+            <div className="text-center py-10 text-gray-400 text-sm font-bold bg-gray-50 rounded-2xl border border-gray-100 border-dashed flex flex-col items-center gap-3">
+              <Calendar className="w-8 h-8 text-gray-300" />
               Tidak ada jadwal aktif ke depan
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
               {schedules.map(s => {
                 const filled = s.kuota - s.sisa_kuota;
                 const pct = Math.round((filled / s.kuota) * 100);
                 return (
-                  <div key={s.id} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
-                    <div className="w-10 h-10 bg-white rounded-xl border border-gray-200 flex items-center justify-center flex-shrink-0">
-                      <Calendar className="w-4 h-4 text-red-500" />
+                  <div key={s.id} className="flex items-center gap-4 p-4 rounded-2xl bg-gray-50 border border-transparent hover:border-gray-200 transition-all hover:bg-white hover:shadow-sm">
+                    <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-gray-100 flex items-center justify-center flex-shrink-0">
+                      <Calendar className="w-5 h-5 text-red-600" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-semibold text-gray-900 truncate">
+                      <div className="text-sm font-extrabold text-gray-900 truncate">
                         {s.lokasi?.nama_lokasi ?? `Jadwal #${s.id}`}
                       </div>
-                      <div className="text-xs text-gray-400">{formatDate(s.tanggal)}</div>
-                      <div className="mt-1.5 flex items-center gap-2">
-                        <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                      <div className="text-xs font-bold text-gray-500 mt-0.5">{formatDate(s.tanggal)}</div>
+                      <div className="mt-2 flex items-center gap-3">
+                        <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
                           <div
                             className={`h-full rounded-full ${pct >= 90 ? 'bg-red-500' : pct >= 60 ? 'bg-amber-400' : 'bg-green-500'}`}
                             style={{ width: `${pct}%` }}
                           />
                         </div>
-                        <span className="text-[10px] text-gray-400 flex-shrink-0">{filled}/{s.kuota}</span>
+                        <span className="text-[10px] font-extrabold text-gray-500 flex-shrink-0">{filled}/{s.kuota}</span>
                       </div>
                     </div>
                   </div>
@@ -268,17 +268,17 @@ export default function DashboardPage() {
         {/* ── Quick links ── */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
-            { href: '/admin/jadwal', label: 'Jadwal', icon: Calendar, color: 'text-blue-600 bg-blue-50' },
-            { href: '/admin/stok-darah', label: 'Stok', icon: Droplets, color: 'text-red-600 bg-red-50' },
-            { href: '/admin/registrasi', label: 'Registrasi', icon: ClipboardList, color: 'text-green-600 bg-green-50' },
-            { href: '/admin/artikel', label: 'Artikel', icon: TrendingUp, color: 'text-purple-600 bg-purple-50' },
+            { href: '/admin/jadwal', label: 'Jadwal', icon: Calendar, color: 'text-blue-600 bg-blue-50/50' },
+            { href: '/admin/stok-darah', label: 'Stok Darah', icon: Droplets, color: 'text-red-600 bg-red-50/50' },
+            { href: '/admin/registrasi', label: 'Registrasi', icon: ClipboardList, color: 'text-green-600 bg-green-50/50' },
+            { href: '/admin/artikel', label: 'Artikel', icon: TrendingUp, color: 'text-purple-600 bg-purple-50/50' },
           ].map(item => (
             <Link key={item.href} href={item.href}
-              className="flex flex-col items-center gap-2 p-4 bg-white rounded-2xl border border-gray-100 hover:shadow-md hover:-translate-y-0.5 transition-all text-center">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${item.color}`}>
-                <item.icon className="w-5 h-5" />
+              className="flex flex-col items-center gap-3 p-5 bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all text-center group">
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${item.color} group-hover:scale-110 transition-transform duration-300`}>
+                <item.icon className="w-6 h-6" />
               </div>
-              <span className="text-xs font-semibold text-gray-700">{item.label}</span>
+              <span className="text-xs font-bold text-gray-700 uppercase tracking-wide">{item.label}</span>
             </Link>
           ))}
         </div>

@@ -18,12 +18,20 @@ export default async function PetaPage() {
     <main id="main">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
-        {/* Header */}
-        <div className="mb-8">
-          <p className="text-sm font-semibold text-red-600 uppercase tracking-widest mb-1">WebGIS</p>
-          <h1 className="text-3xl font-bold text-gray-900">Peta Lokasi Donor Darah</h1>
-          <p className="text-gray-500 mt-1">
-            {locations.length} lokasi aktif di Kecamatan Indramayu — klik marker untuk detail &amp; jadwal
+        {/* Premium Header */}
+        <div className="mb-10 text-center sm:text-left border-b border-gray-100 pb-8">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-50 text-xs font-bold text-red-600 uppercase tracking-widest mb-4">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-red-600" />
+            </span>
+            WebGIS Interaktif
+          </div>
+          <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 tracking-tight mb-4">
+            Peta Lokasi Donor
+          </h1>
+          <p className="text-gray-500 font-medium max-w-2xl mx-auto sm:mx-0 text-lg">
+            Temukan <strong className="text-gray-900">{locations.length} lokasi donor aktif</strong> di Indramayu. Klik marker pada peta untuk melihat detail jadwal, stok darah, dan petunjuk arah.
           </p>
         </div>
 

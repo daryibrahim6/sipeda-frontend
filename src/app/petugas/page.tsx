@@ -65,7 +65,7 @@ export default function PetugasPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-950 text-white">
+        <div className="min-h-screen bg-[#F4F4F5] text-gray-900 pb-20">
             <PetugasHeader
                 userName={petugasUser?.name ?? 'Petugas'}
                 onLogout={handleLogout}
@@ -80,11 +80,11 @@ export default function PetugasPage() {
                     </label>
 
                     {loadingSchedules ? (
-                        <div className="bg-gray-900 rounded-xl border border-white/10 p-4 flex items-center justify-center">
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex items-center justify-center">
                             <Loader2 className="w-5 h-5 text-red-500 animate-spin" />
                         </div>
                     ) : schedules.length === 0 ? (
-                        <div className="bg-gray-900 rounded-xl border border-white/10 p-6 text-center text-sm text-gray-500">
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 text-center text-sm font-medium text-gray-500">
                             Tidak ada jadwal donor hari ini.
                         </div>
                     ) : (
@@ -92,7 +92,7 @@ export default function PetugasPage() {
                             <select
                                 value={selectedJadwal ?? ''}
                                 onChange={e => setSelectedJadwal(Number(e.target.value) || null)}
-                                className="w-full appearance-none bg-gray-900 border border-white/10 rounded-xl px-4 py-3 pr-10 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+                                className="w-full appearance-none bg-white border-2 border-gray-100 shadow-sm rounded-2xl px-4 py-3.5 pr-10 text-sm font-bold text-gray-900 focus:outline-none focus:ring-4 focus:ring-red-500/10 focus:border-red-500 transition-all"
                             >
                                 <option value="">— Pilih jadwal —</option>
                                 {schedules.map(s => (
@@ -101,16 +101,16 @@ export default function PetugasPage() {
                                     </option>
                                 ))}
                             </select>
-                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 pointer-events-none" />
+                            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                         </div>
                     )}
 
                     {selectedSchedule && (
-                        <div className="mt-2 bg-gray-900/50 rounded-lg border border-white/5 px-4 py-2.5 flex items-center gap-3 text-xs text-gray-400">
-                            <MapPin className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
+                        <div className="mt-3 bg-white rounded-2xl shadow-sm border border-gray-100 px-4 py-3.5 flex items-center gap-3 text-xs font-bold text-gray-700">
+                            <MapPin className="w-4 h-4 text-red-500 flex-shrink-0" />
                             <span>{selectedSchedule.lokasi?.nama_lokasi}</span>
-                            <span className="text-gray-700">·</span>
-                            <Clock className="w-3.5 h-3.5 text-gray-600" />
+                            <span className="text-gray-300">·</span>
+                            <Clock className="w-4 h-4 text-gray-400" />
                             <span>{selectedSchedule.waktu_mulai}–{selectedSchedule.waktu_selesai}</span>
                         </div>
                     )}

@@ -137,86 +137,88 @@ export default function AdminStokPage() {
             { label: 'Komponen x Lokasi', value: grouped.length, color: 'text-gray-900' },
             { label: 'Perlu Perhatian', value: kritisCount, color: kritisCount > 0 ? 'text-red-600' : 'text-green-600' },
           ].map(item => (
-            <div key={item.label} className="bg-white rounded-2xl border border-gray-100 p-5 text-center">
-              <div className={`text-2xl font-bold mb-1 ${item.color}`}>{item.value}</div>
-              <div className="text-xs text-gray-400">{item.label}</div>
+            <div key={item.label} className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 text-center transition-all hover:shadow-md">
+              <div className={`text-4xl font-extrabold tracking-tight mb-2 ${item.color}`}>{item.value}</div>
+              <div className="text-xs font-bold text-gray-500 uppercase tracking-wide">{item.label}</div>
             </div>
           ))}
         </div>
 
-        {/* Filter lokasi */}
-        {locations.length > 1 && (
-          <div className="flex flex-wrap gap-2 items-center">
-            <MapPin className="w-4 h-4 text-gray-400" />
-            <button onClick={() => setLokasiFilter(undefined)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${!lokasiFilter ? 'bg-red-600 text-white border-red-600' : 'bg-white border-gray-200 text-gray-600 hover:border-red-300'}`}>
-              Semua Lokasi
-            </button>
-            {locations.map(loc => (
-              <button key={loc.id} onClick={() => setLokasiFilter(loc.id)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${lokasiFilter === loc.id ? 'bg-red-600 text-white border-red-600' : 'bg-white border-gray-200 text-gray-600 hover:border-red-300'}`}>
-                {loc.nama_lokasi}
+        {/* Filter lokasi & Legend */}
+        <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center">
+          {locations.length > 1 && (
+            <div className="flex flex-wrap gap-2 items-center bg-white rounded-2xl shadow-sm border border-gray-100 p-2">
+              <MapPin className="w-5 h-5 text-gray-400 ml-2" />
+              <div className="w-px h-6 bg-gray-200 mx-1" />
+              <button onClick={() => setLokasiFilter(undefined)}
+                className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${!lokasiFilter ? 'bg-red-50 text-red-700 shadow-sm' : 'bg-transparent text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}>
+                Semua Lokasi
               </button>
+              {locations.map(loc => (
+                <button key={loc.id} onClick={() => setLokasiFilter(loc.id)}
+                  className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${lokasiFilter === loc.id ? 'bg-red-50 text-red-700 shadow-sm' : 'bg-transparent text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}>
+                  {loc.nama_lokasi}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div className="flex flex-wrap gap-3 p-3.5 bg-white rounded-2xl shadow-sm border border-gray-100 text-xs font-bold text-gray-500">
+            {[
+              { dot: 'bg-green-500', label: 'Normal' },
+              { dot: 'bg-amber-400', label: 'Kritis' },
+              { dot: 'bg-red-500', label: 'Kosong' },
+            ].map(l => (
+              <div key={l.label} className="flex items-center gap-2 px-2">
+                <span className={`w-2.5 h-2.5 rounded-full ${l.dot} shadow-sm`} />
+                {l.label}
+              </div>
             ))}
           </div>
-        )}
-
-        {/* Legend */}
-        <div className="flex flex-wrap gap-3 p-4 bg-white rounded-xl border border-gray-100 text-xs text-gray-500">
-          <span className="font-semibold text-gray-600">Keterangan:</span>
-          {[
-            { dot: 'bg-green-500', label: 'Normal' },
-            { dot: 'bg-amber-400', label: 'Kritis — perlu tambah' },
-            { dot: 'bg-red-500', label: 'Kosong' },
-          ].map(l => (
-            <div key={l.label} className="flex items-center gap-1.5">
-              <span className={`w-2 h-2 rounded-full ${l.dot}`} />
-              {l.label}
-            </div>
-          ))}
-          <span className="ml-auto italic">Klik sel untuk edit langsung</span>
         </div>
 
         {/* Stock tables */}
         {dataLoading ? (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="bg-white rounded-2xl border border-gray-100 p-6">
-                <div className="h-5 bg-gray-100 animate-pulse rounded w-48 mb-4" />
-                <div className="grid grid-cols-8 gap-2">
+              <div key={i} className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
+                <div className="h-6 bg-gray-50 animate-pulse rounded-lg w-48 mb-6" />
+                <div className="grid grid-cols-8 gap-3">
                   {[...Array(8)].map((_, j) => (
-                    <div key={j} className="h-16 bg-gray-100 animate-pulse rounded-xl" />
+                    <div key={j} className="h-20 bg-gray-50 animate-pulse rounded-2xl" />
                   ))}
                 </div>
               </div>
             ))}
           </div>
         ) : grouped.length === 0 ? (
-          <div className="text-center py-20 text-gray-400 bg-white rounded-2xl border border-gray-100">
+          <div className="text-center py-20 text-gray-400 bg-white rounded-3xl shadow-sm border border-gray-100 font-bold">
             Belum ada data stok darah.
           </div>
         ) : grouped.map(group => (
-          <div key={`${group.lokasi_id}-${group.komponen_id}`} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-            <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-50">
+          <div key={`${group.lokasi_id}-${group.komponen_id}`} className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="flex items-center gap-4 px-6 py-5 bg-gray-50/50 border-b border-gray-100">
+              <div className="w-12 h-12 rounded-2xl bg-white border border-gray-200 shadow-sm flex items-center justify-center flex-shrink-0">
+                <span className="font-extrabold text-red-600">{group.komponen_kode}</span>
+              </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-gray-900">{group.komponen_nama}</span>
-                  <span className="text-xs font-mono text-gray-400 bg-gray-100 px-2 py-0.5 rounded">{group.komponen_kode}</span>
+                  <span className="text-lg font-extrabold text-gray-900 tracking-tight">{group.komponen_nama}</span>
                 </div>
-                <div className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
-                  <MapPin className="w-3 h-3" />{group.lokasi_nama}
+                <div className="text-xs font-bold text-gray-500 flex items-center gap-1.5 mt-1">
+                  <MapPin className="w-3.5 h-3.5 text-gray-400" />{group.lokasi_nama}
                 </div>
               </div>
-              <div className="ml-auto text-sm text-gray-500">
-                Total: <span className="font-bold text-gray-900">{group.total}</span> kantong
+              <div className="ml-auto text-sm font-bold text-gray-500 bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm">
+                Total: <span className="font-extrabold text-gray-900 ml-1 text-lg">{group.total}</span> kantong
               </div>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-gray-50/50">
+                  <tr>
                     {BLOOD_TYPES.map(bt => (
-                      <th key={bt} className="text-center px-4 py-2.5 font-semibold text-gray-500 text-xs min-w-[80px]">{bt}</th>
+                      <th key={bt} className="text-center px-4 py-4 font-extrabold text-gray-400 text-xs uppercase tracking-widest min-w-[90px] border-b border-gray-100">{bt}</th>
                     ))}
                   </tr>
                 </thead>
@@ -226,34 +228,34 @@ export default function AdminStokPage() {
                       const cell = group.golongan[bt];
                       const isEditing = editing?.id === cell?.id;
                       if (!cell) {
-                        return <td key={bt} className="px-4 py-4 text-center text-gray-200 text-lg">—</td>;
+                        return <td key={bt} className="px-4 py-6 text-center text-gray-200 text-lg font-extrabold">—</td>;
                       }
                       return (
-                        <td key={bt} className="px-4 py-3 text-center">
+                        <td key={bt} className="px-4 py-5 text-center border-r border-gray-50 last:border-0">
                           {isEditing ? (
                             <div className="flex flex-col items-center gap-2">
                               <input type="number" min="0" value={editing.val}
                                 onChange={e => setEditing(ed => ed ? { ...ed, val: e.target.value } : null)}
                                 onKeyDown={e => { if (e.key === 'Enter') saveEdit(); if (e.key === 'Escape') setEditing(null); }}
                                 autoFocus
-                                className="w-16 text-center border-2 border-red-400 rounded-lg px-2 py-1 text-sm font-bold focus:outline-none" />
+                                className="w-16 text-center border-2 border-red-400 shadow-sm rounded-xl px-2 py-2 text-base font-extrabold focus:outline-none focus:ring-4 focus:ring-red-500/10 transition-all" />
                               <div className="flex gap-1">
-                                <button onClick={saveEdit} disabled={saving} className="p-1 rounded bg-green-100 text-green-700 hover:bg-green-200 transition-colors">
-                                  {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                                <button onClick={saveEdit} disabled={saving} className="p-1.5 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition-colors shadow-sm active:scale-95">
+                                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                                 </button>
-                                <button onClick={() => setEditing(null)} className="p-1 rounded bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors">
-                                  <X className="w-3 h-3" />
+                                <button onClick={() => setEditing(null)} className="p-1.5 rounded-lg bg-gray-50 border border-gray-200 text-gray-500 hover:bg-gray-100 transition-colors shadow-sm active:scale-95">
+                                  <X className="w-4 h-4" />
                                 </button>
                               </div>
                             </div>
                           ) : (
                             <button onClick={() => setEditing({ id: cell.id, val: String(cell.jumlah) })}
-                              className="group flex flex-col items-center gap-1.5 w-full py-1 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer" title="Klik untuk edit">
-                              <span className={`text-xl font-bold ${cell.status === 'kosong' ? 'text-red-600' : cell.status === 'kritis' ? 'text-amber-600' : 'text-gray-900'}`}>
+                              className="group flex flex-col items-center gap-2 w-full py-2 rounded-2xl hover:bg-gray-50 transition-all cursor-pointer hover:-translate-y-0.5 active:scale-95" title="Klik untuk edit">
+                              <span className={`text-3xl font-extrabold tracking-tight transition-colors ${cell.status === 'kosong' ? 'text-red-600' : cell.status === 'kritis' ? 'text-amber-500' : 'text-gray-900 group-hover:text-red-600'}`}>
                                 {cell.jumlah}
                               </span>
-                              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${statusColor(cell.status)}`}>{cell.status}</span>
-                              <Save className="w-3 h-3 text-gray-300 group-hover:text-gray-500 transition-colors" />
+                              <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${statusColor(cell.status).replace('border-', '')}`}>{cell.status}</span>
+                              <Save className="w-3.5 h-3.5 text-gray-300 opacity-0 group-hover:opacity-100 group-hover:text-red-400 transition-all absolute mt-16" />
                             </button>
                           )}
                         </td>

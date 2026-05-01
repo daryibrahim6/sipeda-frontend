@@ -136,8 +136,8 @@ export function Sidebar({ open, onClose }: Props) {
 
   return (
     <>
-      {/* Desktop sidebar */}
-      <div className="hidden lg:flex h-screen sticky top-0 border-r border-white/5">
+      {/* Desktop sidebar (Floating Bento Panel) */}
+      <div className="hidden lg:flex h-[calc(100vh-3rem)] sticky top-6 rounded-3xl overflow-hidden shadow-lg border border-gray-900 bg-gray-950">
         {content}
       </div>
 

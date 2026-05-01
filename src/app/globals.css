@@ -1,15 +1,35 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
+@theme {
+  --color-primary: #C60000;
+  --color-primary-dark: #A50000;
+  --color-primary-light: #FFF5F5;
+  --font-display: 'Plus Jakarta Sans', sans-serif;
+  --font-sans: 'Plus Jakarta Sans', sans-serif;
+}
+
+@layer utilities {
+  .bg-noise {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  }
+}
+
 :root {
   --primary: #C60000;
   --primary-dark: #A50000;
   --primary-light: #FFF5F5;
   --font-display: 'Plus Jakarta Sans', sans-serif;
+  background-color: #FAFAFA;
 }
 
 html {
   scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background-color: #FFFFFF;
 }
 
 /* ─── Typography ──────────────────────────────────────────────────────────────── */
@@ -98,6 +118,13 @@ h4 {
     transform: scale(1.05);
     opacity: 0.8;
   }
+}
+
+@keyframes blob {
+  0% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(30px, -50px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.9); }
+  100% { transform: translate(0px, 0px) scale(1); }
 }
 
 .animate-fade-in-up {
@@ -211,4 +238,9 @@ details[open]>summary .chevron {
 .card-hover:hover {
   transform: translateY(-2px);
   box-shadow: 0 12px 40px -8px rgba(0, 0, 0, 0.12);
+}
+
+/* ─── Safe Area for Mobile Notch ─────────────────────────────────────────────── */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
 }

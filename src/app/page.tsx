@@ -3,7 +3,7 @@ import Link from 'next/link';
 import {
   Droplets, MapPin, Calendar, AlertTriangle,
   ArrowRight, Phone, Heart, Users, Clock,
-  ChevronRight,
+  ChevronRight, ChevronDown
 } from 'lucide-react';
 import { ScheduleCard } from '@/components/jadwal/ScheduleCard';
 import { getStats, getSchedules, getArticles, getAnnouncements } from '@/lib/api';
@@ -58,365 +58,176 @@ export default async function HomePage() {
           </div>
         ))}
 
-        {/* ── HERO ── */}
-        <section className="relative bg-gray-950 text-white overflow-hidden min-h-[85vh] flex items-center">
-          {/* Background pattern */}
-          <div className="absolute inset-0"
-            style={{
-              backgroundImage: `
-                radial-gradient(circle at 20% 50%, rgba(220,38,38,0.15) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(220,38,38,0.08) 0%, transparent 40%),
-                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)
-              `,
-              backgroundSize: 'auto, auto, 60px 60px, 60px 60px',
-            }}
-          />
+        {/* ── CRIMSON DEPTH HERO (Dark + Noise) ── */}
+        <section className="relative min-h-[95vh] flex items-center justify-center pt-24 pb-20 overflow-hidden bg-gray-950">
+          {/* Deep gradient background */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-red-950 via-gray-950 to-black"></div>
+          
+          {/* Static SVG Noise Overlay (Zero Lag) */}
+          <div className="absolute inset-0 bg-noise opacity-20 mix-blend-overlay pointer-events-none"></div>
 
-          {/* Urgency pulse — ditampilkan jika ada stok kritis */}
-          {hasUrgency && (
-            <div className="absolute top-8 right-8 hidden lg:flex items-center gap-3 bg-red-900/50 border border-red-500/40 rounded-2xl px-5 py-3 backdrop-blur-sm">
-              <span className="relative flex h-3 w-3">
+          {/* Optional: Glow spheres for depth */}
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-red-600/10 rounded-full blur-[120px] pointer-events-none"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-rose-600/10 rounded-full blur-[120px] pointer-events-none"></div>
+
+          <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center mt-12">
+            
+            {/* Status Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm text-sm font-medium text-gray-300 mb-8 animate-fade-in-up">
+              <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
               </span>
-              <div>
-                <div className="text-xs font-bold text-red-300 uppercase tracking-wide">Stok Kritis</div>
-                <div className="text-sm text-white font-semibold">{s?.total_stok_kritis} golongan membutuhkan pendonor</div>
-              </div>
-              <Link href="/stok-darah" className="ml-2 text-xs text-red-300 hover:text-white transition-colors underline">
-                Cek →
+              Sistem Aktif • PMI Indramayu
+            </div>
+
+            {/* Huge Hero Typography */}
+            <h1 className="text-5xl sm:text-7xl lg:text-[5.5rem] font-extrabold tracking-tight mb-8 text-white leading-[1.1] animate-fade-in-up stagger-1">
+              Satu Tetes Darah.<br />
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-red-400 to-rose-300">
+                Tiga Nyawa
+              </span> Tertolong.
+            </h1>
+
+            <p className="text-lg sm:text-xl text-gray-400 font-medium max-w-2xl mx-auto mb-12 leading-relaxed animate-fade-in-up stagger-2">
+              Platform resmi pendonoran darah. Cek ketersediaan kantong darah, cari jadwal terdekat, dan daftar antrean tanpa perlu repot datang.
+            </p>
+
+            {/* CTAs */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up stagger-3">
+              <Link href="/jadwal" className="w-full sm:w-auto px-8 py-4 bg-white text-gray-950 font-bold rounded-full hover:scale-105 active:scale-95 transition-all shadow-[0_0_40px_rgba(255,255,255,0.15)] flex items-center justify-center gap-2">
+                <Heart className="w-5 h-5 text-red-600" /> Daftar Donor
+              </Link>
+              <Link href="/stok-darah" className="w-full sm:w-auto px-8 py-4 bg-white/5 text-white font-medium rounded-full border border-white/10 hover:bg-white/10 transition-all flex items-center justify-center gap-2">
+                <Droplets className="w-5 h-5 text-gray-400" /> Cek Stok
               </Link>
             </div>
-          )}
-
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 w-full">
-            <div className="max-w-3xl">
-              {/* Status badge */}
-              <div className="inline-flex items-center gap-2.5 bg-white/8 border border-white/12 rounded-full px-4 py-1.5 text-xs font-medium mb-8 text-gray-300">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
-                </span>
-                Layanan aktif · PMI Kabupaten Indramayu
-              </div>
-
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.08] tracking-tight mb-6">
-                Satu Tetes Darah{' '}
-                <br />
-                <span className="text-red-400">Tiga Nyawa</span>{' '}
-                Terselamatkan
-              </h1>
-
-              <p className="text-lg text-gray-400 leading-relaxed mb-10 max-w-xl">
-                Temukan lokasi donor terdekat, pantau stok darah real-time, dan daftar jadwal
-                donor — semuanya dalam satu platform untuk Kabupaten Indramayu.
-              </p>
-
-              <div className="flex flex-wrap gap-3 mb-12">
-                <Link href="/jadwal"
-                  className="inline-flex items-center gap-2 px-6 py-3.5 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 active:bg-red-800 transition-colors shadow-lg shadow-red-600/25">
-                  <Heart className="w-4 h-4" />
-                  Daftar Donor Sekarang
-                </Link>
-                <Link href="/peta"
-                  className="inline-flex items-center gap-2 px-6 py-3.5 bg-white/10 border border-white/15 text-white font-semibold rounded-xl hover:bg-white/20 transition-colors backdrop-blur-sm">
-                  <MapPin className="w-4 h-4" />
-                  Temukan Lokasi
-                </Link>
-                <Link href="/stok-darah"
-                  className="inline-flex items-center gap-2 px-6 py-3.5 bg-white/10 border border-white/15 text-white font-semibold rounded-xl hover:bg-white/20 transition-colors backdrop-blur-sm">
-                  <Droplets className="w-4 h-4" />
-                  Cek Stok Darah
-                </Link>
-              </div>
-
-              {/* Quick impact stats */}
-              <div className="flex flex-wrap gap-8">
-                {[
-                  { value: s?.total_stok ?? '—', label: 'Kantong tersedia', icon: Droplets },
-                  { value: s?.lokasi_aktif ?? '—', label: 'Lokasi aktif', icon: MapPin },
-                  { value: s?.jadwal_aktif ?? '—', label: 'Jadwal bulan ini', icon: Calendar },
-                ].map(stat => (
-                  <div key={stat.label} className="flex items-center gap-2.5">
-                    <stat.icon className="w-4 h-4 text-red-400 flex-shrink-0" />
-                    <div>
-                      <div className="text-xl font-bold text-white">{stat.value}</div>
-                      <div className="text-xs text-gray-500">{stat.label}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+          </div>
+          
+          {/* Scroll Indicator */}
+          <div className="absolute bottom-10 left-1/2 -translate-x-1/2 text-gray-500 animate-bounce">
+            <ChevronDown className="w-6 h-6" />
           </div>
         </section>
 
-        {/* ── Stok Kritis Alert — ditampilkan jika ada yang kritis/kosong ── */}
-        {hasUrgency && (
-          <section className="bg-red-600">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
-              <div className="flex items-center gap-4 flex-wrap">
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <AlertTriangle className="w-5 h-5 text-white" />
+        {/* ── DATA SECTION (Clean White / Functional) ── */}
+        {/* The hard cut to white provides extreme contrast and perfect readability for data */}
+        <section className="py-24 bg-white relative z-20 rounded-t-[3rem] -mt-10 shadow-[0_-20px_50px_rgba(0,0,0,0.5)]">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            {/* Urgent Alert (If Any) */}
+            {hasUrgency && (
+              <div className="mb-16">
+                <div className="bg-red-50 border border-red-100 rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                  <div className="flex items-center gap-5">
+                    <div className="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center flex-shrink-0">
+                      <AlertTriangle className="w-7 h-7" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-900 mb-1">Stok Darah Kritis</h3>
+                      <p className="text-gray-600 font-medium">
+                        Saat ini terdapat <strong className="text-red-700">{s?.total_stok_kritis} golongan darah</strong> kosong. Pendonor sangat dibutuhkan hari ini.
+                      </p>
+                    </div>
+                  </div>
+                  <Link href="/stok-darah" className="flex-shrink-0 px-6 py-3 bg-red-600 text-white font-bold rounded-full hover:bg-red-700 transition-colors shadow-md shadow-red-600/20">
+                    Bantu Sekarang
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            {/* Quick Stats Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-24">
+              {[
+                { value: s?.total_stok ?? '—', label: 'Kantong Tersedia', icon: Droplets, color: 'text-red-600', bg: 'bg-red-50' },
+                { value: s?.lokasi_aktif ?? '—', label: 'Lokasi Aktif', icon: MapPin, color: 'text-gray-900', bg: 'bg-gray-50' },
+                { value: s?.jadwal_aktif ?? '—', label: 'Jadwal Bulan Ini', icon: Calendar, color: 'text-gray-900', bg: 'bg-gray-50' },
+              ].map(stat => (
+                <div key={stat.label} className="p-6 rounded-3xl border border-gray-100 hover:border-gray-200 transition-colors flex items-center gap-5">
+                  <div className={`w-14 h-14 ${stat.bg} ${stat.color} rounded-full flex items-center justify-center flex-shrink-0`}>
+                    <stat.icon className="w-6 h-6" />
                   </div>
                   <div>
-                    <div className="font-bold text-white text-sm">
-                      Stok Darah Kritis — Pendonor Dibutuhkan Segera
-                    </div>
-                    <div className="text-red-100 text-xs mt-0.5">
-                      {s?.total_stok_kritis} golongan darah dalam kondisi kritis atau kosong saat ini.
-                    </div>
+                    <div className="text-3xl font-extrabold text-gray-900 tracking-tight">{stat.value}</div>
+                    <div className="text-sm font-semibold text-gray-500 uppercase tracking-wider mt-1">{stat.label}</div>
                   </div>
-                </div>
-                <Link href="/stok-darah"
-                  className="flex-shrink-0 inline-flex items-center gap-1.5 px-4 py-2 bg-white text-red-700 font-semibold text-sm rounded-xl hover:bg-red-50 transition-colors">
-                  Lihat Detail <ArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* ── Cara Kerja ── */}
-        <section className="py-20 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-14">
-              <p className="text-sm font-bold text-red-600 uppercase tracking-widest mb-2">
-                Mudah & Cepat
-              </p>
-              <h2 className="text-3xl font-bold text-gray-900">Donor Darah dalam 4 Langkah</h2>
-              <p className="text-gray-500 mt-2 max-w-lg mx-auto">
-                Prosesnya sederhana. Persiapan 10 menit, dampaknya bisa menyelamatkan nyawa.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 relative">
-              {/* Connector */}
-              <div className="hidden lg:block absolute top-9 left-[14%] right-[14%] h-px bg-gradient-to-r from-transparent via-red-200 to-transparent z-0" />
-
-              {[
-                {
-                  num: '01', icon: MapPin,    color: 'from-red-50 to-orange-50',
-                  title: 'Temukan Lokasi',
-                  desc: 'Buka peta interaktif, cari lokasi donor terdekat lengkap dengan info stok darah.',
-                },
-                {
-                  num: '02', icon: Calendar,  color: 'from-rose-50 to-red-50',
-                  title: 'Pilih Jadwal',
-                  desc: 'Lihat ketersediaan jadwal dan pilih waktu yang cocok. Kuota ditampilkan real-time.',
-                },
-                {
-                  num: '03', icon: Heart,     color: 'from-red-50 to-rose-50',
-                  title: 'Daftar Online',
-                  desc: 'Isi form pendaftaran singkat. Kode registrasi langsung dikirim ke WhatsApp kamu.',
-                },
-                {
-                  num: '04', icon: Droplets,  color: 'from-rose-50 to-pink-50',
-                  title: 'Datang & Donor',
-                  desc: 'Tunjukkan kode, jalani pemeriksaan awal, dan donorkan darah. Proses ±45 menit.',
-                },
-              ].map((step, i) => (
-                <div key={step.num} className="relative z-10 bg-white rounded-2xl border border-gray-100 shadow-sm p-6 hover:shadow-md hover:-translate-y-0.5 transition-all">
-                  <div className={`inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br ${step.color} rounded-2xl mb-4`}>
-                    <step.icon className="w-6 h-6 text-red-600" />
-                  </div>
-                  <div className="text-xs font-extrabold text-red-400/60 font-mono mb-1 tracking-widest">
-                    {step.num}
-                  </div>
-                  <h3 className="font-bold text-gray-900 mb-2">{step.title}</h3>
-                  <p className="text-sm text-gray-500 leading-relaxed">{step.desc}</p>
                 </div>
               ))}
             </div>
-          </div>
-        </section>
 
-        {/* ── Jadwal Terdekat ── */}
-        <section className="py-20 bg-gray-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-end justify-between mb-10">
+            {/* Jadwal Terdekat */}
+            <div className="flex flex-col sm:flex-row items-end justify-between mb-10 gap-4">
               <div>
-                <p className="text-sm font-bold text-red-600 uppercase tracking-widest mb-1">
-                  Jadwal Donor
-                </p>
-                <h2 className="text-3xl font-bold text-gray-900">Kegiatan Terdekat</h2>
-                <p className="text-gray-500 mt-1 text-sm">
-                  Daftar sebelum kuota penuh — slot sangat terbatas
-                </p>
+                <p className="text-sm font-bold text-red-600 uppercase tracking-widest mb-2">Jadwal Donor</p>
+                <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">Kegiatan Terdekat</h2>
               </div>
-              <Link href="/jadwal"
-                className="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold text-red-600 hover:text-red-700 transition-colors">
-                Lihat semua <ChevronRight className="w-4 h-4" />
+              <Link href="/jadwal" className="hidden sm:inline-flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors">
+                Lihat Semua Jadwal <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
 
             {upcomingSchedules.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {upcomingSchedules.map(s => (
                   <ScheduleCard key={s.id} schedule={s} />
                 ))}
               </div>
             ) : (
-              <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
-                <Calendar className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-                <div className="text-gray-500 font-medium">Belum ada jadwal aktif bulan ini</div>
-                <div className="text-sm text-gray-400 mt-1">Pantau terus untuk update terbaru</div>
+              <div className="text-center py-20 bg-gray-50 rounded-3xl border border-gray-100">
+                <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Belum Ada Jadwal</h3>
+                <p className="text-gray-500 font-medium">Jadwal donor aktif untuk bulan ini belum tersedia.</p>
               </div>
             )}
-
-            <div className="text-center mt-6 sm:hidden">
-              <Link href="/jadwal"
-                className="inline-flex items-center gap-1.5 text-sm font-semibold text-red-600">
-                Lihat semua jadwal <ArrowRight className="w-4 h-4" />
+            
+            <div className="text-center mt-8 sm:hidden">
+              <Link href="/jadwal" className="inline-flex items-center gap-2 text-sm font-bold text-red-600">
+                Lihat Semua Jadwal <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
+
           </div>
         </section>
 
-        {/* ── Kenapa Donor Darah Penting — Edukasi singkat ── */}
-        <section className="py-20 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div>
-                <p className="text-sm font-bold text-red-600 uppercase tracking-widest mb-2">
-                  Dampak Nyata
-                </p>
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                  Satu Donor, Tiga Nyawa
-                </h2>
-                <p className="text-gray-500 leading-relaxed mb-6">
-                  Satu kantong darah yang kamu donorkan dapat diproses menjadi tiga komponen berbeda —
-                  sel darah merah, trombosit, dan plasma — yang masing-masing dapat menyelamatkan
-                  satu nyawa berbeda.
-                </p>
-                <p className="text-gray-500 leading-relaxed mb-8">
-                  Di Kabupaten Indramayu, kebutuhan darah mencapai ratusan kantong per bulan.
-                  PMI Indramayu mengandalkan pendonor sukarela untuk memenuhi kebutuhan ini.
-                </p>
-                <Link href="/syarat-donor"
-                  className="inline-flex items-center gap-2 text-sm font-semibold text-red-600 hover:text-red-700 transition-colors">
-                  Pelajari syarat dan proses donor <ChevronRight className="w-4 h-4" />
-                </Link>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                {[
-                  { value: '3',   unit: 'nyawa',   label: 'bisa diselamatkan dari 1 kantong darah', icon: Heart, color: 'bg-red-600 text-white' },
-                  { value: '45',  unit: 'menit',   label: 'total waktu yang dibutuhkan untuk donor', icon: Clock, color: 'bg-gray-900 text-white' },
-                  { value: '56',  unit: 'hari',    label: 'jeda minimal antar donor (aman & sehat)', icon: Calendar, color: 'bg-gray-100 text-gray-900' },
-                  { value: '17+', unit: 'tahun',   label: 'usia minimal untuk mulai mendonorkan darah', icon: Users, color: 'bg-red-50 text-red-900' },
-                ].map(item => (
-                  <div key={item.label} className={`rounded-2xl p-6 ${item.color}`}>
-                    <div className="text-3xl font-extrabold mb-0.5">
-                      {item.value}
-                      <span className="text-lg font-bold ml-1 opacity-70">{item.unit}</span>
-                    </div>
-                    <div className="text-xs leading-snug opacity-70 mt-1">{item.label}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Emergency CTA ── */}
-        <section className="py-16 bg-gray-950 text-white">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Emergency */}
-              <div className="bg-red-600 rounded-2xl p-8">
-                <div className="w-12 h-12 bg-white/15 rounded-2xl flex items-center justify-center mb-5">
-                  <AlertTriangle className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="text-2xl font-bold mb-2">Butuh Darah Mendesak?</h3>
-                <p className="text-red-100 text-sm leading-relaxed mb-6">
-                  Cek ketersediaan stok atau langsung hubungi PMI Indramayu.
-                  Layanan darurat tersedia 24 jam.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <Link href="/stok-darah"
-                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white text-red-700 font-semibold rounded-xl hover:bg-red-50 transition-colors text-sm">
-                    <Droplets className="w-4 h-4" />
-                    Cek Stok
-                  </Link>
-                  <a href="tel:+622342271648"
-                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-red-700 border border-white/20 text-white font-semibold rounded-xl hover:bg-red-800 transition-colors text-sm">
-                    <Phone className="w-4 h-4" />
-                    Telepon PMI
-                  </a>
-                </div>
-              </div>
-
-              {/* Donate CTA */}
-              <div className="bg-white/5 border border-white/10 rounded-2xl p-8">
-                <div className="w-12 h-12 bg-red-500/20 rounded-2xl flex items-center justify-center mb-5">
-                  <Heart className="w-6 h-6 text-red-400" />
-                </div>
-                <h3 className="text-2xl font-bold mb-2">Jadilah Pendonor Rutin</h3>
-                <p className="text-gray-400 text-sm leading-relaxed mb-6">
-                  Pendonor rutin adalah tulang punggung ketersediaan darah. Donor 3–4 kali
-                  setahun sudah cukup untuk membuat perbedaan besar.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <Link href="/jadwal"
-                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-colors text-sm">
-                    <Calendar className="w-4 h-4" />
-                    Daftar Donor
-                  </Link>
-                  <Link href="/peta"
-                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white/10 border border-white/10 text-white font-semibold rounded-xl hover:bg-white/20 transition-colors text-sm">
-                    <MapPin className="w-4 h-4" />
-                    Cari Lokasi
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Artikel ── */}
+        {/* ── ARTIKEL TERBARU ── */}
         {featuredArticles.length > 0 && (
-          <section className="py-20 bg-white">
+          <section className="py-24 bg-[#FAFAFA] border-t border-gray-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex items-end justify-between mb-10">
+              <div className="flex flex-col sm:flex-row items-end justify-between mb-10 gap-4">
                 <div>
-                  <p className="text-sm font-bold text-red-600 uppercase tracking-widest mb-1">
-                    Edukasi & Info
-                  </p>
-                  <h2 className="text-3xl font-bold text-gray-900">Artikel Terbaru</h2>
+                  <p className="text-sm font-bold text-red-600 uppercase tracking-widest mb-2">Edukasi & Info</p>
+                  <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">Artikel Terbaru</h2>
                 </div>
-                <Link href="/artikel"
-                  className="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold text-red-600 hover:text-red-700 transition-colors">
-                  Lihat semua <ChevronRight className="w-4 h-4" />
+                <Link href="/artikel" className="hidden sm:inline-flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors">
+                  Semua Artikel <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {featuredArticles.map(a => (
-                  <Link key={a.id} href={`/artikel/${a.slug}`}
-                    className="group bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all">
-                    <div className="aspect-video overflow-hidden">
+                  <Link key={a.id} href={`/artikel/${a.slug}`} className="group flex flex-col bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg transition-all hover:-translate-y-1">
+                    <div className="aspect-video w-full overflow-hidden bg-gray-100">
                       {a.gambar ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={a.gambar} alt={a.gambar_alt ?? a.judul}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                        <img src={a.gambar} alt={a.gambar_alt ?? a.judul} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-red-50 to-red-100 flex items-center justify-center">
-                          <Droplets className="w-10 h-10 text-red-200" />
+                        <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-300">
+                          <Droplets className="w-10 h-10" />
                         </div>
                       )}
                     </div>
-                    <div className="p-5">
-                      <span className="text-xs font-bold text-red-600 uppercase tracking-wide">
+                    <div className="p-6 sm:p-8 flex flex-col flex-1">
+                      <span className="text-xs font-bold text-red-600 uppercase tracking-widest mb-3">
                         {a.kategori_nama}
                       </span>
-                      <h3 className="font-semibold text-gray-900 leading-snug group-hover:text-red-700 transition-colors mt-1 mb-2 line-clamp-2">
+                      <h3 className="text-xl font-bold text-gray-900 leading-snug mb-3 group-hover:text-red-700 transition-colors line-clamp-2">
                         {a.judul}
                       </h3>
                       {a.excerpt && (
-                        <p className="text-sm text-gray-500 line-clamp-2 mb-3">{a.excerpt}</p>
+                        <p className="text-gray-500 text-sm line-clamp-2 mb-6 flex-1 font-medium leading-relaxed">{a.excerpt}</p>
                       )}
-                      <div className="text-xs text-gray-400">{formatDate(a.published_at)}</div>
+                      <div className="text-sm font-semibold text-gray-400 mt-auto">{formatDate(a.published_at)}</div>
                     </div>
                   </Link>
                 ))}
@@ -424,8 +235,7 @@ export default async function HomePage() {
             </div>
           </section>
         )}
-
       </main>
-</>
+    </>
   );
 }

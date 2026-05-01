@@ -269,12 +269,14 @@ export default function AdminJadwalPage() {
 
       <main className="flex-1 p-4 sm:p-6 space-y-4">
         {/* Filter status */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <Filter className="w-4 h-4 text-gray-400 flex-shrink-0" />
+        {/* Filter status */}
+        <div className="flex items-center gap-2 flex-wrap bg-white rounded-2xl shadow-sm border border-gray-100 p-2 w-fit">
+          <Filter className="w-4 h-4 text-gray-400 ml-2" />
+          <div className="w-px h-6 bg-gray-200 mx-1" />
           {(['semua', ...STATUS_OPTIONS] as const).map(s => (
             <button key={s}
               onClick={() => { setStatusFilter(s); setPage(1); }}
-              className={`px-3 py-2 text-xs font-medium rounded-lg whitespace-nowrap transition-colors ${statusFilter === s ? 'bg-red-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:border-red-300'
+              className={`px-4 py-2 text-xs font-bold rounded-xl whitespace-nowrap transition-all ${statusFilter === s ? 'bg-red-50 text-red-700 shadow-sm' : 'bg-transparent text-gray-500 hover:text-gray-900 hover:bg-gray-50'
                 }`}>
               {s === 'semua' ? 'Semua' : scheduleStatusLabel(s)}
             </button>
@@ -282,17 +284,18 @@ export default function AdminJadwalPage() {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        {/* Table */}
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50/50">
-                  <th className="text-left px-5 py-3.5 font-semibold text-gray-600 text-xs uppercase tracking-wide">Lokasi</th>
-                  <th className="text-left px-5 py-3.5 font-semibold text-gray-600 text-xs uppercase tracking-wide">Tanggal</th>
-                  <th className="text-left px-5 py-3.5 font-semibold text-gray-600 text-xs uppercase tracking-wide hidden sm:table-cell">Waktu</th>
-                  <th className="text-center px-5 py-3.5 font-semibold text-gray-600 text-xs uppercase tracking-wide hidden md:table-cell">Kuota</th>
-                  <th className="text-center px-5 py-3.5 font-semibold text-gray-600 text-xs uppercase tracking-wide">Status</th>
-                  <th className="text-right px-5 py-3.5 font-semibold text-gray-600 text-xs uppercase tracking-wide">Aksi</th>
+                  <th className="text-left px-6 py-4 font-extrabold text-gray-400 text-[10px] uppercase tracking-widest">Lokasi</th>
+                  <th className="text-left px-6 py-4 font-extrabold text-gray-400 text-[10px] uppercase tracking-widest">Tanggal</th>
+                  <th className="text-left px-6 py-4 font-extrabold text-gray-400 text-[10px] uppercase tracking-widest hidden sm:table-cell">Waktu</th>
+                  <th className="text-center px-6 py-4 font-extrabold text-gray-400 text-[10px] uppercase tracking-widest hidden md:table-cell">Kuota</th>
+                  <th className="text-center px-6 py-4 font-extrabold text-gray-400 text-[10px] uppercase tracking-widest">Status</th>
+                  <th className="text-right px-6 py-4 font-extrabold text-gray-400 text-[10px] uppercase tracking-widest">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -316,38 +319,38 @@ export default function AdminJadwalPage() {
                 ) : schedules.map(s => {
                   const lokasi = s.lokasi as { nama_lokasi?: string; kecamatan?: string } | undefined;
                   return (
-                    <tr key={s.id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="px-5 py-4">
-                        <div className="font-semibold text-gray-900 text-sm">{lokasi?.nama_lokasi ?? `Jadwal #${s.id}`}</div>
-                        <div className="text-xs text-gray-400">{lokasi?.kecamatan}</div>
+                    <tr key={s.id} className="hover:bg-gray-50/50 transition-colors group">
+                      <td className="px-6 py-5">
+                        <div className="font-extrabold text-gray-900 text-sm tracking-tight">{lokasi?.nama_lokasi ?? `Jadwal #${s.id}`}</div>
+                        <div className="text-xs font-bold text-gray-400 mt-0.5">{lokasi?.kecamatan}</div>
                       </td>
-                      <td className="px-5 py-4 font-medium text-gray-800">{formatDate(s.tanggal)}</td>
-                      <td className="px-5 py-4 hidden sm:table-cell text-gray-600 text-xs">
+                      <td className="px-6 py-5 font-bold text-gray-700">{formatDate(s.tanggal)}</td>
+                      <td className="px-6 py-5 hidden sm:table-cell text-gray-500 font-semibold text-xs">
                         {formatTime(s.waktu_mulai)} – {formatTime(s.waktu_selesai)}
                       </td>
-                      <td className="px-5 py-4 hidden md:table-cell">
+                      <td className="px-6 py-5 hidden md:table-cell">
                         <div className="text-center">
-                          <div className="text-xs text-gray-500 mb-1">{s.kuota - s.sisa_kuota}/{s.kuota}</div>
-                          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden w-20 mx-auto">
+                          <div className="text-[10px] font-extrabold text-gray-400 mb-1.5">{s.kuota - s.sisa_kuota}/{s.kuota}</div>
+                          <div className="h-2 bg-gray-100 rounded-full overflow-hidden w-20 mx-auto">
                             <div className={`h-full rounded-full ${(1 - s.sisa_kuota / s.kuota) >= 0.9 ? 'bg-red-500' :
                                 (1 - s.sisa_kuota / s.kuota) >= 0.6 ? 'bg-amber-400' : 'bg-green-500'
                               }`} style={{ width: `${Math.round(((s.kuota - s.sisa_kuota) / s.kuota) * 100)}%` }} />
                           </div>
                         </div>
                       </td>
-                      <td className="px-5 py-4">
+                      <td className="px-6 py-5">
                         <div className="flex justify-center">
-                          <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${scheduleStatusColor(s.status)}`}>
+                          <span className={`text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider ${scheduleStatusColor(s.status).replace('border-', '')}`}>
                             {scheduleStatusLabel(s.status)}
                           </span>
                         </div>
                       </td>
-                      <td className="px-5 py-4">
-                        <div className="flex items-center justify-end gap-1">
-                          <button onClick={() => openEdit(s)} className="p-2 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Edit">
+                      <td className="px-6 py-5">
+                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => openEdit(s)} className="p-2 rounded-xl text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors bg-white border border-gray-100 shadow-sm" title="Edit">
                             <Pencil className="w-4 h-4" />
                           </button>
-                          <button onClick={() => setDeleting(s)} className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors" title="Hapus">
+                          <button onClick={() => setDeleting(s)} className="p-2 rounded-xl text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors bg-white border border-gray-100 shadow-sm" title="Hapus">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>

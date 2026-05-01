@@ -115,21 +115,27 @@ export default async function StokDarahPage() {
   return (
     <>
       <main id="main">
-        {/* ── Header ── */}
-        <section className="bg-gray-950 text-white py-16">
+        {/* ── Premium Header ── */}
+        <section className="pt-8 pb-10 border-b border-gray-100">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <p className="text-sm font-bold text-red-400 uppercase tracking-widest mb-2">
-              Real-time
-            </p>
-            <h1 className="text-4xl font-extrabold mb-3">Stok Darah</h1>
-            <p className="text-gray-400 max-w-xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-50 text-xs font-bold text-red-600 uppercase tracking-widest mb-4">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-600" />
+              </span>
+              Pemantauan Real-time
+            </div>
+            <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 tracking-tight mb-4">
+              Stok Darah
+            </h1>
+            <p className="text-gray-500 font-medium max-w-2xl text-lg mb-6">
               Data ketersediaan darah di seluruh fasilitas kesehatan Kabupaten Indramayu.
-              Diperbarui secara berkala oleh petugas PMI.
+              Diperbarui secara berkala oleh <strong className="text-gray-900">petugas resmi PMI</strong>.
             </p>
 
             {/* Last updated */}
-            <div className="flex items-center gap-2 mt-5 text-sm text-gray-500">
-              <RefreshCw className="w-3.5 h-3.5" />
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-lg text-sm text-gray-500 font-medium border border-gray-100">
+              <RefreshCw className="w-4 h-4 text-gray-400" />
               Terakhir diperbarui: {lastUpdated} WIB
             </div>
           </div>

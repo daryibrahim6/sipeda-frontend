@@ -56,11 +56,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   // Admin pages: render dengan sidebar
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-[#F4F4F5] p-0 lg:p-6 lg:gap-6">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 bg-white lg:rounded-3xl lg:shadow-sm lg:border border-gray-100 overflow-hidden relative">
         <SidebarToggleCtx.Provider value={() => setSidebarOpen(o => !o)}>
-          {children}
+          <div className="flex-1 overflow-y-auto">
+            {children}
+          </div>
         </SidebarToggleCtx.Provider>
       </div>
     </div>
