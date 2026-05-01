@@ -6,25 +6,49 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase';
-import { supabase } from '@/lib/supabase';
+import { createServerClient } from '@supabase/ssr';
 
 // ─── Auth guard: verify caller is superadmin ──────────────────────────────────
 
 async function verifySuperadmin(req: NextRequest) {
-    // Get auth token from cookie or header
-    const authHeader = req.headers.get('authorization');
-    const token = authHeader?.replace('Bearer ', '');
+    // Buat Supabase client per-request (bukan singleton)
+    // untuk menghindari cross-request session leak di server.
+    const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+            cookies: {
+                getAll() {
+                    return req.cookies.getAll();
+                },
+                setAll() {
+                    // API route — tidak perlu set cookie di sini
+                },
+            },
+        },
+    );
 
-    if (!token) return null;
+    // Coba ambil user dari cookie session terlebih dahulu
+    const { data: { user } } = await supabase.auth.getUser();
 
-    const { data: { user } } = await supabase.auth.getUser(token);
-    if (!user) return null;
+    // Fallback: coba dari Authorization header (untuk backward compatibility)
+    let authUser = user;
+    if (!authUser) {
+        const authHeader = req.headers.get('authorization');
+        const token = authHeader?.replace('Bearer ', '');
+        if (token) {
+            const { data } = await supabase.auth.getUser(token);
+            authUser = data.user;
+        }
+    }
+
+    if (!authUser) return null;
 
     const adminClient = createAdminClient();
     const { data: adminData } = await adminClient
         .from('admins')
         .select('id, role')
-        .eq('auth_user_id', user.id)
+        .eq('auth_user_id', authUser.id)
         .single();
 
     if (!adminData || adminData.role !== 'superadmin') return null;
