@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description: 'Cek ketersediaan stok darah real-time di PMI dan fasilitas kesehatan Kabupaten Indramayu.',
 };
 
-export const revalidate = 60;
+export const revalidate = 30; // Data stok kritis — refresh lebih sering
 
 // ─── Status badge component ───────────────────────────────────────────────────
 function StockStatus({ status }: { status: 'normal' | 'kritis' | 'kosong' }) {
