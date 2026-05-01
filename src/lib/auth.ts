@@ -1,12 +1,17 @@
 /**
- * lib/auth.ts — Supabase Auth untuk Admin
+ * lib/auth.ts — Supabase Auth untuk Admin & Petugas
+ *
+ * Menggunakan @supabase/ssr browser client agar session tersimpan
+ * di cookie — bukan hanya localStorage. Ini memungkinkan middleware
+ * membaca session untuk server-side route protection.
  */
 
-import { supabase } from './supabase';
+import { createClient } from './supabase-browser';
 
 // ─── Admin login ──────────────────────────────────────────────────────────────
 
 export async function loginAdmin(email: string, password: string) {
+  const supabase = createClient();
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) throw new Error('Email atau password salah. Silakan coba lagi.');
@@ -50,6 +55,7 @@ export async function loginAdmin(email: string, password: string) {
 // ─── Unified Login (for /login page) ──────────────────────────────────────────
 
 export async function loginUnified(email: string, password: string) {
+  const supabase = createClient();
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) throw new Error('Email atau password salah. Silakan coba lagi.');
 
@@ -78,12 +84,14 @@ export async function loginUnified(email: string, password: string) {
 // ─── Logout ───────────────────────────────────────────────────────────────────
 
 export async function logoutAdmin() {
+  const supabase = createClient();
   await supabase.auth.signOut();
 }
 
 // ─── Get current session ──────────────────────────────────────────────────────
 
 export async function getAdminSession() {
+  const supabase = createClient();
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) return null;
 
@@ -113,6 +121,7 @@ export async function requireAdminAuth() {
 // ─── Petugas Lapangan Auth ────────────────────────────────────────────────────
 
 export async function loginPetugas(email: string, password: string) {
+  const supabase = createClient();
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) throw new Error('Email atau password salah. Silakan coba lagi.');
@@ -147,6 +156,7 @@ export async function loginPetugas(email: string, password: string) {
 }
 
 export async function getPetugasSession() {
+  const supabase = createClient();
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) return null;
 
