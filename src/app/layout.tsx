@@ -92,7 +92,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         suppressHydrationWarning
         className={`${inter.variable} font-sans antialiased`}
       >
-        <Analytics />
+        <Suspense fallback={null}>
+          <Analytics />
+        </Suspense>
         {/* Skip to main content — accessibility */}
         <a
           href="#main"
