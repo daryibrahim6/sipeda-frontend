@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import { Suspense } from 'react';
 import './globals.css';
+import 'leaflet/dist/leaflet.css';
 import { NavigationProgress } from '@/components/ui/NavigationProgress';
 import { FixedHeader } from '@/components/layout/FixedHeader';
 import { PublicShell } from '@/components/layout/PublicShell';
