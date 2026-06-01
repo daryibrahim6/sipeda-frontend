@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Droplets, MapPin, RefreshCw, Info, Phone, MessageCircle } from 'lucide-react';
+import { Droplets, MapPin, Calendar, RefreshCw, Info, Phone, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 import { getBloodStockSummary, getLocations, getBloodStockByMultipleLocations } from '@/lib/api';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -39,9 +39,13 @@ export default async function StokDarahPage() {
 
   const totalKritis = summary.filter(s => s.status !== 'normal').length;
 
-  const sortedSummary = [...summary].sort(
-    (a, b) => BLOOD_ORDER.indexOf(a.golongan_darah) - BLOOD_ORDER.indexOf(b.golongan_darah)
-  );
+  const statusPriority = { kosong: 2, kritis: 1, normal: 0 } as const;
+  const sortedSummary = [...summary].sort((a, b) => {
+    const pa = statusPriority[a.status as keyof typeof statusPriority] ?? 0;
+    const pb = statusPriority[b.status as keyof typeof statusPriority] ?? 0;
+    if (pa !== pb) return pb - pa;
+    return BLOOD_ORDER.indexOf(a.golongan_darah) - BLOOD_ORDER.indexOf(b.golongan_darah);
+  });
 
   return (
     <main id="main">
@@ -92,6 +96,23 @@ export default async function StokDarahPage() {
       )}
 
       <div className="page-container py-8 space-y-10">
+
+        {/* ── CTA Banner — ajak donor ── */}
+        <section className="bg-gradient-to-r from-[var(--color-primary)] to-red-600 rounded-2xl p-5 sm:p-6 text-white">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <h3 className="text-base sm:text-lg font-bold">Siap donor darah?</h3>
+              <p className="text-sm text-white/80 mt-0.5">Cek jadwal dan daftar sekarang di lokasi terdekat.</p>
+            </div>
+            <Link
+              href="/jadwal"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-[var(--color-primary)] font-semibold rounded-xl hover:bg-white/90 active:scale-[0.97] transition-all shadow-lg shrink-0 text-sm"
+            >
+              <Calendar className="w-4 h-4" />
+              Daftar Donor
+            </Link>
+          </div>
+        </section>
 
         {/* ── Ringkasan — inline progress bars ── */}
         <section>
@@ -236,6 +257,23 @@ export default async function StokDarahPage() {
             </div>
           </section>
         )}
+
+        {/* ── CTA Banner 2 — bottom ── */}
+        <section className="bg-[var(--color-section-alt)] border border-[var(--color-border-muted)] rounded-2xl p-5 sm:p-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <h3 className="text-base sm:text-lg font-bold text-[var(--color-text-primary)]">Tertarik jadi pendonor?</h3>
+              <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">Temukan jadwal donor terdekat dan daftar langsung dari sini.</p>
+            </div>
+            <Link
+              href="/jadwal"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white font-semibold rounded-xl active:scale-[0.97] transition-all shadow-lg shrink-0 text-sm"
+            >
+              <Calendar className="w-4 h-4" />
+              Daftar Donor
+            </Link>
+          </div>
+        </section>
 
         {/* ── Info box ── */}
         <Card variant="flush" className="bg-blue-50 border border-blue-100 !p-6 rounded-3xl">

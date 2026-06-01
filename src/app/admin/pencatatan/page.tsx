@@ -10,7 +10,7 @@ import {
     MapPin, Check, X, AlertTriangle, ChevronDown, ChevronUp,
     Users, Download,
 } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import { Button } from '@/components/ui/Button';
 
 const STATUS_BADGE: Record<string, string> = {
@@ -24,6 +24,16 @@ const STATUS_LABEL: Record<string, string> = {
     tidak_memenuhi_syarat: 'Tidak Memenuhi Syarat',
 };
 
+function Toast({ msg, type, onClose }: { msg: string; type: 'success' | 'error'; onClose: () => void }) {
+    return (
+        <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-lg text-sm font-medium ${type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}>
+            {type === 'success' ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
+            {msg}
+            <button onClick={onClose} className="ml-2 p-2 opacity-70 hover:opacity-100"><X className="w-3.5 h-3.5" /></button>
+        </div>
+    );
+}
+
 export default function AdminPencatatanPage() {
     const toggleSidebar = useSidebarToggle();
     const [rekap, setRekap] = useState<RekapPencatatan[]>([]);
@@ -31,7 +41,13 @@ export default function AdminPencatatanPage() {
     const [expanded, setExpanded] = useState<number | null>(null);
     const [detail, setDetail] = useState<PencatatanDonor[]>([]);
     const [loadingDetail, setLoadingDetail] = useState(false);
+    const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
     const loadReqId = useRef(0);
+
+    const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
+        setToast({ msg, type });
+        setTimeout(() => setToast(null), 3500);
+    };
 
     async function loadRekap() {
         const reqId = ++loadReqId.current;
@@ -40,7 +56,9 @@ export default function AdminPencatatanPage() {
             const data = await getRekapPencatatan();
             if (reqId !== loadReqId.current) return;
             setRekap(data);
-        } catch { /* silent */ }
+        } catch {
+            if (reqId === loadReqId.current) showToast('Gagal memuat data.', 'error');
+        }
         if (reqId === loadReqId.current) setLoading(false);
     }
 
@@ -60,7 +78,9 @@ export default function AdminPencatatanPage() {
         try {
             const data = await getAdminPencatatan(jadwalId);
             if (reqId === loadReqId.current) setDetail(data);
-        } catch { /* silent */ }
+        } catch {
+            if (reqId === loadReqId.current) showToast('Gagal memuat detail.', 'error');
+        }
         if (reqId === loadReqId.current) setLoadingDetail(false);
     }
 
@@ -72,7 +92,6 @@ export default function AdminPencatatanPage() {
 
     // C1: Excel export — 3 sheets
     async function handleExportExcel() {
-        // Fetch all detail data for every jadwal
         const allDetails: (PencatatanDonor & { lokasi: string; tanggal: string })[] = [];
         const detailPromises = rekap.map(async (r) => {
             try {
@@ -86,36 +105,55 @@ export default function AdminPencatatanPage() {
         });
         await Promise.allSettled(detailPromises);
 
-        const wb = XLSX.utils.book_new();
+        const wb = new ExcelJS.Workbook();
+        wb.creator = 'SIPEDA';
+        wb.created = new Date();
 
         // Sheet 1: Rekap per Kegiatan
-        const rekapData = rekap.map(r => ({
-            'Lokasi': r.nama_lokasi,
-            'Tanggal': new Date(r.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }),
-            'Waktu': `${r.waktu_mulai} – ${r.waktu_selesai}`,
-            'Total Dicatat': r.total_catat,
-            'Berhasil': r.berhasil,
-            'Gagal': r.gagal,
-            'Tidak Memenuhi Syarat': r.tidak_memenuhi,
+        const ws1 = wb.addWorksheet('Rekap per Kegiatan');
+        ws1.columns = [
+            { header: 'Lokasi', key: 'lokasi', width: 30 },
+            { header: 'Tanggal', key: 'tanggal', width: 12 },
+            { header: 'Waktu', key: 'waktu', width: 15 },
+            { header: 'Total Dicatat', key: 'total', width: 12 },
+            { header: 'Berhasil', key: 'berhasil', width: 10 },
+            { header: 'Gagal', key: 'gagal', width: 8 },
+            { header: 'Tidak Memenuhi Syarat', key: 'tms', width: 22 },
+        ];
+        rekap.forEach(r => ws1.addRow({
+            lokasi: r.nama_lokasi,
+            tanggal: new Date(r.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+            waktu: `${r.waktu_mulai} – ${r.waktu_selesai}`,
+            total: r.total_catat,
+            berhasil: r.berhasil,
+            gagal: r.gagal,
+            tms: r.tidak_memenuhi,
         }));
-        const ws1 = XLSX.utils.json_to_sheet(rekapData);
-        ws1['!cols'] = [{ wch: 30 }, { wch: 12 }, { wch: 15 }, { wch: 12 }, { wch: 10 }, { wch: 8 }, { wch: 22 }];
-        XLSX.utils.book_append_sheet(wb, ws1, 'Rekap per Kegiatan');
+        styleHeader(ws1);
 
         // Sheet 2: Detail per Pendonor
-        const detailData = allDetails.map((d, i) => ({
-            'No': i + 1,
-            'Lokasi': d.lokasi,
-            'Tanggal': d.tanggal,
-            'Nama Pendonor': d.nama_pendonor,
-            'Golongan Darah': d.golongan_darah,
-            'Status': STATUS_LABEL[d.status_donor] ?? d.status_donor,
-            'Catatan': d.catatan ?? '-',
-            'Waktu Dicatat': new Date(d.created_at).toLocaleString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+        const ws2 = wb.addWorksheet('Detail Pendonor');
+        ws2.columns = [
+            { header: 'No', key: 'no', width: 5 },
+            { header: 'Lokasi', key: 'lokasi', width: 30 },
+            { header: 'Tanggal', key: 'tanggal', width: 12 },
+            { header: 'Nama Pendonor', key: 'nama', width: 25 },
+            { header: 'Golongan Darah', key: 'golongan', width: 15 },
+            { header: 'Status', key: 'status', width: 22 },
+            { header: 'Catatan', key: 'catatan', width: 25 },
+            { header: 'Waktu Dicatat', key: 'waktu', width: 18 },
+        ];
+        allDetails.forEach((d, i) => ws2.addRow({
+            no: i + 1,
+            lokasi: d.lokasi,
+            tanggal: d.tanggal,
+            nama: d.nama_pendonor,
+            golongan: d.golongan_darah,
+            status: STATUS_LABEL[d.status_donor] ?? d.status_donor,
+            catatan: d.catatan ?? '-',
+            waktu: new Date(d.created_at).toLocaleString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
         }));
-        const ws2 = XLSX.utils.json_to_sheet(detailData);
-        ws2['!cols'] = [{ wch: 5 }, { wch: 30 }, { wch: 12 }, { wch: 25 }, { wch: 15 }, { wch: 22 }, { wch: 25 }, { wch: 18 }];
-        XLSX.utils.book_append_sheet(wb, ws2, 'Detail Pendonor');
+        styleHeader(ws2);
 
         // Sheet 3: Ringkasan per Golongan Darah
         const goldarCount: Record<string, { berhasil: number; gagal: number; tms: number }> = {};
@@ -125,20 +163,47 @@ export default function AdminPencatatanPage() {
             else if (d.status_donor === 'gagal') goldarCount[d.golongan_darah].gagal++;
             else goldarCount[d.golongan_darah].tms++;
         });
-        const goldarData = Object.entries(goldarCount).map(([gol, c]) => ({
-            'Golongan Darah': gol,
-            'Berhasil': c.berhasil,
-            'Gagal': c.gagal,
-            'Tidak Memenuhi Syarat': c.tms,
-            'Total': c.berhasil + c.gagal + c.tms,
+        const ws3 = wb.addWorksheet('Per Golongan Darah');
+        ws3.columns = [
+            { header: 'Golongan Darah', key: 'golongan', width: 15 },
+            { header: 'Berhasil', key: 'berhasil', width: 10 },
+            { header: 'Gagal', key: 'gagal', width: 8 },
+            { header: 'Tidak Memenuhi Syarat', key: 'tms', width: 22 },
+            { header: 'Total', key: 'total', width: 8 },
+        ];
+        Object.entries(goldarCount).forEach(([gol, c]) => ws3.addRow({
+            golongan: gol,
+            berhasil: c.berhasil,
+            gagal: c.gagal,
+            tms: c.tms,
+            total: c.berhasil + c.gagal + c.tms,
         }));
-        const ws3 = XLSX.utils.json_to_sheet(goldarData);
-        ws3['!cols'] = [{ wch: 15 }, { wch: 10 }, { wch: 8 }, { wch: 22 }, { wch: 8 }];
-        XLSX.utils.book_append_sheet(wb, ws3, 'Per Golongan Darah');
+        styleHeader(ws3);
 
-        // Download
         const filename = `SIPEDA_Pencatatan_${new Date().toISOString().slice(0, 10)}.xlsx`;
-        XLSX.writeFile(wb, filename);
+        const buffer = await wb.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function styleHeader(ws: ExcelJS.Worksheet) {
+        const headerRow = ws.getRow(1);
+        headerRow.font = { bold: true };
+        headerRow.eachCell(cell => {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDC2626' } };
+            cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+            cell.border = {
+                top: { style: 'thin' },
+                left: { style: 'thin' },
+                bottom: { style: 'thin' },
+                right: { style: 'thin' },
+            };
+        });
     }
 
     return (
@@ -294,6 +359,8 @@ export default function AdminPencatatanPage() {
                     </div>
                 )}
             </main>
+
+            {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
         </div>
     );
 }

@@ -8,6 +8,7 @@
 
 import { createClient } from './supabase-browser';
 import { fireAndForget } from './utils';
+import * as Sentry from '@sentry/nextjs';
 
 // ─── Shared Types ─────────────────────────────────────────────────────────────
 
@@ -61,6 +62,11 @@ async function loginWithRole(
     supabase.from('admins').update({ last_login: new Date().toISOString() }).eq('id', adminData.id),
     'update last_login',
   );
+
+  // Set user context for Sentry error monitoring
+  if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
+    Sentry.setUser({ id: String(adminData.id), email: adminData.email, role });
+  }
 
   return {
     session: data.session,
@@ -129,6 +135,9 @@ export async function loginPetugas(email: string, password: string) {
 export async function logoutAdmin() {
   const supabase = createClient();
   await supabase.auth.signOut();
+  if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
+    Sentry.setUser(null);
+  }
 }
 
 // ─── Public API: Session ──────────────────────────────────────────────────────

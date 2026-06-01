@@ -9,7 +9,7 @@ import {
     deletePencatatan, updatePencatatan,
 } from '@/lib/petugas-api';
 import type { Schedule, PencatatanDonor } from '@/lib/types';
-import { Calendar, MapPin, Clock, Loader2, ChevronDown } from 'lucide-react';
+import { Calendar, MapPin, Clock, Loader2, ChevronDown, AlertTriangle, RefreshCw } from 'lucide-react';
 
 import { PetugasHeader } from '@/components/petugas/PetugasHeader';
 import { StatsBar } from '@/components/petugas/StatsBar';
@@ -24,6 +24,7 @@ export default function PetugasPage() {
     const [selectedJadwal, setSelectedJadwal] = useState<number | null>(null);
     const [pencatatan, setPencatatan] = useState<PencatatanDonor[]>([]);
     const [loadingSchedules, setLoadingSchedules] = useState(true);
+    const [scheduleError, setScheduleError] = useState(false);
     const [loadingList, setLoadingList] = useState(false);
 
     // Load jadwal hari ini
@@ -32,8 +33,9 @@ export default function PetugasPage() {
             .then(data => {
                 setSchedules(data);
                 if (data.length === 1) setSelectedJadwal(data[0].id);
+                setScheduleError(false);
             })
-            .catch(err => console.error('[Petugas] Gagal memuat jadwal:', err))
+            .catch(() => setScheduleError(true))
             .finally(() => setLoadingSchedules(false));
     }, []);
 
@@ -43,7 +45,9 @@ export default function PetugasPage() {
         try {
             const data = await getPencatatanByJadwal(jadwalId);
             setPencatatan(data);
-        } catch { /* silent */ }
+        } catch {
+            setPencatatan([]);
+        }
         setLoadingList(false);
     }
 
@@ -83,6 +87,16 @@ export default function PetugasPage() {
                     {loadingSchedules ? (
                         <div className="bg-white rounded-2xl shadow-[var(--shadow-card)] border border-[var(--color-border-muted)] p-4 flex items-center justify-center">
                             <Loader2 className="w-5 h-5 text-red-500 animate-spin" />
+                        </div>
+                    ) : scheduleError ? (
+                        <div className="bg-red-50 border border-red-200 rounded-2xl p-5 text-center">
+                            <AlertTriangle className="w-6 h-6 text-red-500 mx-auto mb-2" />
+                            <div className="text-sm font-medium text-red-700 mb-2">Gagal memuat jadwal</div>
+                            <button onClick={() => window.location.reload()}
+                                className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white text-xs font-semibold rounded-xl hover:bg-red-700 transition-colors">
+                                <RefreshCw className="w-3.5 h-3.5" />
+                                Muat Ulang
+                            </button>
                         </div>
                     ) : schedules.length === 0 ? (
                         <div className="bg-white rounded-2xl shadow-[var(--shadow-card)] border border-[var(--color-border-muted)] p-6 text-center text-sm font-medium text-[var(--color-text-muted)]">

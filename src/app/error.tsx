@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
+import * as Sentry from '@sentry/nextjs';
 
 export default function GlobalError({
     error,
@@ -12,7 +13,9 @@ export default function GlobalError({
     reset: () => void;
 }) {
     useEffect(() => {
-        // Log to monitoring service in production
+        if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
+            Sentry.captureException(error);
+        }
         console.error('[SIPEDA Error]', error);
     }, [error]);
 

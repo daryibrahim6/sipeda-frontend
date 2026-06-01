@@ -43,3 +43,4 @@ public/swe-worker*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+opencode.json

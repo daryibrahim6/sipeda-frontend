@@ -13,10 +13,11 @@ import type {
   Announcement,
   SiteStats,
   BloodStockItem,
+  Testimonial,
 } from './types';
 
 // ─── Re-export types yang sering dipakai ─────────────────────────────────────
-export type { Location, Schedule, Article, Announcement, SiteStats };
+export type { Location, Schedule, Article, Announcement, SiteStats, Testimonial };
 
 // ─── BloodStock public (alias dari BloodStockItem) ────────────────────────────
 export type BloodStock = BloodStockItem;
@@ -240,6 +241,19 @@ export async function getArticleBySlug(slug: string): Promise<Article | null> {
   };
 }
 
+// ─── Testimonial ─────────────────────────────────────────────────────────────
+
+export async function getTestimonials(): Promise<Testimonial[]> {
+  const { data, error } = await supabase
+    .from('testimonial')
+    .select('id, nama, foto, jabatan, isi, rating')
+    .eq('aktif', true)
+    .order('urutan', { ascending: true });
+
+  if (error) throw error;
+  return data ?? [];
+}
+
 // ─── Pengumuman ───────────────────────────────────────────────────────────────
 
 export async function getAnnouncements(): Promise<Announcement[]> {
@@ -339,25 +353,27 @@ export async function getBloodStockSummary(): Promise<{
 }[]> {
   const { data, error } = await supabase
     .from('stok_darah')
-    .select('golongan_darah, jumlah, status')
+    .select('golongan_darah, jumlah, batas_kritis')
     .order('golongan_darah');
 
   if (error) throw error;
 
-  const agg: Record<string, { total: number; hasKritis: boolean; hasKosong: boolean }> = {};
+  const agg: Record<string, { total: number; sumBatas: number }> = {};
   for (const s of data ?? []) {
     if (!agg[s.golongan_darah]) {
-      agg[s.golongan_darah] = { total: 0, hasKritis: false, hasKosong: false };
+      agg[s.golongan_darah] = { total: 0, sumBatas: 0 };
     }
     agg[s.golongan_darah].total += s.jumlah;
-    if (s.status === 'kritis') agg[s.golongan_darah].hasKritis = true;
-    if (s.status === 'kosong') agg[s.golongan_darah].hasKosong = true;
+    agg[s.golongan_darah].sumBatas += s.batas_kritis;
   }
 
   return Object.entries(agg).map(([golongan_darah, v]) => ({
     golongan_darah,
     total: v.total,
-    status: v.hasKosong ? 'kosong' : v.hasKritis ? 'kritis' : 'normal',
+    status:
+      v.total === 0 ? 'kosong' :
+      v.total < v.sumBatas * 0.3 ? 'kritis' :
+      'normal',
   }));
 }
 

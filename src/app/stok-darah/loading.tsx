@@ -14,6 +14,9 @@ export default function StokDarahLoading() {
       </div>
 
       <div className="page-container py-12 space-y-10">
+        {/* CTA Banner skeleton */}
+        <Skeleton className="h-24 sm:h-20 rounded-2xl bg-gray-100" />
+
         {/* Ringkasan Stok skeleton */}
         <div>
           <Skeleton className="h-7 w-48 bg-gray-200 rounded mb-2" />
@@ -57,6 +60,9 @@ export default function StokDarahLoading() {
             </div>
           ))}
         </div>
+
+        {/* CTA Banner 2 skeleton */}
+        <Skeleton className="h-24 sm:h-20 rounded-2xl bg-gray-100" />
       </div>
     </main>
   );

@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { type ReactNode } from 'react';
 import { PengumumanDarurat } from '@/components/PengumumanDarurat';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import MobileBottomNav from './MobileBottomNav';
 import Footer from './Footer';
 
@@ -18,7 +19,9 @@ export function PublicShell({ children }: { children: ReactNode }) {
         }`}>
             <main className="flex-1 pb-16">
                 <PengumumanDarurat />
-                {children}
+                <ErrorBoundary>
+                    {children}
+                </ErrorBoundary>
             </main>
             <Footer />
             <MobileBottomNav />

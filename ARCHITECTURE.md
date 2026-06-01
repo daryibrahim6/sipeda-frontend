@@ -194,3 +194,57 @@ Login:
 - **Image optimization** via Next.js `<Image>` dengan remotePatterns terbatas
 - **Font optimization** via `next/font` (Inter)
 - **Bundle splitting** otomatis via Next.js App Router (per route chunks)
+
+---
+
+## 8. Rollback Plan & Operations
+
+### 8.1 Rollback Plan (jika deploy gagal)
+
+**Langkah 1: Identifikasi**
+- Cek Vercel Dashboard → Deployments → status `Error` atau `Degraded`
+- Cek Sentry dashboard untuk spike error
+- Cek #monitoring channel (jika ada) atau hubungi tim
+
+**Langkah 2: Rollback Vercel**
+- Buka Vercel Dashboard → SIPEDA → Deployments
+- Cari deployment terakhir yang `Ready` (hijau)
+- Klik ⋮ → "Promote to Production"
+- Waktu: ~2–5 menit
+
+**Langkah 3: Rollback Database (jika migrasi bermasalah)**
+- Database migration SQL ada di `supabase/migrations/` (15 file, UP only)
+- Jika migrasi gagal: restore dari Supabase Backup → Database backups → Restore
+- Atau: jalankan SQL reverse migration manual
+- **Catatan:** Saat ini belum ada DOWN migration — perlu ditambahkan di masa depan
+
+**Langkah 4: Verifikasi**
+- Cek halaman utama dan admin login berfungsi
+- Cek Sentry error rate kembali normal
+- Cek UptimeRobot (jika sudah terdaftar)
+
+### 8.2 Kontak Darurat (after-hours)
+
+| Peran | Kontak | Keterangan |
+|---|---|---|
+| Admin PMI | 0811-919-8611 (WhatsApp) | Laporan masalah operasional |
+| Email | pmi.indramayu@gmail.com | Laporan formal |
+| Vercel Status | https://www.vercel-status.com | Cek jika Vercel down |
+| Supabase Status | https://status.supabase.com | Cek jika database down |
+
+### 8.3 Monitoring
+
+- **Sentry** → error tracking (konfigurasi di `sentry.client.config.ts`)
+- **Google Analytics** → traffic & user behavior (konfigurasi via `NEXT_PUBLIC_GA_ID`)
+- **UptimeRobot (rekomendasi)** → daftar gratis di https://uptimerobot.com untuk monitoring 5-menit
+- **Vercel Analytics** → built-in untuk performa
+
+### 8.4 Pre-Deploy Checklist
+
+Sebelum deploy ke production:
+1. ✅ `npm audit` — tidak ada high/critical vulnerability
+2. ✅ `npm run lint` — tidak ada error
+3. ✅ `npm run typecheck` — tidak ada type error
+4. ✅ Cek `.env.local` — kredensial staging sudah dirotasi
+5. ✅ Cek Sentry DSN terisi (jika production)
+6. ✅ Database migration sudah di-test di staging

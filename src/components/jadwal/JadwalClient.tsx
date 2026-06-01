@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Calendar } from 'lucide-react';
+import { Calendar, AlertTriangle, RefreshCw } from 'lucide-react';
 import { ScheduleCard } from '@/components/jadwal/ScheduleCard';
 import { MONTHS_ID } from '@/lib/utils';
 import type { Schedule } from '@/lib/types';
@@ -40,6 +40,7 @@ export default function JadwalClient({ locations }: { locations: Location[] }) {
     const [hanyaSisaKuota, setHanyaSisaKuota] = useState(false);
     const [schedules, setSchedules] = useState<Schedule[]>([]);
     const [loading, setLoading] = useState(true);
+    const [fetchError, setFetchError] = useState(false);
     const cacheRef = useRef<Map<string, Schedule[]>>(new Map());
 
     const fetchSchedules = useCallback(async (m: number, y: number) => {
@@ -51,6 +52,7 @@ export default function JadwalClient({ locations }: { locations: Location[] }) {
             return;
         }
         setLoading(true);
+        setFetchError(false);
         try {
             const res = await fetch(`/api/jadwal?month=${m}&year=${y}`);
             if (!res.ok) throw new Error('fetch failed');
@@ -59,6 +61,7 @@ export default function JadwalClient({ locations }: { locations: Location[] }) {
             setSchedules(data);
         } catch {
             setSchedules([]);
+            setFetchError(true);
         } finally {
             setLoading(false);
         }
@@ -157,6 +160,17 @@ export default function JadwalClient({ locations }: { locations: Location[] }) {
             </div>
 
             {/* Content */}
+            {fetchError && (
+                <div className="mb-6 flex items-center gap-3 bg-red-50 border border-red-200 rounded-2xl px-5 py-4 text-sm text-red-700">
+                    <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+                    <span className="flex-1">Gagal memuat jadwal. Periksa koneksi internet Anda.</span>
+                    <button onClick={() => fetchSchedules(month, year)}
+                        className="flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors text-xs font-semibold">
+                        <RefreshCw className="w-3.5 h-3.5" />
+                        Coba Lagi
+                    </button>
+                </div>
+            )}
             {loading ? (
                 <SkeletonCards />
             ) : Object.keys(grouped).length === 0 ? (

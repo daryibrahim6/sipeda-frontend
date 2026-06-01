@@ -29,12 +29,12 @@ export default async function PetaPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_minmax(340px,480px)] gap-6">
           {/* Map */}
-          <div className="h-[500px] lg:h-[640px] rounded-2xl overflow-hidden border border-[var(--color-border-muted)] shadow-[var(--shadow-card)]">
+          <div className="h-[300px] md:h-[500px] lg:h-[640px] rounded-2xl overflow-hidden border border-[var(--color-border-muted)] shadow-[var(--shadow-card)]">
             <MapWrapper locations={locations} zoom={13} />
           </div>
 
           {/* Location list */}
-          <div className="space-y-3 max-h-[640px] overflow-y-auto">
+          <div className="space-y-3 max-h-none lg:max-h-[640px] lg:overflow-y-auto">
             {locations.length === 0 ? (
               <EmptyState icon={<MapPin />} title="Belum ada lokasi donor aktif" />
             ) : locations.map(loc => (
@@ -54,7 +54,7 @@ export default async function PetaPage() {
                   const worstPriority = (status: string) =>
                     status === 'kosong' ? 2 : status === 'kritis' ? 1 : 0;
                   const deduped = Object.values(
-                    loc.stok_ringkas.reduce<Record<string, { golongan_darah: string; status: string }>>((acc, s) => {
+                    loc.stok_ringkas.reduce<Record<string, { golongan_darah: string; status: string; total: number }>>((acc, s) => {
                       const existing = acc[s.golongan_darah];
                       if (!existing || worstPriority(s.status) > worstPriority(existing.status)) {
                         acc[s.golongan_darah] = s;
@@ -70,6 +70,7 @@ export default async function PetaPage() {
                           <div key={`${s.golongan_darah}-${i}`} className="flex items-center gap-1">
                             <span className="text-xs font-mono font-bold text-[var(--color-text-secondary)]">{s.golongan_darah}</span>
                             <StockBadge status={s.status as 'normal' | 'kritis' | 'kosong'} />
+                            <span className="text-xs text-[var(--color-text-muted)] tabular-nums">{s.total} ktg</span>
                           </div>
                         ))}
                       </div>
@@ -78,32 +79,31 @@ export default async function PetaPage() {
                 })()}
 
                 {/* Action row */}
-                <div className="pt-3 border-t border-[var(--color-border-muted)] grid grid-cols-[auto_1fr_auto] gap-2">
+                <div className="pt-3 border-t border-[var(--color-border-muted)] flex flex-wrap gap-2">
                   <Link
                     href={`/jadwal?lokasi=${loc.id}`}
-                    className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-[var(--color-primary)] bg-[var(--color-primary-subtle)] hover:bg-[var(--color-primary-light)] active:scale-[0.95] transition-all"
+                    className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white text-xs font-semibold rounded-lg active:scale-[0.95] transition-all flex-1 sm:flex-none"
                   >
-                    <Calendar className="w-3 h-3" />
-                    Jadwal
+                    <Calendar className="w-3.5 h-3.5" />
+                    Daftar Donor
                   </Link>
                   <a
-                    href={`https://www.google.com/maps/dir/?api=1&destination=${loc.koordinat_lat},${loc.koordinat_lng}&destination_place_id=${encodeURIComponent(loc.nama_lokasi)}`}
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${loc.koordinat_lat},${loc.koordinat_lng}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-1.5 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg shadow-lg shadow-black/10 active:scale-[0.95] transition-all"
+                    className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-[var(--color-text-secondary)] bg-[var(--color-section-alt)] hover:bg-[var(--color-border-muted)] active:scale-[0.95] transition-all"
                     title={`Petunjuk arah ke ${loc.nama_lokasi}`}
                   >
-                    <Navigation className="w-3 h-3" />
+                    <Navigation className="w-3.5 h-3.5" />
                     <span className="hidden sm:inline">Petunjuk Arah</span>
                   </a>
-
                   {loc.kontak && (
                     <a
                       href={`tel:${loc.kontak}`}
-                      className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-[var(--color-primary)] bg-[var(--color-primary-subtle)] hover:bg-[var(--color-primary-light)] active:scale-[0.95] transition-all"
+                      className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-[var(--color-text-secondary)] bg-[var(--color-section-alt)] hover:bg-[var(--color-border-muted)] active:scale-[0.95] transition-all"
                       title={`Hubungi ${loc.nama_lokasi}`}
                     >
-                      <Phone className="w-3 h-3" />
+                      <Phone className="w-3.5 h-3.5" />
                       <span className="hidden sm:inline">Telepon</span>
                     </a>
                   )}

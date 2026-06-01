@@ -12,7 +12,7 @@ export default function PetaLoading() {
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
           {/* Map placeholder */}
-          <Skeleton className="h-[500px] lg:h-[640px] rounded-2xl" />
+          <Skeleton className="h-[300px] md:h-[500px] lg:h-[640px] rounded-2xl" />
 
           {/* Location list */}
           <div className="space-y-3">

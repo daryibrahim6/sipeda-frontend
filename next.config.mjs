@@ -1,4 +1,5 @@
 import withSerwistInit from '@serwist/next';
+import { withSentryConfig } from '@sentry/nextjs';
 
 const withSerwist = withSerwistInit({
   swSrc: 'src/app/sw.ts',
@@ -47,9 +48,9 @@ const nextConfig = {
               "default-src 'self'",
               "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob: images.unsplash.com *.sipeda.id tile.openstreetmap.org",
+              "img-src 'self' data: blob: images.unsplash.com *.sipeda.id *.tile.openstreetmap.org tile.openstreetmap.org",
               "font-src 'self' fonts.gstatic.com fonts.googleapis.com",
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://fnfkvomcmvbtksnqagnh.supabase.co",
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://fnfkvomcmvbtksnqagnh.supabase.co https://*.ingest.sentry.io https://www.googletagmanager.com https://*.google-analytics.com",
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",
@@ -61,4 +62,14 @@ const nextConfig = {
   },
 };
 
-export default withSerwist(nextConfig);
+const sentryOptions = {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  silent: !process.env.CI,
+  hideSourceMaps: true,
+  widenClientFileUpload: true,
+  disableLogger: true,
+  automaticVercelMonitors: true,
+};
+
+export default withSentryConfig(withSerwist(nextConfig), sentryOptions);

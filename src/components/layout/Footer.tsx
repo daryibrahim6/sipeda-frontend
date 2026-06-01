@@ -144,8 +144,21 @@ export default function Footer() {
         </div>
 
         {/* Bottom */}
-        <div className="mt-12 pt-6 border-t border-gray-800 flex items-center justify-center text-xs text-gray-600">
+        <div className="mt-12 pt-6 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-600">
           <p>© {year} SIPEDA — Kabupaten Indramayu. All rights reserved.</p>
+          <div className="flex items-center gap-4">
+            <Link href="/kebijakan-privasi" className="hover:text-white transition-colors">
+              Kebijakan Privasi
+            </Link>
+            <span className="text-gray-700">|</span>
+            <Link href="/syarat-ketentuan" className="hover:text-white transition-colors">
+              Syarat & Ketentuan
+            </Link>
+            <span className="text-gray-700">|</span>
+            <Link href="/hapus-data" className="hover:text-white transition-colors">
+              Hapus Data
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

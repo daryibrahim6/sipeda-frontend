@@ -12,7 +12,7 @@ const FALLBACK_IMAGES = [
   'https://images.unsplash.com/photo-1615461066841-6116e61058f4?w=800&h=450&fit=crop',
   'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800&h=450&fit=crop',
   'https://images.unsplash.com/photo-1559757175-5700dde675bc?w=800&h=450&fit=crop',
-  'https://images.unsplash.com/photo-1628348068946-1c38f34d0c3c?w=800&h=450&fit=crop',
+  'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=800&h=450&fit=crop',
 ];
 
 type Props = { params: Promise<{ slug: string }> };

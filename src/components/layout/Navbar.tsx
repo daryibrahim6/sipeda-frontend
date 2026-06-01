@@ -78,7 +78,7 @@ export default function Navbar() {
   return (
     <header
       ref={headerRef}
-      className="fixed left-1/2 -translate-x-1/2 z-50 bg-white/95 backdrop-blur-xl rounded-3xl border border-[var(--color-border)] top-[22px] w-[calc(100%-76px)] shadow-[0_4px_24px_rgba(0,0,0,0.12)] [transition:width_0.35s_cubic-bezier(0.4,0,0.2,1)] [&.scrolled]:w-[64%] [&.scrolled]:shadow-[0_8px_32px_rgba(0,0,0,0.2)]"
+      className="fixed left-1/2 -translate-x-1/2 z-50 bg-white/95 rounded-3xl border border-[var(--color-border)] top-[22px] w-[calc(100%-76px)] shadow-[0_4px_24px_rgba(0,0,0,0.12)] [transition:width_0.35s_cubic-bezier(0.4,0,0.2,1)] [&.scrolled]:w-[64%] [&.scrolled]:shadow-[0_8px_32px_rgba(0,0,0,0.2)]"
     >
       <nav
         className="grid grid-cols-[auto_1fr_auto] items-center h-[60px] px-3"

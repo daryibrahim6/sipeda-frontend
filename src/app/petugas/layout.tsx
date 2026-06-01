@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { getPetugasSession } from '@/lib/auth';
 import { Loader2 } from 'lucide-react';
 import { PetugasCtx, type PetugasUser } from '@/lib/petugas-context';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 
 export default function PetugasLayout({ children }: { children: React.ReactNode }) {
     const [authState, setAuthState] = useState<'checking' | 'ok' | 'denied'>('checking');
@@ -43,7 +44,9 @@ export default function PetugasLayout({ children }: { children: React.ReactNode 
 
     return (
         <PetugasCtx.Provider value={user}>
-            {children}
+            <ErrorBoundary>
+                {children}
+            </ErrorBoundary>
         </PetugasCtx.Provider>
     );
 }

@@ -13,13 +13,11 @@ type Props = {
 
 export function LeafletMap({ locations, center, zoom = 12, onSelect }: Props) {
   const mapRef         = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<unknown>(null);
+  const mapInstanceRef = useRef<{ remove: () => void; invalidateSize?: () => void } | null>(null);
 
   useEffect(() => {
     if (!mapRef.current) return;
 
-    // Flag ini menandai apakah effect ini sudah di-cleanup
-    // sebelum Promise.all selesai (React 18 Strict Mode double-invoke)
     let cancelled = false;
 
     import('leaflet').then((m) => {
@@ -27,10 +25,9 @@ export function LeafletMap({ locations, center, zoom = 12, onSelect }: Props) {
       const L = (m.default || m) as any;
       if (cancelled || !mapRef.current) return;
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      if ((mapRef.current as any)._leaflet_id) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (mapInstanceRef.current as any)?.remove();
+      // Destroy previous map instance (e.g. when locations change)
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
       }
 
@@ -45,7 +42,7 @@ export function LeafletMap({ locations, center, zoom = 12, onSelect }: Props) {
       const defaultCenter: [number, number] = center ??
         (locations.length > 0
           ? [locations[0].koordinat_lat, locations[0].koordinat_lng]
-          : [-6.3275, 108.3242]); // Indramayu center
+          : [-6.3275, 108.3242]);
 
       const map = L.map(mapRef.current!).setView(defaultCenter, zoom);
       mapInstanceRef.current = map;
@@ -55,7 +52,6 @@ export function LeafletMap({ locations, center, zoom = 12, onSelect }: Props) {
         maxZoom: 19,
       }).addTo(map);
 
-      // Custom icon merah
       const redIcon = L.divIcon({
         html: `<div style="
           width:32px;height:32px;
@@ -76,7 +72,6 @@ export function LeafletMap({ locations, center, zoom = 12, onSelect }: Props) {
           { icon: redIcon }
         ).addTo(map);
 
-        // Stok ringkas di popup
         const stokHtml = loc.stok_ringkas?.length
           ? `<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px;">
               ${loc.stok_ringkas.map(s => `
@@ -112,20 +107,20 @@ export function LeafletMap({ locations, center, zoom = 12, onSelect }: Props) {
 
         marker.on('click', () => onSelect?.(loc));
       });
+
+      // Fix blank tile issue when container is initially hidden
+      setTimeout(() => map.invalidateSize?.(), 100);
     });
 
     return () => {
-      // Set flag → Promise yang belum resolve tidak akan jalan
       cancelled = true;
-
       if (mapInstanceRef.current) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (mapInstanceRef.current as any).remove();
+        mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
       }
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [locations, center, zoom]);
 
   return (
     <div

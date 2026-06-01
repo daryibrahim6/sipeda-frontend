@@ -6,6 +6,7 @@ import { Sidebar } from '@/components/admin/Sidebar';
 import { getAdminSession } from '@/lib/auth';
 import { Loader2 } from 'lucide-react';
 import { SidebarToggleCtx } from '@/lib/admin-context';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 
 // ─── Auth gate — blocks ALL admin children until session confirmed ─────────────
 
@@ -55,7 +56,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
        <div className="flex-1 flex flex-col min-w-0 bg-white lg:rounded-3xl lg:shadow-sm lg:border border-[var(--color-border-muted)] overflow-hidden relative">
          <SidebarToggleCtx.Provider value={() => setSidebarOpen(o => !o)}>
            <div className="flex-1 overflow-y-auto">
-             {children}
+             <ErrorBoundary>
+               {children}
+             </ErrorBoundary>
            </div>
          </SidebarToggleCtx.Provider>
        </div>

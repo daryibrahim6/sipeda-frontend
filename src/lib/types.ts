@@ -188,6 +188,17 @@ export type RekapPencatatan = {
   tidak_memenuhi: number;
 };
 
+// ─── Testimonial ──────────────────────────────────────────────────────────────
+
+export type Testimonial = {
+  id: number;
+  nama: string;
+  foto: string | null;
+  jabatan: string | null;
+  isi: string;
+  rating: number;
+};
+
 // ─── API Wrappers ─────────────────────────────────────────────────────────────
 
 export type ApiResponse<T> = { data: T; message?: string };

@@ -8,7 +8,7 @@ import {
     Users, Filter, RefreshCw,
     Power, PowerOff, Shield, UserCheck, Eye, EyeOff,
 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase-browser';
 import { Button } from '@/components/ui/Button';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -47,6 +47,7 @@ const ROLE_COLORS: Record<string, string> = {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 async function getToken(): Promise<string> {
+    const supabase = createClient();
     const { data } = await supabase.auth.getSession();
     return data.session?.access_token ?? '';
 }

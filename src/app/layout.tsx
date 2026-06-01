@@ -5,11 +5,18 @@ import './globals.css';
 import { NavigationProgress } from '@/components/ui/NavigationProgress';
 import { FixedHeader } from '@/components/layout/FixedHeader';
 import { PublicShell } from '@/components/layout/PublicShell';
+import { Analytics } from '@/components/Analytics';
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://sipeda.vercel.app';
 const SITE_NAME = 'SIPEDA';
 const SITE_DESC = 'Portal informasi donor darah Kabupaten Indramayu — temukan lokasi, cek stok darah real-time, dan daftar jadwal donor.';
+
+const VERIFICATION_META: Record<string, string> = {};
+const googleVerif = process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION;
+const bingVerif = process.env.NEXT_PUBLIC_BING_VERIFICATION;
+if (googleVerif) VERIFICATION_META['google-site-verification'] = googleVerif;
+if (bingVerif) VERIFICATION_META['msvalidate.01'] = bingVerif;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -53,12 +60,14 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     locale: 'id_ID',
     type: 'website',
+    images: [{ url: `${SITE_URL}/logo.png`, width: 512, height: 512, alt: SITE_NAME }],
   },
 
   twitter: {
     card: 'summary_large_image',
     title: `${SITE_NAME} — Donor Darah Indramayu`,
     description: SITE_DESC,
+    images: [`${SITE_URL}/logo.png`],
   },
 
   robots: {
@@ -66,6 +75,8 @@ export const metadata: Metadata = {
     follow: true,
     googleBot: { index: true, follow: true },
   },
+
+  ...(Object.keys(VERIFICATION_META).length > 0 ? { other: VERIFICATION_META } : {}),
 };
 
 export const viewport: Viewport = {
@@ -81,6 +92,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         suppressHydrationWarning
         className={`${inter.variable} font-sans antialiased`}
       >
+        <Analytics />
         {/* Skip to main content — accessibility */}
         <a
           href="#main"

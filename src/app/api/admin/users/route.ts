@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase';
 import { createServerClient } from '@supabase/ssr';
+import { rateLimitMiddleware } from '@/lib/rate-limit';
 
 // ─── Auth guard: verify caller is superadmin ──────────────────────────────────
 
@@ -57,7 +58,21 @@ async function verifySuperadmin(req: NextRequest) {
 
 // ─── GET: List all admin/petugas users ────────────────────────────────────────
 
+const rlCheck = (req: NextRequest) => {
+  const rl = rateLimitMiddleware({ maxRequests: 20, windowMs: 60_000 })(req);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: `Terlalu banyak permintaan. Coba lagi ${rl.retryAfter} detik lagi.` },
+      { status: 429, headers: { 'Retry-After': String(rl.retryAfter) } },
+    );
+  }
+  return null;
+};
+
 export async function GET(req: NextRequest) {
+    const rlResponse = rlCheck(req);
+    if (rlResponse) return rlResponse;
+
     const caller = await verifySuperadmin(req);
     if (!caller) return NextResponse.json({ error: 'Akses ditolak. Hanya superadmin.' }, { status: 403 });
 
@@ -75,6 +90,9 @@ export async function GET(req: NextRequest) {
 // ─── POST: Create new admin/petugas user ──────────────────────────────────────
 
 export async function POST(req: NextRequest) {
+    const rlResponse = rlCheck(req);
+    if (rlResponse) return rlResponse;
+
     const caller = await verifySuperadmin(req);
     if (!caller) return NextResponse.json({ error: 'Akses ditolak. Hanya superadmin.' }, { status: 403 });
 
@@ -126,6 +144,9 @@ export async function POST(req: NextRequest) {
 // ─── PUT: Update admin/petugas ────────────────────────────────────────────────
 
 export async function PUT(req: NextRequest) {
+    const rlResponse = rlCheck(req);
+    if (rlResponse) return rlResponse;
+
     const caller = await verifySuperadmin(req);
     if (!caller) return NextResponse.json({ error: 'Akses ditolak. Hanya superadmin.' }, { status: 403 });
 
@@ -176,6 +197,9 @@ export async function PUT(req: NextRequest) {
 // ─── PATCH: Toggle aktif status ───────────────────────────────────────────────
 
 export async function PATCH(req: NextRequest) {
+    const rlResponse = rlCheck(req);
+    if (rlResponse) return rlResponse;
+
     const caller = await verifySuperadmin(req);
     if (!caller) return NextResponse.json({ error: 'Akses ditolak. Hanya superadmin.' }, { status: 403 });
 
