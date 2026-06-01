@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import 'leaflet/dist/leaflet.css';
 import type { Location } from '@/lib/types';
 
 type Props = {
@@ -21,14 +22,11 @@ export function LeafletMap({ locations, center, zoom = 12, onSelect }: Props) {
     // sebelum Promise.all selesai (React 18 Strict Mode double-invoke)
     let cancelled = false;
 
-    Promise.all([
-      import('leaflet'),
-      import('leaflet/dist/leaflet.css' as string),
-    ]).then(([L]) => {
-      // Jika cleanup sudah dipanggil sebelum Promise resolve → abort
+    import('leaflet').then((m) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const L = (m.default || m) as any;
       if (cancelled || !mapRef.current) return;
 
-      // Jika map sudah ada (edge case), destroy dulu
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if ((mapRef.current as any)._leaflet_id) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -36,7 +34,6 @@ export function LeafletMap({ locations, center, zoom = 12, onSelect }: Props) {
         mapInstanceRef.current = null;
       }
 
-      // Fix default icon Leaflet di Next.js
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (L.Icon.Default.prototype as any)._getIconUrl;
       L.Icon.Default.mergeOptions({
@@ -94,7 +91,7 @@ export function LeafletMap({ locations, center, zoom = 12, onSelect }: Props) {
                 </span>
               `).join('')}
             </div>`
-          : '';
+          : '<div style="margin-top:8px;font-size:11px;color:#999">Stok belum tersedia</div>';
 
         marker.bindPopup(`
           <div style="font-family:sans-serif;min-width:180px;">

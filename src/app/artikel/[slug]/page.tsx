@@ -1,10 +1,19 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Clock, Tag, Droplets } from 'lucide-react';
+import Image from 'next/image';
+import { ArrowLeft, Calendar, User, Share2, Heart, Droplets } from 'lucide-react';
+import DOMPurify from 'isomorphic-dompurify';
 
 import { getArticleBySlug, getArticles } from '@/lib/api';
 import { formatDate } from '@/lib/utils';
+
+const FALLBACK_IMAGES = [
+  'https://images.unsplash.com/photo-1615461066841-6116e61058f4?w=800&h=450&fit=crop',
+  'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800&h=450&fit=crop',
+  'https://images.unsplash.com/photo-1559757175-5700dde675bc?w=800&h=450&fit=crop',
+  'https://images.unsplash.com/photo-1628348068946-1c38f34d0c3c?w=800&h=450&fit=crop',
+];
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -39,99 +48,128 @@ export default async function ArtikelDetailPage({ params }: Props) {
 
   return (
     <main id="main">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+      {/* ── Hero / Cover ── */}
+      <div className="relative">
+        {article.gambar || article.judul ? (
+          <div className="relative h-[40vh] sm:h-[50vh] lg:h-[56vh] overflow-hidden">
+            <Image src={article.gambar || FALLBACK_IMAGES[article.id % FALLBACK_IMAGES.length]} alt={article.gambar_alt ?? article.judul} width={800} height={450}
+              className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-white via-white/30 to-transparent" />
+          </div>
+        ) : (
+          <div className="h-[32vh] sm:h-[40vh] bg-gradient-to-br from-red-600 via-red-500 to-red-800 flex items-center justify-center">
+            <Droplets className="w-16 h-16 text-white/20" />
+            <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
+          </div>
+        )}
+      </div>
+
+      {/* ── Article Content ── */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-20 relative z-10">
 
         {/* Back */}
         <Link href="/artikel"
-          className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-red-600 mb-8 transition-colors">
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-white/80 hover:text-white bg-black/20 backdrop-blur-sm px-4 py-2 rounded-full mb-6 transition-colors">
           <ArrowLeft className="w-4 h-4" />
-          Kembali ke Artikel
+          Kembali
         </Link>
 
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-red-600 uppercase tracking-widest">
-              <Tag className="w-3 h-3" />
-              {article.kategori_nama}
-            </span>
-            <span className="text-gray-300">·</span>
-            <span className="flex items-center gap-1.5 text-xs text-gray-400">
-              <Clock className="w-3 h-3" />
+        {/* Header card */}
+        <div className="bg-white rounded-3xl shadow-[var(--shadow-elevated)] border border-[var(--color-border-muted)] p-8 sm:p-10 mb-8">
+
+          {/* Meta */}
+          <div className="flex flex-wrap items-center gap-4 text-xs text-[var(--color-text-muted)] mb-4">
+            <span className="flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5" />
               {formatDate(article.published_at)}
             </span>
+            <span className="flex items-center gap-1.5">
+              <User className="w-3.5 h-3.5" />
+              {article.penulis}
+            </span>
+            {article.kategori_nama && (
+              <span className="px-2.5 py-1 rounded-full bg-[var(--color-primary-subtle)] text-[var(--color-primary)] font-semibold text-[10px] uppercase tracking-wider">
+                {article.kategori_nama}
+              </span>
+            )}
           </div>
 
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 leading-tight mb-4">
+          {/* Title */}
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[var(--color-text-primary)] leading-tight mb-5">
             {article.judul}
           </h1>
 
+          {/* Excerpt */}
           {article.excerpt && (
-            <p className="text-lg text-gray-500 leading-relaxed border-l-4 border-red-500 pl-4">
+            <p className="text-base sm:text-lg text-[var(--color-text-secondary)] leading-relaxed border-l-4 border-[var(--color-primary)] pl-5">
               {article.excerpt}
             </p>
           )}
+
+          {/* Share */}
+          <div className="flex items-center gap-3 mt-6 pt-6 border-t border-[var(--color-border-muted)]">
+            <span className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wider">Bagikan</span>
+            <a href={`https://wa.me/?text=${encodeURIComponent(article.judul + ' — ' + 'https://sipeda.vercel.app/artikel/' + article.slug)}`}
+              target="_blank" rel="noopener noreferrer"
+              className="w-9 h-9 flex items-center justify-center rounded-full bg-green-50 text-green-600 hover:bg-green-100 transition-colors">
+              <Share2 className="w-4 h-4" />
+            </a>
+          </div>
         </div>
 
-        {/* Cover image */}
-        {article.gambar && (
-          <div className="aspect-video rounded-2xl overflow-hidden bg-gray-100 mb-10">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={article.gambar} alt={article.gambar_alt ?? article.judul}
-              className="w-full h-full object-cover" />
-          </div>
-        )}
+        {/* Content prose */}
+        <div className="bg-white rounded-3xl border border-[var(--color-border-muted)] p-8 sm:p-10 shadow-sm">
+          <div
+            className="prose prose-gray prose-lg max-w-none text-justify
+                prose-headings:font-bold prose-headings:text-[var(--color-text-primary)] prose-headings:tracking-tight
+                prose-p:text-[var(--color-text-secondary)] prose-p:leading-relaxed prose-p:text-justify
+                prose-a:text-[var(--color-primary)] prose-a:no-underline hover:prose-a:underline
+                prose-img:rounded-2xl prose-img:shadow-md
+                prose-strong:text-[var(--color-text-primary)]
+                prose-li:text-[var(--color-text-secondary)]
+                prose-blockquote:border-l-[var(--color-primary)] prose-blockquote:text-[var(--color-text-secondary)] prose-blockquote:bg-[var(--color-primary-subtle)] prose-blockquote:py-2 prose-blockquote:px-5 prose-blockquote:rounded-r-2xl"
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(article.konten ?? '') }}
+          />
+        </div>
 
-        {/* Content */}
-        <div
-          className="prose prose-gray prose-lg max-w-none
-              prose-headings:font-bold prose-headings:text-gray-900
-              prose-p:text-gray-600 prose-p:leading-relaxed
-              prose-a:text-red-600 prose-a:no-underline hover:prose-a:underline
-              prose-img:rounded-xl prose-img:shadow-sm
-              prose-strong:text-gray-900
-              prose-li:text-gray-600"
-          dangerouslySetInnerHTML={{ __html: article.konten ?? '' }}
-        />
-
-        {/* Tags / Share */}
-        <div className="mt-12 pt-8 border-t border-gray-100 flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Kategori:</span>
-            <span className="px-3 py-1 bg-red-50 text-red-700 text-xs font-semibold rounded-full">
-              {article.kategori_nama}
-            </span>
-          </div>
+        {/* Bottom share */}
+        <div className="flex items-center justify-center gap-4 my-10">
+          <a href={`https://wa.me/?text=${encodeURIComponent(article.judul + ' — ' + 'https://sipeda.vercel.app/artikel/' + article.slug)}`}
+            target="_blank" rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition-colors active:scale-[0.97]">
+            <Share2 className="w-4 h-4" /> Bagikan Artikel
+          </a>
+          <Link href="/jadwal"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-accent)] text-white text-sm font-semibold hover:from-[var(--color-primary-dark)] hover:to-[var(--color-primary)] transition-colors active:scale-[0.97]">
+            <Heart className="w-4 h-4" /> Daftar Donor
+          </Link>
         </div>
       </div>
 
-      {/* Related articles */}
+      {/* ── Related Articles ── */}
       {relatedArticles.length > 0 && (
-        <section className="bg-gray-50 border-t border-gray-100 py-12 mt-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">Artikel Lainnya</h2>
+        <section className="bg-[var(--color-section-alt)] border-t border-[var(--color-border-muted)] py-12 lg:py-16 mt-10">
+          <div className="page-container">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-1 h-6 bg-[var(--color-primary)] rounded-full" />
+              <h2 className="text-2xl font-bold text-[var(--color-text-primary)]">Artikel Lainnya</h2>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
               {relatedArticles.map(a => (
-                <Link key={a.id} href={`/artikel/${a.slug}`}
-                  className="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all">
-                  <div className="aspect-video bg-gradient-to-br from-red-50 to-red-100 overflow-hidden">
-                    {a.gambar ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={a.gambar} alt={a.judul}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Droplets className="w-8 h-8 text-red-200" />
-                      </div>
-                    )}
+                <Link key={a.id} href={`/artikel/${a.slug}`} className="group bg-white border border-[var(--color-border-muted)] rounded-[var(--radius-card)] shadow-[var(--shadow-elevated)] overflow-hidden hover:border-[var(--color-primary-light)] hover:shadow-[var(--shadow-hover)] transition-all duration-200 hover:-translate-y-1">
+                  <div className="aspect-video overflow-hidden">
+                    <Image
+                      src={a.gambar || FALLBACK_IMAGES[relatedArticles.indexOf(a) % FALLBACK_IMAGES.length]}
+                      alt={a.judul} width={800} height={450}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
                   </div>
-                  <div className="p-4">
-                    <span className="text-xs font-bold text-red-600 uppercase tracking-wide">
-                      {a.kategori_nama}
-                    </span>
-                    <h3 className="font-semibold text-gray-900 text-sm mt-1 line-clamp-2 group-hover:text-red-700 transition-colors">
+                  <div className="p-5">
+                    <h3 className="font-bold text-[var(--color-text-primary)] text-sm leading-snug line-clamp-2 group-hover:text-[var(--color-primary)] transition-colors">
                       {a.judul}
                     </h3>
+                    <div className="text-xs text-[var(--color-text-muted)] mt-2">{formatDate(a.published_at)}</div>
                   </div>
                 </Link>
               ))}

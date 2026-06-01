@@ -1,15 +1,11 @@
 'use client';
 
-import { useState, useEffect, createContext, useContext } from 'react';
-import { usePathname } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { Sidebar } from '@/components/admin/Sidebar';
 import { getAdminSession } from '@/lib/auth';
 import { Loader2 } from 'lucide-react';
-
-// ─── Context for sidebar toggle ───────────────────────────────────────────────
-
-const SidebarToggleCtx = createContext<() => void>(() => { });
-export const useSidebarToggle = () => useContext(SidebarToggleCtx);
+import { SidebarToggleCtx } from '@/lib/admin-context';
 
 // ─── Auth gate — blocks ALL admin children until session confirmed ─────────────
 
@@ -17,15 +13,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [authState, setAuthState] = useState<'checking' | 'ok' | 'denied'>('checking');
   const pathname = usePathname();
+  const router = useRouter();
 
   const isLoginPage = pathname === '/admin/login';
 
   useEffect(() => {
-    // Login page tidak perlu auth check — skip langsung ke 'ok'
-    if (isLoginPage) {
-      setAuthState('ok');
-      return;
-    }
+    // Login page tidak perlu auth check — skip
+    if (isLoginPage) return;
 
     let cancelled = false;
     getAdminSession().then(session => {
@@ -34,11 +28,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         setAuthState('ok');
       } else {
         setAuthState('denied');
-        window.location.replace('/admin/login?expired=1');
+        router.replace('/admin/login?expired=1');
       }
     });
     return () => { cancelled = true; };
-  }, [isLoginPage]);
+  }, [isLoginPage, router]);
 
   // Tampilkan spinner saat cek session (kecuali di login page)
   if (!isLoginPage && (authState === 'checking' || authState === 'denied')) {
@@ -54,17 +48,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return <>{children}</>;
   }
 
-  // Admin pages: render dengan sidebar
-  return (
-    <div className="flex min-h-screen bg-[#F4F4F5] p-0 lg:p-6 lg:gap-6">
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <div className="flex-1 flex flex-col min-w-0 bg-white lg:rounded-3xl lg:shadow-sm lg:border border-gray-100 overflow-hidden relative">
-        <SidebarToggleCtx.Provider value={() => setSidebarOpen(o => !o)}>
-          <div className="flex-1 overflow-y-auto">
-            {children}
-          </div>
-        </SidebarToggleCtx.Provider>
-      </div>
-    </div>
-  );
+   // Admin pages: render dengan sidebar
+   return (
+     <div className="flex min-h-screen bg-[var(--color-cream)] p-0 lg:p-6 lg:gap-6">
+       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+       <div className="flex-1 flex flex-col min-w-0 bg-white lg:rounded-3xl lg:shadow-sm lg:border border-[var(--color-border-muted)] overflow-hidden relative">
+         <SidebarToggleCtx.Provider value={() => setSidebarOpen(o => !o)}>
+           <div className="flex-1 overflow-y-auto">
+             {children}
+           </div>
+         </SidebarToggleCtx.Provider>
+       </div>
+     </div>
+   );
 }

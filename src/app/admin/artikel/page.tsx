@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useSidebarToggle } from '@/app/admin/layout';
+import { useSidebarToggle } from '@/lib/admin-context';
 import { TopBar } from '@/components/admin/TopBar';
 import {
   Plus, Search, Pencil, Trash2, X, Loader2, Check,
@@ -13,13 +13,14 @@ import {
 } from '@/lib/admin-api';
 import { requireAdminAuth } from '@/lib/auth';
 import { formatDate } from '@/lib/utils';
+import { Button } from '@/components/ui/Button';
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 function SkeletonRow() {
   return (
     <tr>
       {[...Array(5)].map((_, i) => (
-        <td key={i} className="px-5 py-4"><div className="h-4 bg-gray-100 animate-pulse rounded" /></td>
+        <td key={i} className="px-5 py-4"><div className="h-4 bg-[var(--color-section-alt)] animate-pulse-soft rounded" /></td>
       ))}
     </tr>
   );
@@ -32,7 +33,7 @@ function Toast({ msg, type, onClose }: { msg: string; type: 'success' | 'error';
       }`}>
       {type === 'success' ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
       {msg}
-      <button onClick={onClose}><X className="w-3.5 h-3.5 opacity-70" /></button>
+      <button onClick={onClose} className="p-2"><X className="w-3.5 h-3.5 opacity-70" /></button>
     </div>
   );
 }
@@ -44,14 +45,14 @@ function DeleteModal({ article, onConfirm, onCancel, loading }: {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onCancel} />
-      <div className="relative bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm text-center">
-        <div className="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Trash2 className="w-6 h-6 text-red-600" />
+      <div className="relative bg-white rounded-2xl shadow-[var(--shadow-elevated)] p-6 w-full max-w-sm text-center">
+        <div className="w-14 h-14 bg-[var(--color-primary-subtle)] rounded-full flex items-center justify-center mx-auto mb-4">
+          <Trash2 className="w-6 h-6 text-[var(--color-primary)]" />
         </div>
-        <h3 className="font-bold text-gray-900 mb-2">Hapus Artikel?</h3>
-        <p className="text-sm text-gray-500 mb-6 line-clamp-2">&quot;{article.judul}&quot;</p>
+        <h3 className="font-bold text-[var(--color-text-primary)] mb-2">Hapus Artikel?</h3>
+        <p className="text-sm text-[var(--color-text-muted)] mb-6 line-clamp-2">&quot;{article.judul}&quot;</p>
         <div className="flex gap-3">
-          <button onClick={onCancel} className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50">Batal</button>
+          <button onClick={onCancel} className="flex-1 py-2.5 border border-[var(--color-border-muted)] rounded-xl text-sm font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-section-alt)]">Batal</button>
           <button onClick={onConfirm} disabled={loading}
             className="flex-1 py-2.5 bg-red-600 rounded-xl text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60 flex items-center justify-center gap-2">
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
@@ -66,13 +67,13 @@ function DeleteModal({ article, onConfirm, onCancel, loading }: {
 // ─── Form Modal ───────────────────────────────────────────────────────────────
 type FormData = {
   judul: string; slug: string; kategori_id: string; penulis: string;
-  excerpt: string; konten: string; unggulan: boolean;
+  excerpt: string; konten: string; gambar: string;
   tampilkan_beranda: boolean; status: 'draft' | 'published' | 'archived';
 };
 
 const EMPTY_FORM: FormData = {
   judul: '', slug: '', kategori_id: '1', penulis: 'Admin SIPEDA',
-  excerpt: '', konten: '', unggulan: false, tampilkan_beranda: false, status: 'published',
+  excerpt: '', konten: '', gambar: '', tampilkan_beranda: false, status: 'published',
 };
 
 function slugify(s: string) {
@@ -85,34 +86,34 @@ function FormModal({ editing, form, setForm, onSave, onClose, loading, kategoris
   onSave: () => void; onClose: () => void; loading: boolean;
   kategoris: { id: number; nama: string }[];
 }) {
-  const inputClass = "w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all";
+  const inputClass = "w-full border border-[var(--color-border-muted)] rounded-xl px-3.5 py-2.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-[var(--color-primary)] transition-all";
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[92vh] flex flex-col">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
-          <h3 className="font-bold text-gray-900">{editing ? 'Edit Artikel' : 'Tulis Artikel Baru'}</h3>
-          <button onClick={onClose} className="p-2 rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-100"><X className="w-4 h-4" /></button>
+      <div className="relative bg-white rounded-2xl shadow-[var(--shadow-elevated)] w-full max-w-2xl max-h-[92vh] flex flex-col">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border-muted)] flex-shrink-0">
+          <h3 className="font-bold text-[var(--color-text-primary)]">{editing ? 'Edit Artikel' : 'Tulis Artikel Baru'}</h3>
+          <button onClick={onClose} className="p-2 rounded-xl text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] hover:bg-[var(--color-section-alt)]"><X className="w-4 h-4" /></button>
         </div>
         <div className="overflow-y-auto p-6 space-y-4 flex-1">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Judul <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Judul <span className="text-red-500">*</span></label>
             <input type="text" required value={form.judul}
               onChange={e => setForm(f => ({ ...f, judul: e.target.value, slug: editing ? f.slug : slugify(e.target.value) }))}
               placeholder="Tulis judul yang menarik..." className={inputClass} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Slug URL</label>
-            <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-red-500">
-              <span className="px-3 py-2.5 bg-gray-50 text-gray-400 text-xs border-r border-gray-200 flex-shrink-0">/artikel/</span>
+            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Slug URL</label>
+            <div className="flex items-center border border-[var(--color-border-muted)] rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-red-500/30">
+              <span className="px-3 py-2.5 bg-[var(--color-section-alt)] text-[var(--color-text-muted)] text-xs border-r border-[var(--color-border-muted)] flex-shrink-0">/artikel/</span>
               <input type="text" value={form.slug}
                 onChange={e => setForm(f => ({ ...f, slug: slugify(e.target.value) }))}
-                className="flex-1 px-3.5 py-2.5 text-sm text-gray-900 focus:outline-none" />
+                className="flex-1 px-3.5 py-2.5 text-sm text-[var(--color-text-primary)] focus:outline-none" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Kategori</label>
+              <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Kategori</label>
               <select value={form.kategori_id}
                 onChange={e => setForm(f => ({ ...f, kategori_id: e.target.value }))}
                 className={inputClass + ' bg-white'}>
@@ -120,7 +121,7 @@ function FormModal({ editing, form, setForm, onSave, onClose, loading, kategoris
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Status</label>
+              <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Status</label>
               <select value={form.status}
                 onChange={e => setForm(f => ({ ...f, status: e.target.value as FormData['status'] }))}
                 className={inputClass + ' bg-white'}>
@@ -131,20 +132,28 @@ function FormModal({ editing, form, setForm, onSave, onClose, loading, kategoris
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Penulis <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Penulis <span className="text-red-500">*</span></label>
             <input type="text" required value={form.penulis}
               onChange={e => setForm(f => ({ ...f, penulis: e.target.value }))}
               className={inputClass} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Excerpt / Ringkasan</label>
+            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">URL Gambar (Unsplash, dll)</label>
+            <input type="url" value={form.gambar}
+              onChange={e => setForm(f => ({ ...f, gambar: e.target.value }))}
+              placeholder="https://images.unsplash.com/..."
+              className={inputClass} />
+            <p className="text-[10px] text-[var(--color-text-muted)] mt-1">Kosongi jika tidak ada. Ukuran ideal: 1200×675px (16:9).</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Excerpt / Ringkasan</label>
             <textarea rows={2} value={form.excerpt}
               onChange={e => setForm(f => ({ ...f, excerpt: e.target.value }))}
               placeholder="Rangkuman singkat (tampil di daftar artikel)"
               className={inputClass + ' resize-none'} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Konten</label>
+            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Konten</label>
             <textarea rows={8} value={form.konten}
               onChange={e => setForm(f => ({ ...f, konten: e.target.value }))}
               placeholder="Konten artikel. HTML sederhana didukung (<h2>, <p>, <ul>)."
@@ -152,21 +161,15 @@ function FormModal({ editing, form, setForm, onSave, onClose, loading, kategoris
           </div>
           <div className="flex gap-5">
             <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" checked={form.unggulan}
-                onChange={e => setForm(f => ({ ...f, unggulan: e.target.checked }))}
-                className="w-4 h-4 accent-red-600 rounded" />
-              <span className="text-sm text-gray-700 font-medium">Artikel unggulan ★</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" checked={form.tampilkan_beranda}
                 onChange={e => setForm(f => ({ ...f, tampilkan_beranda: e.target.checked }))}
                 className="w-4 h-4 accent-red-600 rounded" />
-              <span className="text-sm text-gray-700 font-medium">Tampil di beranda</span>
+              <span className="text-sm text-[var(--color-text-secondary)] font-medium">Tampil di beranda</span>
             </label>
           </div>
         </div>
-        <div className="flex gap-3 px-6 py-4 border-t border-gray-100 flex-shrink-0">
-          <button onClick={onClose} className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50">Batal</button>
+        <div className="flex gap-3 px-6 py-4 border-t border-[var(--color-border-muted)] flex-shrink-0">
+          <button onClick={onClose} className="flex-1 py-2.5 border border-[var(--color-border-muted)] rounded-xl text-sm font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-section-alt)]">Batal</button>
           <button onClick={onSave} disabled={loading || !form.judul || !form.penulis}
             className="flex-1 py-2.5 bg-red-600 rounded-xl text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50 flex items-center justify-center gap-2">
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
@@ -237,7 +240,7 @@ export default function AdminArtikelPage() {
       judul: a.judul, slug: a.slug,
       kategori_id: String(a.kategori.id),
       penulis: a.penulis, excerpt: a.excerpt ?? '',
-      konten: a.konten, unggulan: a.unggulan,
+      konten: a.konten, gambar: a.gambar ?? '',
       tampilkan_beranda: a.tampilkan_beranda, status: a.status,
     });
     setShowForm(true);
@@ -250,7 +253,7 @@ export default function AdminArtikelPage() {
         judul: form.judul, slug: form.slug,
         kategori_id: parseInt(form.kategori_id),
         penulis: form.penulis, excerpt: form.excerpt,
-        konten: form.konten, unggulan: form.unggulan,
+        konten: form.konten, gambar: form.gambar || undefined,
         tampilkan_beranda: form.tampilkan_beranda, status: form.status,
       };
       if (editing) {
@@ -291,7 +294,7 @@ export default function AdminArtikelPage() {
   const statusBadge = (s: string) => {
     if (s === 'published') return 'bg-green-50 text-green-700 border border-green-200';
     if (s === 'draft') return 'bg-amber-50 text-amber-700 border border-amber-200';
-    return 'bg-gray-100 text-gray-500';
+    return 'bg-[var(--color-section-alt)] text-[var(--color-text-muted)]';
   };
 
   return (
@@ -302,14 +305,10 @@ export default function AdminArtikelPage() {
         onMenuClick={toggle}
         actions={
           <div className="flex gap-2">
-            <button onClick={() => fetchData()} className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-colors" title="Refresh">
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            </button>
-            <button onClick={openCreate}
-              className="flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-xl hover:bg-red-700 transition-colors">
-              <Plus className="w-4 h-4" />
+            <Button variant="ghost" size="sm" onClick={() => fetchData()} title="Refresh" icon={<RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />} />
+            <Button onClick={openCreate} icon={<Plus className="w-4 h-4" />}>
               <span className="hidden sm:inline">Tulis Artikel</span>
-            </button>
+            </Button>
           </div>
         }
       />
@@ -318,13 +317,13 @@ export default function AdminArtikelPage() {
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" />
             <input type="text" placeholder="Cari judul artikel..."
               value={search} onChange={e => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500" />
+              className="w-full pl-10 pr-4 py-2.5 border border-[var(--color-border-muted)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/30" />
           </div>
           <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-            className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500 bg-white">
+            className="border border-[var(--color-border-muted)] rounded-xl px-3 py-2.5 text-sm text-[var(--color-text-secondary)] focus:outline-none focus:ring-2 focus:ring-red-500/30 bg-white">
             <option value="semua">Semua Status</option>
             <option value="published">Published</option>
             <option value="draft">Draft</option>
@@ -333,58 +332,53 @@ export default function AdminArtikelPage() {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-2xl border border-[var(--color-border-muted)] overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-100 bg-gray-50/50">
-                  <th className="text-left px-5 py-3.5 font-semibold text-gray-600 text-xs uppercase tracking-wide">Judul</th>
-                  <th className="text-left px-5 py-3.5 font-semibold text-gray-600 text-xs uppercase tracking-wide hidden sm:table-cell">Kategori</th>
-                  <th className="text-left px-5 py-3.5 font-semibold text-gray-600 text-xs uppercase tracking-wide hidden md:table-cell">Status</th>
-                  <th className="text-left px-5 py-3.5 font-semibold text-gray-600 text-xs uppercase tracking-wide hidden lg:table-cell">Tanggal</th>
-                  <th className="text-right px-5 py-3.5 font-semibold text-gray-600 text-xs uppercase tracking-wide">Aksi</th>
+                <tr className="border-b border-[var(--color-border-muted)] bg-[var(--color-section-alt)]/50">
+                  <th className="text-left px-5 py-3.5 font-semibold text-[var(--color-text-secondary)] text-xs uppercase tracking-wide">Judul</th>
+                  <th className="text-left px-5 py-3.5 font-semibold text-[var(--color-text-secondary)] text-xs uppercase tracking-wide hidden sm:table-cell">Kategori</th>
+                  <th className="text-left px-5 py-3.5 font-semibold text-[var(--color-text-secondary)] text-xs uppercase tracking-wide hidden md:table-cell">Status</th>
+                  <th className="text-left px-5 py-3.5 font-semibold text-[var(--color-text-secondary)] text-xs uppercase tracking-wide hidden lg:table-cell">Tanggal</th>
+                  <th className="text-right px-5 py-3.5 font-semibold text-[var(--color-text-secondary)] text-xs uppercase tracking-wide">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-[var(--color-border-muted)]">
                 {loading ? (
                   [...Array(5)].map((_, i) => <SkeletonRow key={i} />)
                 ) : articles.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="text-center py-16 text-gray-400">
-                      <FileText className="w-10 h-10 mx-auto mb-3 text-gray-200" />
+                    <td colSpan={5} className="text-center py-16 text-[var(--color-text-muted)]">
+                      <FileText className="w-10 h-10 mx-auto mb-3 text-[var(--color-border-muted)]" />
                       {search ? 'Tidak ada artikel yang cocok.' : 'Belum ada artikel.'}
                     </td>
                   </tr>
                 ) : articles.map(a => (
-                  <tr key={a.id} className="hover:bg-gray-50/50 transition-colors">
+                  <tr key={a.id} className="hover:bg-[var(--color-section-alt)]/50 transition-colors">
                     <td className="px-5 py-4">
-                      <div className="flex items-start gap-2">
-                        {a.unggulan && <span className="text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full flex-shrink-0 mt-0.5">★</span>}
-                        <div>
-                          <div className="font-semibold text-gray-900 leading-snug line-clamp-1 max-w-xs">{a.judul}</div>
-                          {a.excerpt && <div className="text-xs text-gray-400 line-clamp-1 mt-0.5">{a.excerpt}</div>}
-                        </div>
-                      </div>
+                      <div className="font-semibold text-[var(--color-text-primary)] leading-snug line-clamp-1 max-w-xs">{a.judul}</div>
+                      {a.excerpt && <div className="text-xs text-[var(--color-text-muted)] line-clamp-1 mt-0.5">{a.excerpt}</div>}
                     </td>
                     <td className="px-5 py-4 hidden sm:table-cell">
-                      <span className="text-xs font-semibold text-red-600 bg-red-50 px-2 py-1 rounded-full">{a.kategori.nama}</span>
+                      <span className="text-xs font-semibold text-[var(--color-primary)] bg-[var(--color-primary-subtle)] px-2 py-1 rounded-full">{a.kategori.nama}</span>
                     </td>
                     <td className="px-5 py-4 hidden md:table-cell">
                       <span className={`text-xs font-semibold px-2 py-1 rounded-full capitalize ${statusBadge(a.status)}`}>{a.status}</span>
                     </td>
-                    <td className="px-5 py-4 hidden lg:table-cell text-xs text-gray-500">{formatDate(a.created_at)}</td>
+                    <td className="px-5 py-4 hidden lg:table-cell text-xs text-[var(--color-text-muted)]">{formatDate(a.created_at)}</td>
                     <td className="px-5 py-4">
                       <div className="flex items-center justify-end gap-1">
                         <a href={`/artikel/${a.slug}`} target="_blank"
-                          className="p-2 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Lihat di situs">
+                          className="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Lihat di situs">
                           <Eye className="w-4 h-4" />
                         </a>
                         <button onClick={() => openEdit(a)}
-                          className="p-2 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Edit">
+                          className="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Edit">
                           <Pencil className="w-4 h-4" />
                         </button>
                         <button onClick={() => setDeleting(a)}
-                          className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors" title="Hapus">
+                          className="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-red-600 hover:bg-red-50 transition-colors" title="Hapus">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -396,15 +390,15 @@ export default function AdminArtikelPage() {
           </div>
 
           {totalPages > 1 && (
-            <div className="flex items-center justify-between px-5 py-4 border-t border-gray-100">
-              <span className="text-xs text-gray-400">{total} artikel · halaman {page} dari {totalPages}</span>
+            <div className="flex items-center justify-between px-5 py-4 border-t border-[var(--color-border-muted)]">
+              <span className="text-xs text-[var(--color-text-muted)]">{total} artikel · halaman {page} dari {totalPages}</span>
               <div className="flex gap-1">
                 <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-                  className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 disabled:opacity-30">
+                  className="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] hover:bg-[var(--color-section-alt)] disabled:opacity-30">
                   <ChevronLeft className="w-4 h-4" />
                 </button>
                 <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-                  className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 disabled:opacity-30">
+                  className="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] hover:bg-[var(--color-section-alt)] disabled:opacity-30">
                   <ChevronRight className="w-4 h-4" />
                 </button>
               </div>

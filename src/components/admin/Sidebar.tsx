@@ -1,11 +1,12 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   Droplets, LayoutDashboard, Calendar, Tally4,
   ClipboardList, FileText, LogOut, X, ChevronRight,
-  User, ClipboardCheck, MapPin, Users,
+  User, ClipboardCheck, MapPin, Users, Megaphone,
 } from 'lucide-react';
 // FIX: clearToken dan getUser TIDAK ADA di auth.ts (sudah dihapus saat migrasi ke Supabase Auth).
 // Sidebar lama: import { clearToken, getUser } from '@/lib/auth' → runtime crash
@@ -15,6 +16,7 @@ import { useEffect, useState } from 'react';
 
 const navItems = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/admin/pengumuman', label: 'Pengumuman', icon: Megaphone },
   { href: '/admin/lokasi', label: 'Lokasi Donor', icon: MapPin },
   { href: '/admin/jadwal', label: 'Jadwal Donor', icon: Calendar },
   { href: '/admin/stok-darah', label: 'Stok Darah', icon: Tally4 },
@@ -58,23 +60,21 @@ export function Sidebar({ open, onClose }: Props) {
   const content = (
     <div className="flex flex-col h-full bg-gray-950 text-white w-64 flex-shrink-0">
 
-      {/* Logo */}
-      <div className="flex items-center justify-between px-6 py-5 border-b border-white/5">
-        <Link href="/admin/dashboard" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center shadow-lg shadow-red-600/30">
-            <Droplets className="w-4 h-4 text-white fill-white" />
-          </div>
-          <span className="font-bold text-white text-sm tracking-tight">SIPEDA</span>
-          <span className="text-[10px] font-semibold text-gray-600 bg-white/5 px-1.5 py-0.5 rounded uppercase tracking-widest">Admin</span>
-        </Link>
-        <button
-          onClick={onClose}
-          className="lg:hidden p-1 rounded-lg text-gray-600 hover:text-white hover:bg-white/5 transition-colors"
-          aria-label="Tutup menu"
-        >
-          <X className="w-4 h-4" />
-        </button>
-      </div>
+       {/* Logo */}
+       <div className="flex items-center justify-between px-6 py-5 border-b border-white/5">
+         <Link href="/admin/dashboard" className="flex items-center gap-2.5">
+            <Image src="/logo.png" alt="SIPEDA" width={40} height={40} className="h-10 w-auto" />
+           <span className="font-bold text-white text-sm tracking-tight">SIPEDA</span>
+           <span className="text-[10px] font-semibold text-gray-600 bg-white/5 px-1.5 py-0.5 rounded uppercase tracking-widest">Admin</span>
+         </Link>
+         <button
+           onClick={onClose}
+            className="lg:hidden p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/5 transition-colors"
+           aria-label="Tutup menu"
+         >
+           <X className="w-4 h-4" />
+         </button>
+       </div>
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto" aria-label="Navigasi admin">
@@ -104,7 +104,7 @@ export function Sidebar({ open, onClose }: Props) {
         <Link
           href="/"
           target="_blank"
-          className="flex items-center gap-2 px-3 py-2 text-xs text-gray-600 hover:text-gray-400 transition-colors rounded-lg hover:bg-white/5 mb-1"
+          className="flex items-center gap-2 px-3 py-2 text-xs text-gray-600 hover:text-gray-400 active:scale-[0.97] transition-all rounded-lg hover:bg-white/5 mb-1"
         >
           <Droplets className="w-3.5 h-3.5" />
           Lihat Situs Publik
@@ -123,7 +123,7 @@ export function Sidebar({ open, onClose }: Props) {
           </div>
           <button
             onClick={handleLogout}
-            className="p-1.5 rounded-lg text-gray-600 hover:text-red-400 hover:bg-red-400/10 transition-colors"
+            className="p-2 rounded-lg text-gray-600 hover:text-red-400 hover:bg-red-400/10 transition-colors"
             title="Logout"
             aria-label="Logout"
           >

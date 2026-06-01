@@ -5,7 +5,7 @@ export default function TentangLoading() {
 <main id="main" aria-busy="true" className="animate-pulse">
                 {/* Hero */}
                 <section className="bg-gray-950 py-20">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="page-container">
                         <div className="h-4 w-24 bg-gray-800 rounded mb-4 mx-auto" />
                         <div className="h-12 w-72 bg-gray-800 rounded-lg mb-4 mx-auto" />
                         <div className="h-5 w-96 bg-gray-700 rounded mx-auto" />
@@ -13,7 +13,7 @@ export default function TentangLoading() {
                 </section>
 
                 {/* Content */}
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-16">
+                <div className="page-container py-16 space-y-16">
                     {/* Stats grid */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                         {[...Array(4)].map((_, i) => (

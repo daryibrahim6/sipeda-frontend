@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState, useEffect } from 'react';
+import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Droplets, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
 import { loginUnified } from '@/lib/auth';
@@ -38,21 +38,21 @@ function LoginForm() {
     return (
         <>
             {isExpired && (
-                <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm rounded-xl px-4 py-3 mb-5">
+                <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm rounded-[var(--radius-md)] px-4 py-3 mb-5">
                     <AlertCircle className="w-4 h-4 flex-shrink-0" />
                     Sesi kamu sudah habis. Silakan login kembali.
                 </div>
             )}
 
             {errorMsg && (
-                <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-xl px-4 py-3 mb-5">
+                <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-[var(--radius-md)] px-4 py-3 mb-5">
                     {errorMsg}
                 </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
-                    <label htmlFor="email" className="block text-sm font-bold text-gray-700 mb-2">
+                    <label htmlFor="email" className="block text-sm font-bold text-[var(--color-text-secondary)] mb-2">
                         Alamat Email
                     </label>
                     <input
@@ -63,12 +63,12 @@ function LoginForm() {
                         required
                         placeholder="email@sipeda.id"
                         autoComplete="email"
-                        className="w-full border-2 border-gray-100 rounded-xl px-4 py-3.5 text-sm font-medium text-gray-900 placeholder:text-gray-300 focus:outline-none focus:ring-4 focus:ring-red-500/10 focus:border-red-500 transition-all"
+                        className="w-full border-2 border-[var(--color-border-muted)] rounded-[var(--radius-md)] px-4 py-3.5 text-sm font-medium text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-4 focus:ring-red-500/10 focus:border-[var(--color-primary)] transition-all"
                     />
                 </div>
 
                 <div>
-                    <label htmlFor="password" className="block text-sm font-bold text-gray-700 mb-2">
+                    <label htmlFor="password" className="block text-sm font-bold text-[var(--color-text-secondary)] mb-2">
                         Kata Sandi
                     </label>
                     <div className="relative">
@@ -78,14 +78,14 @@ function LoginForm() {
                             value={password}
                             onChange={e => setPassword(e.target.value)}
                             required
-                            placeholder="••••••••"
-                            autoComplete="current-password"
-                            className="w-full border-2 border-gray-100 rounded-xl px-4 py-3.5 pr-11 text-sm font-medium text-gray-900 placeholder:text-gray-300 focus:outline-none focus:ring-4 focus:ring-red-500/10 focus:border-red-500 transition-all"
+                        placeholder="••••••••"
+                        autoComplete="current-password"
+                        className="w-full border-2 border-[var(--color-border-muted)] rounded-[var(--radius-md)] px-4 py-3.5 pr-11 text-sm font-medium text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-4 focus:ring-red-500/10 focus:border-[var(--color-primary)] transition-all"
                         />
                         <button
                             type="button"
                             onClick={() => setShowPw(!showPw)}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] transition-colors"
                             aria-label={showPw ? 'Sembunyikan password' : 'Tampilkan password'}
                         >
                             {showPw ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -96,7 +96,7 @@ function LoginForm() {
                 <button
                     type="submit"
                     disabled={status === 'loading'}
-                    className="w-full py-4 bg-gray-900 hover:bg-red-600 active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 text-white font-bold rounded-xl text-sm transition-all flex items-center justify-center gap-2 mt-2 shadow-sm hover:shadow-md"
+                    className="w-full py-4 bg-gray-900 hover:bg-red-600 active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 text-white font-bold rounded-[var(--radius-md)] text-sm transition-all flex items-center justify-center gap-2 mt-2 shadow-[var(--shadow-card)] hover:shadow-md"
                 >
                     {status === 'loading'
                         ? <><Loader2 className="w-4 h-4 animate-spin" /> Mengautentikasi...</>
@@ -120,12 +120,12 @@ export default function UnifiedLoginPage() {
                         <div className="inline-flex items-center justify-center w-12 h-12 bg-red-600 rounded-2xl mb-3 shadow-lg shadow-red-600/30">
                             <Droplets className="w-6 h-6 text-white fill-white" />
                         </div>
-                        <h1 className="text-2xl font-extrabold tracking-tight text-gray-900">SIPEDA</h1>
+                        <h1 className="text-2xl font-extrabold tracking-tight text-[var(--color-text-primary)]">SIPEDA</h1>
                     </div>
 
                     <div className="mb-8">
-                        <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Selamat Datang</h2>
-                        <p className="text-sm text-gray-500 mt-2 font-medium">Masuk ke sistem operasional Admin & Petugas.</p>
+                        <h2 className="text-h1 text-[var(--color-text-primary)] tracking-tight">Selamat Datang</h2>
+                        <p className="text-sm text-[var(--color-text-muted)] mt-2 font-medium">Masuk ke sistem operasional Admin & Petugas.</p>
                     </div>
 
                     <Suspense fallback={
@@ -136,7 +136,7 @@ export default function UnifiedLoginPage() {
                         <LoginForm />
                     </Suspense>
 
-                    <p className="text-center text-xs text-gray-500 font-medium mt-8">
+                    <p className="text-center text-xs text-[var(--color-text-muted)] font-medium mt-8">
                         Akses sistem dibatasi. Hubungi PMI Indramayu jika belum memiliki kredensial.
                     </p>
                 </div>
@@ -152,7 +152,7 @@ export default function UnifiedLoginPage() {
                         <Droplets className="w-12 h-12 text-white fill-white" />
                     </div>
                     <h2 className="text-4xl font-extrabold text-white tracking-tight mb-4">SIPEDA Core</h2>
-                    <p className="text-lg text-gray-400 max-w-md">
+                    <p className="text-lg text-[var(--color-text-muted)] max-w-md">
                         Sistem Informasi Pendonoran Darah Terpadu. Akses eksklusif untuk staf PMI dan fasilitas kesehatan Indramayu.
                     </p>
                 </div>

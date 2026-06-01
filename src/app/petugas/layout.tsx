@@ -1,13 +1,10 @@
 'use client';
 
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { getPetugasSession } from '@/lib/auth';
 import { Loader2 } from 'lucide-react';
-
-type PetugasUser = { id: number; name: string; email: string; role: string };
-const PetugasCtx = createContext<PetugasUser | null>(null);
-export const usePetugasUser = () => useContext(PetugasCtx);
+import { PetugasCtx, type PetugasUser } from '@/lib/petugas-context';
 
 export default function PetugasLayout({ children }: { children: React.ReactNode }) {
     const [authState, setAuthState] = useState<'checking' | 'ok' | 'denied'>('checking');
@@ -17,10 +14,8 @@ export default function PetugasLayout({ children }: { children: React.ReactNode 
     const isLoginPage = pathname === '/petugas/login';
 
     useEffect(() => {
-        if (isLoginPage) {
-            setAuthState('ok');
-            return;
-        }
+        // Login page tidak perlu auth check — skip
+        if (isLoginPage) return;
 
         let cancelled = false;
         getPetugasSession().then(session => {

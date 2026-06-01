@@ -11,7 +11,7 @@ type Props = {
 export function BloodStockTable({ rows, title }: Props) {
   if (!rows.length) {
     return (
-      <div className="text-center py-12 text-gray-400">
+      <div className="text-center py-12 text-[var(--color-text-muted)]">
         Data stok belum tersedia
       </div>
     );
@@ -19,28 +19,28 @@ export function BloodStockTable({ rows, title }: Props) {
 
   return (
     <div>
-      {title && <h2 className="text-xl font-bold text-gray-900 mb-4">{title}</h2>}
-      <div className="overflow-x-auto rounded-xl border border-gray-200">
+      {title && <h2 className="text-xl font-bold text-[var(--color-text-primary)] mb-4">{title}</h2>}
+      <div className="overflow-x-auto rounded-[var(--radius-md)] border border-[var(--color-border)]">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-gray-50 border-b border-gray-200">
-              <th className="text-left px-4 py-3 font-semibold text-gray-600 min-w-[140px]">
+            <tr className="bg-[var(--color-section-alt)] border-b border-[var(--color-border)]">
+              <th className="text-left px-4 py-3 font-semibold text-[var(--color-text-secondary)] min-w-[140px]">
                 Komponen
               </th>
               {BLOOD_TYPES.map(bt => (
-                <th key={bt} className="text-center px-3 py-3 font-semibold text-gray-600 min-w-[60px]">
+                <th key={bt} className="text-center px-3 py-3 font-semibold text-[var(--color-text-secondary)] min-w-[60px]">
                   {bt}
                 </th>
               ))}
-              <th className="text-center px-3 py-3 font-semibold text-gray-600">Total</th>
+              <th className="text-center px-3 py-3 font-semibold text-[var(--color-text-secondary)]">Total</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-[var(--color-border-muted)]">
             {rows.map(row => (
-              <tr key={row.komponen_id} className="hover:bg-gray-50 transition-colors">
+              <tr key={row.komponen_id} className="hover:bg-[var(--color-section-alt)] active:bg-[var(--color-section-alt)] transition-colors">
                 <td className="px-4 py-3">
-                  <div className="font-medium text-gray-900">{row.komponen_nama}</div>
-                  <div className="text-xs text-gray-400 font-mono">{row.komponen_kode}</div>
+                  <div className="font-medium text-[var(--color-text-primary)]">{row.komponen_nama}</div>
+                  <div className="text-xs text-[var(--color-text-muted)] font-mono">{row.komponen_kode}</div>
                 </td>
                 {BLOOD_TYPES.map(bt => {
                   const cell = row.golongan[bt];
@@ -49,8 +49,8 @@ export function BloodStockTable({ rows, title }: Props) {
                       {cell ? (
                         <div className="flex flex-col items-center gap-1">
                           <span className={`font-semibold ${
-                            cell.status === 'normal' ? 'text-gray-900' :
-                            cell.status === 'kritis' ? 'text-amber-600' : 'text-red-600'
+                            cell.status === 'normal' ? 'text-[var(--color-text-primary)]' :
+                            cell.status === 'kritis' ? 'text-amber-600' : 'text-[var(--color-primary)]'
                           }`}>
                             {cell.jumlah}
                           </span>
@@ -59,13 +59,13 @@ export function BloodStockTable({ rows, title }: Props) {
                           )}
                         </div>
                       ) : (
-                        <span className="text-gray-300">—</span>
+                        <span className="text-[var(--color-text-muted)]">—</span>
                       )}
                     </td>
                   );
                 })}
                 <td className="px-3 py-3 text-center">
-                  <span className="font-bold text-gray-900">{row.total}</span>
+                  <span className="font-bold text-[var(--color-text-primary)]">{row.total}</span>
                 </td>
               </tr>
             ))}

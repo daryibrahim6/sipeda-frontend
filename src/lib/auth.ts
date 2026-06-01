@@ -11,13 +11,6 @@ import { fireAndForget } from './utils';
 
 // ─── Shared Types ─────────────────────────────────────────────────────────────
 
-type AdminUser = {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-};
-
 // ─── Internal Helpers (not exported) ──────────────────────────────────────────
 
 /**

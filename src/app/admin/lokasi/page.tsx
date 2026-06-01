@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useSidebarToggle } from '@/app/admin/layout';
+import { useSidebarToggle } from '@/lib/admin-context';
 import { TopBar } from '@/components/admin/TopBar';
 import {
     Plus, Search, Pencil, X, Loader2, Check,
@@ -13,6 +13,7 @@ import {
     type AdminLocationPayload,
 } from '@/lib/admin-api';
 import type { Location, LocationType } from '@/lib/types';
+import { Button } from '@/components/ui/Button';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -47,7 +48,7 @@ function Toast({ msg, type, onClose }: { msg: string; type: 'success' | 'error';
         <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-lg text-sm font-medium ${type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}>
             {type === 'success' ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
             {msg}
-            <button onClick={onClose} className="ml-2 opacity-70 hover:opacity-100"><X className="w-3.5 h-3.5" /></button>
+            <button onClick={onClose} className="ml-2 p-2 opacity-70 hover:opacity-100"><X className="w-3.5 h-3.5" /></button>
         </div>
     );
 }
@@ -61,7 +62,7 @@ function ToggleModal({ location, onConfirm, onCancel, loading }: {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onCancel} />
-            <div className="relative bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
+            <div className="relative bg-white rounded-2xl shadow-[var(--shadow-elevated)] p-6 w-full max-w-sm">
                 <div className="text-center mb-5">
                     <div className={`w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 ${willDeactivate ? 'bg-amber-50' : 'bg-green-50'}`}>
                         {willDeactivate
@@ -69,17 +70,17 @@ function ToggleModal({ location, onConfirm, onCancel, loading }: {
                             : <Power className="w-6 h-6 text-green-600" />
                         }
                     </div>
-                    <h3 className="font-bold text-gray-900 mb-1">
+                    <h3 className="font-bold text-[var(--color-text-primary)] mb-1">
                         {willDeactivate ? 'Nonaktifkan Lokasi?' : 'Aktifkan Lokasi?'}
                     </h3>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-[var(--color-text-muted)]">
                         <strong>{location.nama_lokasi}</strong> akan {willDeactivate
                             ? 'dinonaktifkan. Lokasi tidak akan muncul di peta publik dan dropdown jadwal.'
                             : 'diaktifkan kembali dan muncul di peta publik.'}
                     </p>
                 </div>
                 <div className="flex gap-3">
-                    <button onClick={onCancel} className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                    <button onClick={onCancel} className="flex-1 py-2.5 border border-[var(--color-border-muted)] rounded-xl text-sm font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-section-alt)] transition-colors">
                         Batal
                     </button>
                     <button onClick={onConfirm} disabled={loading}
@@ -100,31 +101,31 @@ function FormModal({ editing, form, setForm, onSave, onClose, loading }: {
     setForm: React.Dispatch<React.SetStateAction<FormData>>;
     onSave: () => void; onClose: () => void; loading: boolean;
 }) {
-    const inp = "w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all";
+    const inp = "w-full border border-[var(--color-border-muted)] rounded-xl px-3.5 py-2.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-transparent transition-all";
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-            <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
-                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-                    <h3 className="font-bold text-gray-900">{editing ? 'Edit Lokasi' : 'Tambah Lokasi Baru'}</h3>
-                    <button onClick={onClose} className="p-2 rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
+            <div className="relative bg-white rounded-2xl shadow-[var(--shadow-elevated)] w-full max-w-lg max-h-[90vh] flex flex-col">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border-muted)]">
+                    <h3 className="font-bold text-[var(--color-text-primary)]">{editing ? 'Edit Lokasi' : 'Tambah Lokasi Baru'}</h3>
+                    <button onClick={onClose} className="p-2 rounded-xl text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] hover:bg-[var(--color-section-alt)] transition-colors">
                         <X className="w-4 h-4" />
                     </button>
                 </div>
                 <div className="overflow-y-auto p-6 space-y-4 flex-1">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Nama Lokasi <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Nama Lokasi <span className="text-red-500">*</span></label>
                         <input type="text" required value={form.nama_lokasi} onChange={e => setForm(f => ({ ...f, nama_lokasi: e.target.value }))} placeholder="PMI Kabupaten Indramayu" className={inp} />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Tipe</label>
+                            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Tipe</label>
                             <select value={form.tipe} onChange={e => setForm(f => ({ ...f, tipe: e.target.value as LocationType }))} className={inp + ' bg-white'}>
                                 {LOCATION_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Status</label>
+                            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Status</label>
                             <select value={form.aktif ? 'aktif' : 'nonaktif'} onChange={e => setForm(f => ({ ...f, aktif: e.target.value === 'aktif' }))} className={inp + ' bg-white'}>
                                 <option value="aktif">Aktif</option>
                                 <option value="nonaktif">Nonaktif</option>
@@ -132,52 +133,52 @@ function FormModal({ editing, form, setForm, onSave, onClose, loading }: {
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Alamat <span className="text-red-500">*</span></label>
+                        <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Alamat <span className="text-red-500">*</span></label>
                         <input type="text" required value={form.alamat} onChange={e => setForm(f => ({ ...f, alamat: e.target.value }))} placeholder="Jl. ..." className={inp} />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Kecamatan <span className="text-red-500">*</span></label>
+                            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Kecamatan <span className="text-red-500">*</span></label>
                             <input type="text" required value={form.kecamatan} onChange={e => setForm(f => ({ ...f, kecamatan: e.target.value }))} placeholder="Indramayu" className={inp} />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Kota</label>
+                            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Kota</label>
                             <input type="text" value={form.kota} onChange={e => setForm(f => ({ ...f, kota: e.target.value }))} placeholder="Indramayu" className={inp} />
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Latitude <span className="text-red-500">*</span></label>
+                            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Latitude <span className="text-red-500">*</span></label>
                             <input type="number" step="any" required value={form.koordinat_lat} onChange={e => setForm(f => ({ ...f, koordinat_lat: e.target.value }))} placeholder="-6.327" className={inp} />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Longitude <span className="text-red-500">*</span></label>
+                            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Longitude <span className="text-red-500">*</span></label>
                             <input type="number" step="any" required value={form.koordinat_lng} onChange={e => setForm(f => ({ ...f, koordinat_lng: e.target.value }))} placeholder="108.324" className={inp} />
                         </div>
                     </div>
-                    <p className="text-xs text-gray-400 -mt-2">Buka Google Maps → klik kanan lokasi → salin koordinat.</p>
+                    <p className="text-xs text-[var(--color-text-muted)] -mt-2">Buka Google Maps → klik kanan lokasi → salin koordinat.</p>
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Kontak / Telepon</label>
+                            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Kontak / Telepon</label>
                             <input type="text" value={form.kontak} onChange={e => setForm(f => ({ ...f, kontak: e.target.value }))} placeholder="0234-xxx" className={inp} />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+                            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Email</label>
                             <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="info@..." className={inp} />
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Penanggung Jawab</label>
+                        <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Penanggung Jawab</label>
                         <input type="text" value={form.penanggung_jawab} onChange={e => setForm(f => ({ ...f, penanggung_jawab: e.target.value }))} placeholder="Nama PJ" className={inp} />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Deskripsi</label>
+                        <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Deskripsi</label>
                         <textarea rows={2} value={form.deskripsi} onChange={e => setForm(f => ({ ...f, deskripsi: e.target.value }))} placeholder="Info tambahan (opsional)" className={inp + ' resize-none'} />
                     </div>
                 </div>
-                <div className="flex gap-3 px-6 py-4 border-t border-gray-100">
-                    <button onClick={onClose} className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">Batal</button>
-                    <button onClick={onSave} disabled={loading || !form.nama_lokasi || !form.alamat || !form.kecamatan || !form.koordinat_lat || !form.koordinat_lng}
+                <div className="flex gap-3 px-6 py-4 border-t border-[var(--color-border-muted)]">
+                    <button onClick={onClose} className="flex-1 py-2.5 border border-[var(--color-border-muted)] rounded-xl text-sm font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-section-alt)] transition-colors">Batal</button>
+                    <button onClick={onSave} disabled={loading || !form.nama_lokasi || !form.alamat || !form.kecamatan || !form.koordinat_lat || !form.koordinat_lng || isNaN(parseFloat(form.koordinat_lat)) || isNaN(parseFloat(form.koordinat_lng))}
                         className="flex-1 py-2.5 bg-red-600 rounded-xl text-sm font-semibold text-white hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
                         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                         {editing ? 'Simpan Perubahan' : 'Tambah Lokasi'}
@@ -224,7 +225,6 @@ export default function AdminLokasiPage() {
         } finally {
             setDataLoading(false);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, search, statusFilter]);
 
     useEffect(() => { loadData(); }, [loadData]);
@@ -257,14 +257,20 @@ export default function AdminLokasiPage() {
     async function handleSave() {
         setLoading(true);
         try {
+            const lat = parseFloat(form.koordinat_lat);
+            const lng = parseFloat(form.koordinat_lng);
+            if (isNaN(lat) || isNaN(lng)) {
+                showToast('Koordinat tidak valid. Masukkan angka yang benar.', 'error');
+                return;
+            }
             const payload: AdminLocationPayload = {
                 nama_lokasi: form.nama_lokasi,
                 tipe: form.tipe,
                 alamat: form.alamat,
                 kecamatan: form.kecamatan,
                 kota: form.kota,
-                koordinat_lat: parseFloat(form.koordinat_lat),
-                koordinat_lng: parseFloat(form.koordinat_lng),
+                koordinat_lat: lat,
+                koordinat_lng: lng,
                 kontak: form.kontak || undefined,
                 email: form.email || undefined,
                 penanggung_jawab: form.penanggung_jawab || undefined,
@@ -309,7 +315,7 @@ export default function AdminLokasiPage() {
             case 'RS': return 'bg-blue-50 text-blue-700 border-blue-200';
             case 'Klinik': return 'bg-purple-50 text-purple-700 border-purple-200';
             case 'Puskesmas': return 'bg-green-50 text-green-700 border-green-200';
-            default: return 'bg-gray-50 text-gray-600 border-gray-200';
+            default: return 'bg-[var(--color-section-alt)] text-[var(--color-text-secondary)] border-[var(--color-border-muted)]';
         }
     };
 
@@ -321,13 +327,10 @@ export default function AdminLokasiPage() {
                 onMenuClick={toggle}
                 actions={
                     <div className="flex gap-2">
-                        <button onClick={loadData} className="p-2 rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" title="Refresh">
-                            <RefreshCw className={`w-4 h-4 ${dataLoading ? 'animate-spin text-red-500' : ''}`} />
-                        </button>
-                        <button onClick={openCreate} className="flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-xl hover:bg-red-700 transition-colors">
-                            <Plus className="w-4 h-4" />
+                        <Button variant="ghost" size="sm" onClick={loadData} title="Refresh" icon={<RefreshCw className={`w-4 h-4 ${dataLoading ? 'animate-spin text-red-500' : ''}`} />} />
+                        <Button onClick={openCreate} icon={<Plus className="w-4 h-4" />}>
                             <span className="hidden sm:inline">Tambah Lokasi</span>
-                        </button>
+                        </Button>
                     </div>
                 }
             />
@@ -337,17 +340,17 @@ export default function AdminLokasiPage() {
                 {/* Search + filter */}
                 <div className="flex flex-col sm:flex-row gap-3">
                     <div className="relative flex-1">
-                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" />
                         <input type="text" placeholder="Cari nama, alamat, kecamatan..."
                             value={search} onChange={e => { setSearch(e.target.value); setPage(1); }}
-                            className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent" />
+                            className="w-full pl-10 pr-4 py-2.5 border border-[var(--color-border-muted)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-transparent" />
                     </div>
                     <div className="flex items-center gap-2">
-                        <Filter className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                        <Filter className="w-4 h-4 text-[var(--color-text-muted)] flex-shrink-0" />
                         {(['semua', 'aktif', 'nonaktif'] as const).map(s => (
                             <button key={s}
                                 onClick={() => { setStatusFilter(s); setPage(1); }}
-                                className={`px-3 py-2 text-xs font-medium rounded-lg whitespace-nowrap transition-colors ${statusFilter === s ? 'bg-red-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:border-red-300'}`}>
+                                className={`px-3 py-2 text-xs font-medium rounded-lg whitespace-nowrap transition-colors ${statusFilter === s ? 'bg-red-600 text-white' : 'bg-white border border-[var(--color-border-muted)] text-[var(--color-text-secondary)] hover:border-red-300'}`}>
                                 {s === 'semua' ? 'Semua' : s === 'aktif' ? 'Aktif' : 'Nonaktif'}
                             </button>
                         ))}
@@ -355,49 +358,49 @@ export default function AdminLokasiPage() {
                 </div>
 
                 {/* Table */}
-                <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+                <div className="bg-white rounded-2xl border border-[var(--color-border-muted)] overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                             <thead>
-                                <tr className="border-b border-gray-100 bg-gray-50/50">
-                                    <th className="text-left px-5 py-3.5 font-semibold text-gray-600 text-xs uppercase tracking-wide">Lokasi</th>
-                                    <th className="text-left px-5 py-3.5 font-semibold text-gray-600 text-xs uppercase tracking-wide hidden sm:table-cell">Kecamatan</th>
-                                    <th className="text-center px-5 py-3.5 font-semibold text-gray-600 text-xs uppercase tracking-wide hidden md:table-cell">Tipe</th>
-                                    <th className="text-center px-5 py-3.5 font-semibold text-gray-600 text-xs uppercase tracking-wide hidden lg:table-cell">Koordinat</th>
-                                    <th className="text-center px-5 py-3.5 font-semibold text-gray-600 text-xs uppercase tracking-wide">Status</th>
-                                    <th className="text-right px-5 py-3.5 font-semibold text-gray-600 text-xs uppercase tracking-wide">Aksi</th>
+                                <tr className="border-b border-[var(--color-border-muted)] bg-[var(--color-section-alt)]/50">
+                                    <th className="text-left px-5 py-3.5 font-semibold text-[var(--color-text-secondary)] text-xs uppercase tracking-wide">Lokasi</th>
+                                    <th className="text-left px-5 py-3.5 font-semibold text-[var(--color-text-secondary)] text-xs uppercase tracking-wide hidden sm:table-cell">Kecamatan</th>
+                                    <th className="text-center px-5 py-3.5 font-semibold text-[var(--color-text-secondary)] text-xs uppercase tracking-wide hidden md:table-cell">Tipe</th>
+                                    <th className="text-center px-5 py-3.5 font-semibold text-[var(--color-text-secondary)] text-xs uppercase tracking-wide hidden lg:table-cell">Koordinat</th>
+                                    <th className="text-center px-5 py-3.5 font-semibold text-[var(--color-text-secondary)] text-xs uppercase tracking-wide">Status</th>
+                                    <th className="text-right px-5 py-3.5 font-semibold text-[var(--color-text-secondary)] text-xs uppercase tracking-wide">Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-50">
+                            <tbody className="divide-y divide-[var(--color-section-alt)]">
                                 {dataLoading ? (
                                     [...Array(5)].map((_, i) => (
                                         <tr key={i}>
                                             {[...Array(6)].map((_, j) => (
                                                 <td key={j} className="px-5 py-4">
-                                                    <div className="h-4 bg-gray-100 animate-pulse rounded w-full" />
+                                                    <div className="h-4 bg-[var(--color-section-alt)] animate-pulse-soft rounded w-full" />
                                                 </td>
                                             ))}
                                         </tr>
                                     ))
                                 ) : locations.length === 0 ? (
                                     <tr>
-                                        <td colSpan={6} className="text-center py-16 text-gray-400">
-                                            <MapPin className="w-10 h-10 mx-auto mb-3 text-gray-200" />
+                                        <td colSpan={6} className="text-center py-16 text-[var(--color-text-muted)]">
+                                            <MapPin className="w-10 h-10 mx-auto mb-3 text-[var(--color-text-muted)]" />
                                             {search ? 'Tidak ada lokasi yang cocok.' : 'Belum ada lokasi. Klik "Tambah Lokasi" untuk memulai.'}
                                         </td>
                                     </tr>
                                 ) : locations.map(loc => (
-                                    <tr key={loc.id} className={`hover:bg-gray-50/50 transition-colors ${!loc.aktif ? 'opacity-60' : ''}`}>
+                                    <tr key={loc.id} className={`hover:bg-[var(--color-section-alt)]/50 transition-colors ${!loc.aktif ? 'opacity-60' : ''}`}>
                                         <td className="px-5 py-4">
                                             <div className="flex items-start gap-2">
                                                 <MapPin className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
                                                 <div>
-                                                    <div className="font-semibold text-gray-900 text-sm">{loc.nama_lokasi}</div>
-                                                    <div className="text-xs text-gray-400 line-clamp-1">{loc.alamat}</div>
+                                                    <div className="font-semibold text-[var(--color-text-primary)] text-sm">{loc.nama_lokasi}</div>
+                                                    <div className="text-xs text-[var(--color-text-muted)] line-clamp-1">{loc.alamat}</div>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-5 py-4 hidden sm:table-cell text-gray-600">{loc.kecamatan}</td>
+                                        <td className="px-5 py-4 hidden sm:table-cell text-[var(--color-text-secondary)]">{loc.kecamatan}</td>
                                         <td className="px-5 py-4 hidden md:table-cell">
                                             <div className="flex justify-center">
                                                 <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${typeBadgeColor(loc.tipe)}`}>
@@ -406,13 +409,13 @@ export default function AdminLokasiPage() {
                                             </div>
                                         </td>
                                         <td className="px-5 py-4 hidden lg:table-cell text-center">
-                                            <span className="text-xs font-mono text-gray-500">{loc.koordinat_lat.toFixed(4)}, {loc.koordinat_lng.toFixed(4)}</span>
+                                            <span className="text-xs font-mono text-[var(--color-text-muted)]">{loc.koordinat_lat.toFixed(4)}, {loc.koordinat_lng.toFixed(4)}</span>
                                         </td>
                                         <td className="px-5 py-4">
                                             <div className="flex justify-center">
                                                 <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${loc.aktif
                                                     ? 'bg-green-50 text-green-700 border-green-200'
-                                                    : 'bg-gray-50 text-gray-500 border-gray-200'
+                                                    : 'bg-[var(--color-section-alt)] text-[var(--color-text-muted)] border-[var(--color-border-muted)]'
                                                     }`}>
                                                     {loc.aktif ? 'Aktif' : 'Nonaktif'}
                                                 </span>
@@ -420,13 +423,13 @@ export default function AdminLokasiPage() {
                                         </td>
                                         <td className="px-5 py-4">
                                             <div className="flex items-center justify-end gap-1">
-                                                <button onClick={() => openEdit(loc)} className="p-2 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Edit">
+                                                <button onClick={() => openEdit(loc)} className="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Edit">
                                                     <Pencil className="w-4 h-4" />
                                                 </button>
                                                 <button onClick={() => setToggling(loc)}
                                                     className={`p-2 rounded-lg transition-colors ${loc.aktif
-                                                        ? 'text-gray-400 hover:text-amber-600 hover:bg-amber-50'
-                                                        : 'text-gray-400 hover:text-green-600 hover:bg-green-50'
+                                                        ? 'text-[var(--color-text-muted)] hover:text-amber-600 hover:bg-amber-50'
+                                                        : 'text-[var(--color-text-muted)] hover:text-green-600 hover:bg-green-50'
                                                         }`}
                                                     title={loc.aktif ? 'Nonaktifkan' : 'Aktifkan'}>
                                                     {loc.aktif ? <PowerOff className="w-4 h-4" /> : <Power className="w-4 h-4" />}
@@ -440,15 +443,15 @@ export default function AdminLokasiPage() {
                     </div>
 
                     {totalPages > 1 && (
-                        <div className="flex items-center justify-between px-5 py-4 border-t border-gray-100">
-                            <span className="text-xs text-gray-400">{total} lokasi · halaman {page} dari {totalPages}</span>
+                        <div className="flex items-center justify-between px-5 py-4 border-t border-[var(--color-border-muted)]">
+                            <span className="text-xs text-[var(--color-text-muted)]">{total} lokasi · halaman {page} dari {totalPages}</span>
                             <div className="flex gap-1">
                                 <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-                                    className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 disabled:opacity-30 transition-colors">
+                                    className="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] hover:bg-[var(--color-section-alt)] disabled:opacity-30 transition-colors">
                                     <ChevronLeft className="w-4 h-4" />
                                 </button>
                                 <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-                                    className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 disabled:opacity-30 transition-colors">
+                                    className="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] hover:bg-[var(--color-section-alt)] disabled:opacity-30 transition-colors">
                                     <ChevronRight className="w-4 h-4" />
                                 </button>
                             </div>

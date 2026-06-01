@@ -189,6 +189,9 @@ export async function PATCH(req: NextRequest) {
     const adminClient = createAdminClient();
 
     // Prevent deactivating yourself
+    if (id === caller.id) {
+        return NextResponse.json({ error: 'Anda tidak dapat menonaktifkan akun sendiri.' }, { status: 400 });
+    }
     const { data: target } = await adminClient.from('admins').select('auth_user_id').eq('id', id).single();
     if (!target) return NextResponse.json({ error: 'User tidak ditemukan.' }, { status: 404 });
 

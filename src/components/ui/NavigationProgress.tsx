@@ -12,33 +12,35 @@ export function NavigationProgress() {
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     useEffect(() => {
-        // Saat route berubah, mulai progress bar
-        setProgress(0);
-        setVisible(true);
+        let cancelled = false;
+        const id = setTimeout(() => {
+            if (cancelled) return;
+            setProgress(0);
+            setVisible(true);
 
-        // Naik cepat ke 70%, lalu pelan-pelan ke 90%
-        let current = 0;
-        intervalRef.current = setInterval(() => {
-            current += current < 70 ? 12 : current < 90 ? 2 : 0.5;
-            if (current >= 94) {
+            let current = 0;
+            intervalRef.current = setInterval(() => {
+                current += current < 70 ? 12 : current < 90 ? 2 : 0.5;
+                if (current >= 94) {
+                    if (intervalRef.current) clearInterval(intervalRef.current);
+                    current = 94;
+                }
+                setProgress(current);
+            }, 80);
+
+            timerRef.current = setTimeout(() => {
                 if (intervalRef.current) clearInterval(intervalRef.current);
-                current = 94;
-            }
-            setProgress(current);
-        }, 80);
-
-        // Setelah DOM render, selesaikan ke 100% lalu hilangkan
-        timerRef.current = setTimeout(() => {
-            if (intervalRef.current) clearInterval(intervalRef.current);
-            setProgress(100);
-            setTimeout(() => setVisible(false), 350);
-        }, 500);
+                setProgress(100);
+                setTimeout(() => setVisible(false), 350);
+            }, 500);
+        }, 0);
 
         return () => {
+            clearTimeout(id);
             if (timerRef.current) clearTimeout(timerRef.current);
             if (intervalRef.current) clearInterval(intervalRef.current);
+            cancelled = true;
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pathname, searchParams]);
 
     if (!visible && progress === 0) return null;
@@ -49,13 +51,13 @@ export function NavigationProgress() {
             style={{ opacity: visible ? 1 : 0, transition: 'opacity 0.3s ease' }}
         >
             <div
-                className="h-full bg-gradient-to-r from-red-600 via-rose-500 to-red-400"
+                className="h-full bg-gradient-to-r from-[var(--color-primary)] via-[var(--color-primary-accent)] to-[var(--color-primary-muted)]"
                 style={{
                     width: `${progress}%`,
                     transition: progress === 100
                         ? 'width 0.2s ease-out'
                         : 'width 0.08s linear',
-                    boxShadow: '0 0 8px rgba(220,38,38,0.7)',
+                    boxShadow: '0 0 8px rgba(198, 40, 40, 0.5)',
                 }}
             />
         </div>

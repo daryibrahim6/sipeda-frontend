@@ -108,12 +108,6 @@ export type Article = {
   penulis: string;
   gambar: string | null;
   gambar_alt: string | null;
-  unggulan: boolean;
-  views: number;
-  // FIX: published_at nullable — kolom DB adalah TIMESTAMPTZ NULL
-  // Error sebelumnya: formatDate(a.published_at) gagal karena tipe 'string | null'
-  // tidak diterima oleh formatDate yang hanya accept 'string'
-  // Solusi: (1) tipe diubah ke string | null, (2) formatDate diupdate terima null
   published_at: string | null;
 };
 
@@ -135,15 +129,16 @@ export type FAQ = {
   kategori: 'umum' | 'syarat' | 'proses' | 'stok' | 'lainnya';
 };
 
-// ─── Testimonial ──────────────────────────────────────────────────────────────
 
-export type Testimonial = {
+// ─── Cabang (Multi-tenant — persiapan struktur) ──────────────────────────────
+
+export type Cabang = {
   id: number;
   nama: string;
-  foto: string | null;
-  jabatan: string | null;
-  isi: string;
-  rating: number;
+  alamat: string | null;
+  kontak: string | null;
+  aktif: boolean;
+  created_at: string;
 };
 
 // ─── Announcement ─────────────────────────────────────────────────────────────
@@ -169,7 +164,12 @@ export type PencatatanDonor = {
   status_donor: StatusDonor;
   catatan: string | null;
   dicatat_oleh: number | null;
+  hemoglobin: number | null;
+  tensi_sistolik: number | null;
+  tensi_diastolik: number | null;
+  berat_badan: number | null;
   created_at: string;
+  updated_at: string | null;
   // joined
   jadwal?: Pick<Schedule, 'tanggal' | 'waktu_mulai' | 'waktu_selesai'> & {
     lokasi: Pick<Location, 'nama_lokasi'>;

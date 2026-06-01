@@ -8,10 +8,7 @@ import { getScheduleById } from '@/lib/api';
 import { formatDate, formatTime, quotaPercent } from '@/lib/utils';
 import { ScheduleBadge } from '@/components/ui/Badge';
 import { RegisterForm } from '@/components/jadwal/RegisterForm';
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+import { createClient } from '@/lib/supabase-browser';
 
 /**
  * Client component for jadwal detail page.
@@ -36,7 +33,7 @@ export function JadwalDetailClient({ schedule: initialSchedule }: { schedule: Sc
 
     // Realtime: listen for changes to registrasi_donor for this jadwal
     useEffect(() => {
-        const client = createClient(supabaseUrl, supabaseKey);
+        const client = createClient();
 
         const channel = client
             .channel(`jadwal-kuota-${schedule.id}`)
@@ -169,7 +166,7 @@ export function JadwalDetailClient({ schedule: initialSchedule }: { schedule: Sc
                             <div className="font-semibold text-gray-800 mb-1">Jadwal Dibatalkan</div>
                             <p className="text-sm text-gray-500 mb-5">Kegiatan ini dibatalkan. Cek jadwal lain.</p>
                             <Link href="/jadwal"
-                                className="inline-block px-5 py-2.5 bg-red-600 text-white text-sm font-semibold rounded-xl hover:bg-red-700">
+                                className="inline-block px-5 py-2.5 bg-red-600 text-white text-sm font-semibold rounded-xl hover:bg-red-700 active:scale-[0.97] transition-all">
                                 Lihat Jadwal Lain
                             </Link>
                         </div>

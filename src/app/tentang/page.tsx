@@ -47,7 +47,7 @@ export default async function TentangPage() {
 
         {/* ── Hero ── */}
         <section className="bg-gray-950 text-white py-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="page-container">
             <div className="max-w-2xl">
               <div className="inline-flex items-center gap-2 bg-white/10 border border-white/10 rounded-full px-4 py-1.5 text-xs font-medium mb-6 text-gray-300">
                 <Droplets className="w-3.5 h-3.5 text-red-400" />
@@ -56,7 +56,7 @@ export default async function TentangPage() {
               <h1 className="text-4xl sm:text-5xl font-bold leading-tight mb-4">
                 Tentang <span className="text-red-400">SIPEDA</span>
               </h1>
-              <p className="text-lg text-gray-400 leading-relaxed">
+              <p className="text-lg text-[var(--color-text-muted)] leading-relaxed">
                 Sistem Informasi Pendonoran Darah Indramayu — platform digital yang menghubungkan
                 pendonor, penerima darah, dan fasilitas kesehatan di Kabupaten Indramayu.
               </p>
@@ -65,17 +65,17 @@ export default async function TentangPage() {
         </section>
 
         {/* ── Tentang Platform ── */}
-        <section className="py-20 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="py-20 bg-[var(--color-section-alt)]">
+          <div className="page-container">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div>
-                <p className="text-sm font-semibold text-red-600 uppercase tracking-widest mb-2">
+                <p className="text-sm font-semibold text-[var(--color-primary)] uppercase tracking-widest mb-2">
                   Tentang Platform
                 </p>
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                <h2 className="text-3xl font-bold text-[var(--color-text-primary)] mb-4">
                   Mengapa SIPEDA Dibuat?
                 </h2>
-                <div className="prose prose-gray max-w-none text-gray-600 space-y-4">
+                <div className="prose prose-gray max-w-none text-[var(--color-text-secondary)] space-y-4">
                   <p>
                     SIPEDA lahir dari kebutuhan nyata di lapangan: calon pendonor kesulitan
                     menemukan jadwal donor yang sesuai, keluarga pasien kebingungan mencari
@@ -103,12 +103,12 @@ export default async function TentangPage() {
                   { value: `${stats.jadwal_aktif}`, label: 'Jadwal Aktif Bulan Ini', icon: Users },
                 ].map(item => (
                   <div key={item.label}
-                    className="bg-gray-50 rounded-2xl border border-gray-100 p-6 flex flex-col gap-3">
-                    <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center">
-                      <item.icon className="w-5 h-5 text-red-600" />
+                    className="bg-[var(--color-section-alt)] rounded-2xl border border-[var(--color-border-muted)] p-6 flex flex-col gap-3 hover:shadow-md transition-all">
+                    <div className="w-10 h-10 bg-[var(--color-primary-subtle)] rounded-xl flex items-center justify-center">
+                      <item.icon className="w-5 h-5 text-[var(--color-primary)]" />
                     </div>
-                    <div className="text-3xl font-bold text-gray-900">{item.value}</div>
-                    <div className="text-sm text-gray-500">{item.label}</div>
+                    <div className="text-3xl font-bold text-[var(--color-text-primary)]">{item.value}</div>
+                    <div className="text-sm text-[var(--color-text-muted)]">{item.label}</div>
                   </div>
                 ))}
               </div>
@@ -117,23 +117,23 @@ export default async function TentangPage() {
         </section>
 
         {/* ── Nilai ── */}
-        <section className="py-20 bg-gray-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="py-20 bg-[var(--color-section-alt)]">
+          <div className="page-container">
             <div className="text-center mb-14">
-              <p className="text-sm font-semibold text-red-600 uppercase tracking-widest mb-2">
+              <p className="text-sm font-semibold text-[var(--color-primary)] uppercase tracking-widest mb-2">
                 Nilai Kami
               </p>
-              <h2 className="text-3xl font-bold text-gray-900">Apa yang Kami Percaya</h2>
+              <h2 className="text-3xl font-bold text-[var(--color-text-primary)]">Apa yang Kami Percaya</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {values.map(v => (
                 <div key={v.title}
-                  className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center hover:shadow-md hover:-translate-y-0.5 transition-all">
-                  <div className="inline-flex items-center justify-center w-14 h-14 bg-red-50 rounded-2xl mb-5">
-                    <v.icon className="w-7 h-7 text-red-600" />
+                  className="bg-white rounded-2xl border border-[var(--color-border-muted)] shadow-[var(--shadow-card)] p-8 text-center hover:shadow-md active:scale-[0.98] transition-all">
+                  <div className="inline-flex items-center justify-center w-14 h-14 bg-[var(--color-primary-subtle)] rounded-2xl mb-5">
+                    <v.icon className="w-7 h-7 text-[var(--color-primary)]" />
                   </div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">{v.title}</h3>
-                  <p className="text-sm text-gray-500 leading-relaxed">{v.desc}</p>
+                  <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-2">{v.title}</h3>
+                  <p className="text-sm text-[var(--color-text-muted)] leading-relaxed">{v.desc}</p>
                 </div>
               ))}
             </div>
@@ -141,13 +141,13 @@ export default async function TentangPage() {
         </section>
 
         {/* ── Timeline ── */}
-        <section className="py-20 bg-white">
+        <section className="py-20 bg-[var(--color-section-alt)]">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-14">
-              <p className="text-sm font-semibold text-red-600 uppercase tracking-widest mb-2">
+              <p className="text-sm font-semibold text-[var(--color-primary)] uppercase tracking-widest mb-2">
                 Perjalanan
               </p>
-              <h2 className="text-3xl font-bold text-gray-900">Milestone SIPEDA</h2>
+              <h2 className="text-3xl font-bold text-[var(--color-text-primary)]">Milestone SIPEDA</h2>
             </div>
             <div className="relative">
               <div className="absolute left-4 top-0 bottom-0 w-px bg-gray-200" />
@@ -158,8 +158,8 @@ export default async function TentangPage() {
                       {i + 1}
                     </div>
                     <div>
-                      <div className="text-sm font-bold text-red-600 mb-1">{m.year}</div>
-                      <p className="text-gray-600 leading-relaxed">{m.event}</p>
+                      <div className="text-sm font-bold text-[var(--color-primary)] mb-1">{m.year}</div>
+                      <p className="text-[var(--color-text-secondary)] leading-relaxed">{m.event}</p>
                     </div>
                   </div>
                 ))}
@@ -169,23 +169,23 @@ export default async function TentangPage() {
         </section>
 
         {/* ── Tim ── */}
-        <section className="py-20 bg-gray-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="py-20 bg-[var(--color-section-alt)]">
+          <div className="page-container">
             <div className="text-center mb-14">
-              <p className="text-sm font-semibold text-red-600 uppercase tracking-widest mb-2">
+              <p className="text-sm font-semibold text-[var(--color-primary)] uppercase tracking-widest mb-2">
                 Tim
               </p>
-              <h2 className="text-3xl font-bold text-gray-900">Di Balik SIPEDA</h2>
+              <h2 className="text-3xl font-bold text-[var(--color-text-primary)]">Di Balik SIPEDA</h2>
             </div>
             <div className="flex flex-wrap justify-center gap-6">
               {team.map(member => (
                 <div key={member.name}
-                  className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 text-center w-56 hover:shadow-md transition-shadow">
+                  className="bg-white rounded-2xl border border-[var(--color-border-muted)] shadow-[var(--shadow-card)] p-6 text-center w-56 hover:shadow-md transition-shadow">
                   <div className="w-16 h-16 bg-red-600 text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
                     {member.initial}
                   </div>
-                  <div className="font-semibold text-gray-900 text-sm leading-snug">{member.name}</div>
-                  <div className="text-xs text-gray-500 mt-1">{member.role}</div>
+                  <div className="font-semibold text-[var(--color-text-primary)] text-sm leading-snug">{member.name}</div>
+                  <div className="text-xs text-[var(--color-text-muted)] mt-1">{member.role}</div>
                 </div>
               ))}
             </div>
@@ -193,14 +193,14 @@ export default async function TentangPage() {
         </section>
 
         {/* ── Kontak ── */}
-        <section className="py-20 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="py-20 bg-[var(--color-section-alt)]">
+          <div className="page-container">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
               <div>
-                <p className="text-sm font-semibold text-red-600 uppercase tracking-widest mb-2">
+                <p className="text-sm font-semibold text-[var(--color-primary)] uppercase tracking-widest mb-2">
                   Kontak
                 </p>
-                <h2 className="text-3xl font-bold text-gray-900 mb-6">Hubungi Kami</h2>
+                <h2 className="text-3xl font-bold text-[var(--color-text-primary)] mb-6">Hubungi Kami</h2>
                 <div className="space-y-4">
                   {[
                     { icon: MapPin, label: 'Alamat', value: 'Jl. DI. Panjaitan No. 54, Indramayu, Jawa Barat 45211' },
@@ -209,12 +209,12 @@ export default async function TentangPage() {
                     { icon: Clock, label: 'Jam Layanan', value: 'Senin–Sabtu, 07:30–15:00 WIB' },
                   ].map(item => (
                     <div key={item.label} className="flex items-start gap-4">
-                      <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <item.icon className="w-4.5 h-4.5 text-red-600" />
+                      <div className="w-10 h-10 bg-[var(--color-primary-subtle)] rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <item.icon className="w-4.5 h-4.5 text-[var(--color-primary)]" />
                       </div>
                       <div>
-                        <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-0.5">{item.label}</div>
-                        <div className="text-gray-700 font-medium">{item.value}</div>
+                        <div className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide mb-0.5">{item.label}</div>
+                        <div className="text-[var(--color-text-secondary)] font-medium">{item.value}</div>
                       </div>
                     </div>
                   ))}
@@ -234,10 +234,10 @@ export default async function TentangPage() {
                     Lihat Jadwal
                   </Link>
                 </div>
-                <div className="bg-gray-50 rounded-2xl border border-gray-200 p-6">
-                  <MapPin className="w-8 h-8 mb-4 text-gray-400" />
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">Temukan Lokasi Terdekat</h3>
-                  <p className="text-gray-500 text-sm mb-4">
+                <div className="bg-[var(--color-section-alt)] rounded-2xl border border-[var(--color-border-muted)] p-6">
+                  <MapPin className="w-8 h-8 mb-4 text-[var(--color-text-muted)]" />
+                  <h3 className="text-xl font-bold text-[var(--color-text-primary)] mb-2">Temukan Lokasi Terdekat</h3>
+                  <p className="text-[var(--color-text-muted)] text-sm mb-4">
                     Gunakan peta interaktif untuk menemukan lokasi donor dan cek ketersediaan stok darah.
                   </p>
                   <Link href="/peta"

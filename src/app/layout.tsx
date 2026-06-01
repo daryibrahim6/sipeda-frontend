@@ -3,8 +3,8 @@ import { Inter } from 'next/font/google';
 import { Suspense } from 'react';
 import './globals.css';
 import { NavigationProgress } from '@/components/ui/NavigationProgress';
+import { FixedHeader } from '@/components/layout/FixedHeader';
 import { PublicShell } from '@/components/layout/PublicShell';
-
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://sipeda.vercel.app';
@@ -18,6 +18,7 @@ export const metadata: Metadata = {
     template: `%s | ${SITE_NAME}`,
   },
   description: SITE_DESC,
+  applicationName: SITE_NAME,
   keywords: [
     'donor darah', 'Indramayu', 'PMI', 'stok darah',
     'jadwal donor', 'SIPEDA', 'bank darah', 'pendonor',
@@ -25,6 +26,25 @@ export const metadata: Metadata = {
   authors: [{ name: 'PMI Kabupaten Indramayu' }],
   creator: 'SIPEDA',
   publisher: 'PMI Kabupaten Indramayu',
+  manifest: '/manifest.json',
+
+  icons: {
+    icon: [
+      { url: '/icon-16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/icon-32.png', sizes: '32x32', type: 'image/png' },
+    ],
+    apple: '/apple-touch-icon.png',
+  },
+
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: SITE_NAME,
+  },
+
+  formatDetection: {
+    telephone: false,
+  },
 
   openGraph: {
     title: `${SITE_NAME} — Donor Darah Indramayu`,
@@ -49,7 +69,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#C60000',
+  themeColor: '#C62828',
   width: 'device-width',
   initialScale: 1,
 };
@@ -59,7 +79,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="id">
       <body
         suppressHydrationWarning
-        className={`${inter.variable} font-sans antialiased bg-[#FAFAF9] text-slate-800`}
+        className={`${inter.variable} font-sans antialiased`}
       >
         {/* Skip to main content — accessibility */}
         <a
@@ -68,12 +88,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           Langsung ke konten
         </a>
-        {/* Navigation progress bar */}
+        {/* Fixed header: banner + navbar */}
+        <FixedHeader />
+
+        {/* Progress bar */}
         <Suspense fallback={null}>
           <NavigationProgress />
         </Suspense>
         {/*
-          PublicShell: Navbar + Footer hidup di sini — satu instance,
+          PublicShell: Footer + MobileBottomNav hidup di sini — satu instance,
           tidak pernah di-unmount saat navigasi antar halaman.
           Admin routes (/admin/*) otomatis dikecualikan.
         */}

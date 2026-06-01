@@ -123,6 +123,11 @@ export function PreScreening({ tanggalLahir, jenisKelamin, onPass, onBack }: Pro
         const fails: string[] = [];
         const age = getAge();
 
+        // Tanggal lahir wajib diisi
+        if (!tanggalLahir) {
+            fails.push('Tanggal lahir harus diisi untuk verifikasi usia.');
+        }
+
         // Age check
         if (age !== null && (age < 17 || age > 65)) {
             fails.push(`Usia Anda ${age} tahun. Usia donor yang diperbolehkan adalah 17–65 tahun.`);
@@ -167,12 +172,12 @@ export function PreScreening({ tanggalLahir, jenisKelamin, onPass, onBack }: Pro
         <div className="space-y-5">
             {/* Header */}
             <div className="flex items-center gap-3">
-                <button onClick={onBack} className="p-2 rounded-xl text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
+                <button onClick={onBack} aria-label="Kembali ke form" className="p-3 rounded-xl text-[var(--color-text-muted)] hover:bg-[var(--color-section-alt)] hover:text-[var(--color-text-secondary)] transition-colors">
                     <ArrowLeft className="w-4 h-4" />
                 </button>
                 <div>
-                    <h3 className="font-bold text-gray-900">Pre-Screening Kesehatan</h3>
-                    <p className="text-xs text-gray-400">Jawab pertanyaan berikut sebelum melanjutkan pendaftaran</p>
+                    <h3 className="font-bold text-[var(--color-text-primary)]">Pre-Screening Kesehatan</h3>
+                    <p className="text-xs text-[var(--color-text-muted)]">Jawab pertanyaan berikut sebelum melanjutkan pendaftaran</p>
                 </div>
             </div>
 
@@ -190,7 +195,7 @@ export function PreScreening({ tanggalLahir, jenisKelamin, onPass, onBack }: Pro
 
             {/* Required section */}
             <div>
-                <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+                <div className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide mb-3">
                     Syarat Wajib
                 </div>
                 <div className="space-y-2">
@@ -198,9 +203,9 @@ export function PreScreening({ tanggalLahir, jenisKelamin, onPass, onBack }: Pro
                         const Icon = q.icon;
                         if (q.type === 'number') {
                             return (
-                                <div key={q.id} className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3">
+                                <div key={q.id} className="flex items-center gap-3 bg-white border border-[var(--color-border)] rounded-xl px-4 py-3">
                                     <Icon className="w-4 h-4 text-red-500 flex-shrink-0" />
-                                    <span className="text-sm text-gray-700 flex-1">{q.label}</span>
+                                    <span className="text-sm text-[var(--color-text-primary)] flex-1">{q.label}</span>
                                     <input
                                         type="number"
                                         min={30}
@@ -208,13 +213,13 @@ export function PreScreening({ tanggalLahir, jenisKelamin, onPass, onBack }: Pro
                                         value={Number(answers[q.id]) || ''}
                                         onChange={e => setAnswers(a => ({ ...a, [q.id]: Number(e.target.value) }))}
                                         placeholder="kg"
-                                        className="w-20 border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-red-500"
+                                        className="w-20 border border-[var(--color-border)] rounded-lg px-3 py-1.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-red-500"
                                     />
                                 </div>
                             );
                         }
                         return (
-                            <label key={q.id} className="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3 cursor-pointer hover:border-red-200 transition-colors">
+                            <label key={q.id} className="flex items-center gap-3 bg-white border border-[var(--color-border)] rounded-xl px-4 py-3 cursor-pointer hover:border-red-200 transition-colors">
                                 <input
                                     type="checkbox"
                                     checked={!!answers[q.id]}
@@ -222,7 +227,7 @@ export function PreScreening({ tanggalLahir, jenisKelamin, onPass, onBack }: Pro
                                     className="w-4 h-4 accent-red-600 flex-shrink-0"
                                 />
                                 <Icon className="w-4 h-4 text-red-500 flex-shrink-0" />
-                                <span className="text-sm text-gray-700">{q.label}</span>
+                                <span className="text-sm text-[var(--color-text-primary)]">{q.label}</span>
                             </label>
                         );
                     })}
@@ -231,22 +236,22 @@ export function PreScreening({ tanggalLahir, jenisKelamin, onPass, onBack }: Pro
 
             {/* Informative section */}
             <div>
-                <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-                    Informasi Tambahan <span className="text-gray-400 font-normal">(tidak wajib)</span>
+                <div className="text-xs font-semibold text-[var(--color-text-muted)] uppercase tracking-wide mb-3">
+                    Informasi Tambahan <span className="text-[var(--color-text-muted)] font-normal">(tidak wajib)</span>
                 </div>
                 <div className="space-y-2">
                     {visibleQuestions.filter(q => !q.required).map(q => {
                         const Icon = q.icon;
                         return (
-                            <label key={q.id} className="flex items-center gap-3 bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 cursor-pointer hover:border-gray-200 transition-colors">
+                            <label key={q.id} className="flex items-center gap-3 bg-[var(--color-section-alt)] border border-[var(--color-border-muted)] rounded-xl px-4 py-3 cursor-pointer hover:border-[var(--color-border)] transition-colors">
                                 <input
                                     type="checkbox"
                                     checked={!!answers[q.id]}
                                     onChange={e => setAnswers(a => ({ ...a, [q.id]: e.target.checked }))}
                                     className="w-4 h-4 accent-gray-600 flex-shrink-0"
                                 />
-                                <Icon className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                                <span className="text-sm text-gray-500">{q.label}</span>
+                                <Icon className="w-4 h-4 text-[var(--color-text-muted)] flex-shrink-0" />
+                                <span className="text-sm text-[var(--color-text-secondary)]">{q.label}</span>
                             </label>
                         );
                     })}
@@ -272,14 +277,14 @@ export function PreScreening({ tanggalLahir, jenisKelamin, onPass, onBack }: Pro
             {/* Submit */}
             <button
                 onClick={handleCheck}
-                className="w-full py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
+                className="w-full py-3 bg-[var(--color-primary)] text-white font-semibold rounded-xl hover:bg-[var(--color-primary-dark)] active:scale-[0.97] transition-all flex items-center justify-center gap-2"
             >
                 <ShieldCheck className="w-4 h-4" />
                 Cek Kelayakan & Lanjutkan
                 <ChevronRight className="w-4 h-4" />
             </button>
 
-            <p className="text-xs text-gray-400 text-center">
+            <p className="text-xs text-[var(--color-text-muted)] text-center">
                 Pre-screening berdasarkan standar PMI Pusat. Hasil akhir tetap ditentukan oleh petugas.
             </p>
         </div>

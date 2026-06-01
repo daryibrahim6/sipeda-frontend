@@ -103,6 +103,7 @@ export default function DonorCard({ data }: Props) {
                 ref={cardRef}
                 style={{
                     maxWidth: 400,
+                    width: '100%',
                     margin: '0 auto',
                     fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
                     borderRadius: 16,

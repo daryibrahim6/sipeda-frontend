@@ -1,6 +1,10 @@
 import type { Metadata } from 'next';
-import { MapPin, Phone, Navigation } from 'lucide-react';
-import { StockBadge } from '@/components/ui/Badge';
+import { MapPin, Phone, Navigation, Calendar } from 'lucide-react';
+import Link from 'next/link';
+import { Badge, StockBadge } from '@/components/ui/Badge';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { Card } from '@/components/ui/Card';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { getLocations } from '@/lib/api';
 import MapWrapper from '@/components/map/MapWrapper';
 
@@ -16,50 +20,32 @@ export default async function PetaPage() {
 
   return (
     <main id="main">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <PageHeader
+        badge={{ icon: <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" /><span className="relative inline-flex rounded-full h-2 w-2 bg-red-600" /></span>, text: 'WebGIS Interaktif' }}
+        title="Peta Lokasi Donor"
+        description={<>Temukan <strong>{locations.length} lokasi donor aktif</strong> di Indramayu. Klik marker pada peta untuk melihat detail jadwal, stok darah, dan petunjuk arah.</>}
+      />
+      <div className="page-container py-8 lg:py-10">
 
-        {/* Premium Header */}
-        <div className="mb-10 text-center sm:text-left border-b border-gray-100 pb-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-50 text-xs font-bold text-red-600 uppercase tracking-widest mb-4">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-red-600" />
-            </span>
-            WebGIS Interaktif
-          </div>
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 tracking-tight mb-4">
-            Peta Lokasi Donor
-          </h1>
-          <p className="text-gray-500 font-medium max-w-2xl mx-auto sm:mx-0 text-lg">
-            Temukan <strong className="text-gray-900">{locations.length} lokasi donor aktif</strong> di Indramayu. Klik marker pada peta untuk melihat detail jadwal, stok darah, dan petunjuk arah.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_minmax(340px,480px)] gap-6">
           {/* Map */}
-          <div className="h-[500px] lg:h-[640px] rounded-2xl overflow-hidden border border-gray-200 shadow-sm">
+          <div className="h-[500px] lg:h-[640px] rounded-2xl overflow-hidden border border-[var(--color-border-muted)] shadow-[var(--shadow-card)]">
             <MapWrapper locations={locations} zoom={13} />
           </div>
 
           {/* Location list */}
           <div className="space-y-3 max-h-[640px] overflow-y-auto">
             {locations.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 text-gray-400">
-                <MapPin className="w-10 h-10 mb-3 text-gray-300" />
-                <p className="text-sm">Belum ada lokasi donor aktif</p>
-              </div>
+              <EmptyState icon={<MapPin />} title="Belum ada lokasi donor aktif" />
             ) : locations.map(loc => (
-              <div key={loc.id}
-                className="bg-white rounded-xl border border-gray-200 p-4 hover:border-red-200 hover:shadow-sm transition-all">
+              <Card key={loc.id} variant="interactive" className="p-4 shadow-md ring-1 ring-black/[0.03]">
 
                 <div className="flex items-start justify-between gap-2 mb-2">
-                  <div className="font-semibold text-gray-900 text-sm leading-snug">{loc.nama_lokasi}</div>
-                  <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full flex-shrink-0 font-medium">
-                    {loc.tipe}
-                  </span>
+                  <div className="font-semibold text-[var(--color-text-primary)] text-sm leading-snug">{loc.nama_lokasi}</div>
+                  <Badge>{loc.tipe}</Badge>
                 </div>
 
-                <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-3">
+                <div className="flex items-center gap-1.5 text-xs text-[var(--color-text-muted)] mb-3">
                   <MapPin className="w-3 h-3" />
                   {loc.kecamatan}
                 </div>
@@ -78,11 +64,11 @@ export default async function PetaPage() {
                   );
                   return (
                     <div className="mb-3">
-                      <div className="text-xs text-gray-400 mb-1.5 font-medium">Stok tersedia:</div>
+                      <div className="text-xs text-[var(--color-text-muted)] mb-1.5 font-medium">Stok tersedia:</div>
                       <div className="flex flex-wrap gap-1.5">
                         {deduped.map((s, i) => (
                           <div key={`${s.golongan_darah}-${i}`} className="flex items-center gap-1">
-                            <span className="text-xs font-mono font-bold text-gray-700">{s.golongan_darah}</span>
+                            <span className="text-xs font-mono font-bold text-[var(--color-text-secondary)]">{s.golongan_darah}</span>
                             <StockBadge status={s.status as 'normal' | 'kritis' | 'kosong'} />
                           </div>
                         ))}
@@ -92,31 +78,37 @@ export default async function PetaPage() {
                 })()}
 
                 {/* Action row */}
-                <div className="pt-3 border-t border-gray-100 flex items-center gap-2">
-                  {/* Google Maps Directions — auto-route dari lokasi user saat ini */}
+                <div className="pt-3 border-t border-[var(--color-border-muted)] grid grid-cols-[auto_1fr_auto] gap-2">
+                  <Link
+                    href={`/jadwal?lokasi=${loc.id}`}
+                    className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-[var(--color-primary)] bg-[var(--color-primary-subtle)] hover:bg-[var(--color-primary-light)] active:scale-[0.95] transition-all"
+                  >
+                    <Calendar className="w-3 h-3" />
+                    Jadwal
+                  </Link>
                   <a
                     href={`https://www.google.com/maps/dir/?api=1&destination=${loc.koordinat_lat},${loc.koordinat_lng}&destination_place_id=${encodeURIComponent(loc.nama_lokasi)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg transition-colors"
+                    className="flex items-center justify-center gap-1.5 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg shadow-lg shadow-black/10 active:scale-[0.95] transition-all"
                     title={`Petunjuk arah ke ${loc.nama_lokasi}`}
                   >
                     <Navigation className="w-3 h-3" />
-                    Petunjuk Arah
+                    <span className="hidden sm:inline">Petunjuk Arah</span>
                   </a>
 
                   {loc.kontak && (
                     <a
                       href={`tel:${loc.kontak}`}
-                      className="flex items-center gap-1 border border-gray-200 px-2.5 py-2 rounded-lg text-xs text-red-600 hover:bg-red-50 transition-colors font-medium"
+                      className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-[var(--color-primary)] bg-[var(--color-primary-subtle)] hover:bg-[var(--color-primary-light)] active:scale-[0.95] transition-all"
                       title={`Hubungi ${loc.nama_lokasi}`}
                     >
                       <Phone className="w-3 h-3" />
-                      {loc.kontak}
+                      <span className="hidden sm:inline">Telepon</span>
                     </a>
                   )}
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
         </div>

@@ -3,6 +3,9 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search } from 'lucide-react';
+import { Card } from '@/components/ui/Card';
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
 
 export default function RegistrasiPage() {
     const router = useRouter();
@@ -20,37 +23,33 @@ export default function RegistrasiPage() {
             <div className="w-full max-w-md">
                 <div className="text-center mb-8">
                     <div className="inline-flex items-center justify-center w-16 h-16 bg-red-50 rounded-2xl mb-4">
-                        <Search className="w-8 h-8 text-red-600" />
+                        <Search className="w-8 h-8 text-[var(--color-primary)]" />
                     </div>
-                    <h1 className="text-2xl font-bold text-gray-900 mb-2">Cek Status Registrasi</h1>
-                    <p className="text-gray-500 text-sm">
+                    <h1 className="text-2xl font-bold text-[var(--color-text-primary)] mb-2">Cek Status Registrasi</h1>
+                    <p className="text-[var(--color-text-secondary)] text-sm">
                         Masukkan kode registrasi yang kamu terima saat mendaftar donor.
                     </p>
                 </div>
 
-                <form onSubmit={handleSearch} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                    <label htmlFor="kode" className="block text-sm font-semibold text-gray-700 mb-2">
-                        Kode Registrasi
-                    </label>
-                    <input
-                        id="kode"
-                        type="text"
-                        value={kode}
-                        onChange={e => setKode(e.target.value.toUpperCase())}
-                        placeholder="Contoh: REG-2025-XXXXXX"
-                        className="w-full border-2 border-gray-100 rounded-xl px-4 py-3.5 text-sm font-mono font-bold text-gray-900 placeholder:text-gray-300 placeholder:font-medium focus:outline-none focus:ring-4 focus:ring-red-500/10 focus:border-red-500 transition-all uppercase mb-5"
-                    />
+                <form onSubmit={handleSearch}>
+                    <Card className="p-6 space-y-4">
+                        <Input
+                            id="kode"
+                            type="text"
+                            label="Kode Registrasi"
+                            value={kode}
+                            onChange={e => setKode(e.target.value.toUpperCase())}
+                            placeholder="Contoh: REG-2025-XXXXXX"
+                            className="font-mono font-bold placeholder:font-medium uppercase"
+                        />
 
-                    <button
-                        type="submit"
-                        disabled={!kode.trim()}
-                        className="w-full py-3.5 bg-gray-900 text-white font-bold rounded-xl hover:bg-red-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.98] shadow-sm hover:shadow-md"
-                    >
-                        <Search className="w-4 h-4" /> Cek Status
-                    </button>
+                        <Button type="submit" disabled={!kode.trim()} className="w-full" icon={<Search className="w-4 h-4" />}>
+                            Cek Status
+                        </Button>
+                    </Card>
                 </form>
 
-                <p className="text-center text-xs text-gray-400 mt-4">
+                <p className="text-center text-xs text-[var(--color-text-muted)] mt-4">
                     Kode registrasi dikirim saat kamu mendaftar jadwal donor. Format: REG-YYYY-XXXXXX
                 </p>
             </div>

@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useSidebarToggle } from '@/app/admin/layout';
+import { useSidebarToggle } from '@/lib/admin-context';
 import { TopBar } from '@/components/admin/TopBar';
 import { Loader2, Check, X, Save, RefreshCw, MapPin } from 'lucide-react';
 import { getAdminStok, updateStokDarah, type AdminStokRow } from '@/lib/admin-api';
 import { getLocations } from '@/lib/api';
 import { requireAdminAuth } from '@/lib/auth';
 import type { Location } from '@/lib/types';
+import { Button } from '@/components/ui/Button';
 
 type StockStatus = 'normal' | 'kritis' | 'kosong';
 
@@ -54,7 +55,7 @@ function Toast({ msg, onClose }: { msg: string; onClose: () => void }) {
   return (
     <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-green-600 text-white text-sm font-medium shadow-lg">
       <Check className="w-4 h-4" />{msg}
-      <button onClick={onClose}><X className="w-3.5 h-3.5 opacity-70" /></button>
+      <button onClick={onClose} className="p-2"><X className="w-3.5 h-3.5 opacity-70" /></button>
     </div>
   );
 }
@@ -122,24 +123,22 @@ export default function AdminStokPage() {
         onMenuClick={toggle}
         actions={
           <div className="flex items-center gap-2">
-            <button onClick={loadData} className="p-2 rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" title="Refresh">
-              <RefreshCw className={`w-4 h-4 ${dataLoading ? 'animate-spin text-red-500' : ''}`} />
-            </button>
+            <Button variant="ghost" size="sm" onClick={loadData} title="Refresh" icon={<RefreshCw className={`w-4 h-4 ${dataLoading ? 'animate-spin' : ''}`} />} />
           </div>
         }
       />
 
       <main className="flex-1 p-4 sm:p-6 space-y-5">
         {/* Summary */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           {[
-            { label: 'Total Kantong', value: totalUnits, color: 'text-gray-900' },
-            { label: 'Komponen x Lokasi', value: grouped.length, color: 'text-gray-900' },
+            { label: 'Total Kantong', value: totalUnits, color: 'text-[var(--color-text-primary)]' },
+            { label: 'Komponen x Lokasi', value: grouped.length, color: 'text-[var(--color-text-primary)]' },
             { label: 'Perlu Perhatian', value: kritisCount, color: kritisCount > 0 ? 'text-red-600' : 'text-green-600' },
           ].map(item => (
-            <div key={item.label} className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 text-center transition-all hover:shadow-md">
+            <div key={item.label} className="bg-white rounded-3xl border border-[var(--color-border-muted)] shadow-[var(--shadow-card)] p-6 text-center transition-all hover:shadow-md">
               <div className={`text-4xl font-extrabold tracking-tight mb-2 ${item.color}`}>{item.value}</div>
-              <div className="text-xs font-bold text-gray-500 uppercase tracking-wide">{item.label}</div>
+              <div className="text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-wide">{item.label}</div>
             </div>
           ))}
         </div>
@@ -147,30 +146,30 @@ export default function AdminStokPage() {
         {/* Filter lokasi & Legend */}
         <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center">
           {locations.length > 1 && (
-            <div className="flex flex-wrap gap-2 items-center bg-white rounded-2xl shadow-sm border border-gray-100 p-2">
-              <MapPin className="w-5 h-5 text-gray-400 ml-2" />
-              <div className="w-px h-6 bg-gray-200 mx-1" />
+            <div className="flex flex-wrap gap-2 items-center bg-white rounded-2xl shadow-[var(--shadow-card)] border border-[var(--color-border-muted)] p-2">
+              <MapPin className="w-5 h-5 text-[var(--color-text-muted)] ml-2" />
+              <div className="w-px h-6 bg-[var(--color-border)] mx-1" />
               <button onClick={() => setLokasiFilter(undefined)}
-                className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${!lokasiFilter ? 'bg-red-50 text-red-700 shadow-sm' : 'bg-transparent text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}>
+                className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${!lokasiFilter ? 'bg-red-50 text-red-700 shadow-[var(--shadow-card)]' : 'bg-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-section-alt)]'}`}>
                 Semua Lokasi
               </button>
               {locations.map(loc => (
                 <button key={loc.id} onClick={() => setLokasiFilter(loc.id)}
-                  className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${lokasiFilter === loc.id ? 'bg-red-50 text-red-700 shadow-sm' : 'bg-transparent text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}>
+                  className={`px-4 py-2 text-xs font-bold rounded-xl transition-all ${lokasiFilter === loc.id ? 'bg-red-50 text-red-700 shadow-[var(--shadow-card)]' : 'bg-transparent text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-section-alt)]'}`}>
                   {loc.nama_lokasi}
                 </button>
               ))}
             </div>
           )}
 
-          <div className="flex flex-wrap gap-3 p-3.5 bg-white rounded-2xl shadow-sm border border-gray-100 text-xs font-bold text-gray-500">
+          <div className="flex flex-wrap gap-3 p-3.5 bg-white rounded-2xl shadow-[var(--shadow-card)] border border-[var(--color-border-muted)] text-xs font-bold text-[var(--color-text-muted)]">
             {[
               { dot: 'bg-green-500', label: 'Normal' },
               { dot: 'bg-amber-400', label: 'Kritis' },
               { dot: 'bg-red-500', label: 'Kosong' },
             ].map(l => (
               <div key={l.label} className="flex items-center gap-2 px-2">
-                <span className={`w-2.5 h-2.5 rounded-full ${l.dot} shadow-sm`} />
+                <span className={`w-2.5 h-2.5 rounded-full ${l.dot} shadow-[var(--shadow-card)]`} />
                 {l.label}
               </div>
             ))}
@@ -181,36 +180,36 @@ export default function AdminStokPage() {
         {dataLoading ? (
           <div className="space-y-6">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
-                <div className="h-6 bg-gray-50 animate-pulse rounded-lg w-48 mb-6" />
+              <div key={i} className="bg-white rounded-3xl shadow-[var(--shadow-card)] border border-[var(--color-border-muted)] p-6">
+                <div className="h-6 bg-[var(--color-section-alt)] animate-pulse-soft rounded-lg w-48 mb-6" />
                 <div className="grid grid-cols-8 gap-3">
                   {[...Array(8)].map((_, j) => (
-                    <div key={j} className="h-20 bg-gray-50 animate-pulse rounded-2xl" />
+                    <div key={j} className="h-20 bg-[var(--color-section-alt)] animate-pulse-soft rounded-2xl" />
                   ))}
                 </div>
               </div>
             ))}
           </div>
         ) : grouped.length === 0 ? (
-          <div className="text-center py-20 text-gray-400 bg-white rounded-3xl shadow-sm border border-gray-100 font-bold">
+          <div className="text-center py-20 text-[var(--color-text-muted)] bg-white rounded-3xl shadow-[var(--shadow-card)] border border-[var(--color-border-muted)] font-bold">
             Belum ada data stok darah.
           </div>
         ) : grouped.map(group => (
-          <div key={`${group.lokasi_id}-${group.komponen_id}`} className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="flex items-center gap-4 px-6 py-5 bg-gray-50/50 border-b border-gray-100">
-              <div className="w-12 h-12 rounded-2xl bg-white border border-gray-200 shadow-sm flex items-center justify-center flex-shrink-0">
+          <div key={`${group.lokasi_id}-${group.komponen_id}`} className="bg-white rounded-3xl border border-[var(--color-border-muted)] shadow-[var(--shadow-card)] overflow-hidden">
+            <div className="flex items-center gap-4 px-6 py-5 bg-[var(--color-section-alt)]/50 border-b border-[var(--color-border-muted)]">
+              <div className="w-12 h-12 rounded-2xl bg-white border border-[var(--color-border)] shadow-[var(--shadow-card)] flex items-center justify-center flex-shrink-0">
                 <span className="font-extrabold text-red-600">{group.komponen_kode}</span>
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-lg font-extrabold text-gray-900 tracking-tight">{group.komponen_nama}</span>
+                  <span className="text-lg font-extrabold text-[var(--color-text-primary)] tracking-tight">{group.komponen_nama}</span>
                 </div>
-                <div className="text-xs font-bold text-gray-500 flex items-center gap-1.5 mt-1">
-                  <MapPin className="w-3.5 h-3.5 text-gray-400" />{group.lokasi_nama}
+                <div className="text-xs font-bold text-[var(--color-text-muted)] flex items-center gap-1.5 mt-1">
+                  <MapPin className="w-3.5 h-3.5 text-[var(--color-text-muted)]" />{group.lokasi_nama}
                 </div>
               </div>
-              <div className="ml-auto text-sm font-bold text-gray-500 bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm">
-                Total: <span className="font-extrabold text-gray-900 ml-1 text-lg">{group.total}</span> kantong
+              <div className="ml-auto text-sm font-bold text-[var(--color-text-muted)] bg-white px-4 py-2 rounded-xl border border-[var(--color-border)] shadow-[var(--shadow-card)]">
+                Total: <span className="font-extrabold text-[var(--color-text-primary)] ml-1 text-lg">{group.total}</span> kantong
               </div>
             </div>
             <div className="overflow-x-auto">
@@ -218,7 +217,7 @@ export default function AdminStokPage() {
                 <thead>
                   <tr>
                     {BLOOD_TYPES.map(bt => (
-                      <th key={bt} className="text-center px-4 py-4 font-extrabold text-gray-400 text-xs uppercase tracking-widest min-w-[90px] border-b border-gray-100">{bt}</th>
+                      <th key={bt} className="text-center px-4 py-4 font-extrabold text-[var(--color-text-muted)] text-xs uppercase tracking-widest min-w-[90px] border-b border-[var(--color-border-muted)]">{bt}</th>
                     ))}
                   </tr>
                 </thead>
@@ -228,34 +227,34 @@ export default function AdminStokPage() {
                       const cell = group.golongan[bt];
                       const isEditing = editing?.id === cell?.id;
                       if (!cell) {
-                        return <td key={bt} className="px-4 py-6 text-center text-gray-200 text-lg font-extrabold">—</td>;
+                        return <td key={bt} className="px-4 py-6 text-center text-[var(--color-border)] text-lg font-extrabold">—</td>;
                       }
                       return (
-                        <td key={bt} className="px-4 py-5 text-center border-r border-gray-50 last:border-0">
+                        <td key={bt} className="px-4 py-5 text-center border-r border-[var(--color-border-muted)]/50 last:border-0">
                           {isEditing ? (
                             <div className="flex flex-col items-center gap-2">
                               <input type="number" min="0" value={editing.val}
                                 onChange={e => setEditing(ed => ed ? { ...ed, val: e.target.value } : null)}
                                 onKeyDown={e => { if (e.key === 'Enter') saveEdit(); if (e.key === 'Escape') setEditing(null); }}
                                 autoFocus
-                                className="w-16 text-center border-2 border-red-400 shadow-sm rounded-xl px-2 py-2 text-base font-extrabold focus:outline-none focus:ring-4 focus:ring-red-500/10 transition-all" />
+                                className="w-16 text-center border-2 border-red-400 shadow-[var(--shadow-card)] rounded-xl px-2 py-2 text-base font-extrabold focus:outline-none focus:ring-4 focus:ring-red-500/10 transition-all" />
                               <div className="flex gap-1">
-                                <button onClick={saveEdit} disabled={saving} className="p-1.5 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition-colors shadow-sm active:scale-95">
+                                <button onClick={saveEdit} disabled={saving} className="p-2 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition-colors shadow-[var(--shadow-card)] active:scale-95">
                                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                                 </button>
-                                <button onClick={() => setEditing(null)} className="p-1.5 rounded-lg bg-gray-50 border border-gray-200 text-gray-500 hover:bg-gray-100 transition-colors shadow-sm active:scale-95">
+                                <button onClick={() => setEditing(null)} className="p-2 rounded-lg bg-[var(--color-section-alt)] border border-[var(--color-border)] text-[var(--color-text-muted)] hover:bg-[var(--color-section-alt)] transition-colors shadow-[var(--shadow-card)] active:scale-95">
                                   <X className="w-4 h-4" />
                                 </button>
                               </div>
                             </div>
                           ) : (
                             <button onClick={() => setEditing({ id: cell.id, val: String(cell.jumlah) })}
-                              className="group flex flex-col items-center gap-2 w-full py-2 rounded-2xl hover:bg-gray-50 transition-all cursor-pointer hover:-translate-y-0.5 active:scale-95" title="Klik untuk edit">
-                              <span className={`text-3xl font-extrabold tracking-tight transition-colors ${cell.status === 'kosong' ? 'text-red-600' : cell.status === 'kritis' ? 'text-amber-500' : 'text-gray-900 group-hover:text-red-600'}`}>
+                              className="group flex flex-col items-center gap-2 w-full py-2 rounded-2xl hover:bg-[var(--color-section-alt)] transition-all cursor-pointer active:scale-95" title="Klik untuk edit">
+                              <span className={`text-3xl font-extrabold tracking-tight transition-colors ${cell.status === 'kosong' ? 'text-red-600' : cell.status === 'kritis' ? 'text-amber-500' : 'text-[var(--color-text-primary)] group-hover:text-red-600'}`}>
                                 {cell.jumlah}
                               </span>
                               <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${statusColor(cell.status).replace('border-', '')}`}>{cell.status}</span>
-                              <Save className="w-3.5 h-3.5 text-gray-300 opacity-0 group-hover:opacity-100 group-hover:text-red-400 transition-all absolute mt-16" />
+                              <Save className="w-3.5 h-3.5 text-[var(--color-text-muted)]/50 opacity-0 group-hover:opacity-100 group-hover:text-red-400 transition-all absolute mt-16" />
                             </button>
                           )}
                         </td>

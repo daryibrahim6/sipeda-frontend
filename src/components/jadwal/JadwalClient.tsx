@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Calendar } from 'lucide-react';
 import { ScheduleCard } from '@/components/jadwal/ScheduleCard';
 import { MONTHS_ID } from '@/lib/utils';
 import type { Schedule } from '@/lib/types';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 type Location = { id: number; nama_lokasi: string };
 
@@ -36,15 +37,25 @@ export default function JadwalClient({ locations }: { locations: Location[] }) {
     const [month, setMonth] = useState(now.getMonth() + 1);
     const [year] = useState(now.getFullYear());
     const [lokasiId, setLokasiId] = useState<number | null>(null);
+    const [hanyaSisaKuota, setHanyaSisaKuota] = useState(false);
     const [schedules, setSchedules] = useState<Schedule[]>([]);
     const [loading, setLoading] = useState(true);
+    const cacheRef = useRef<Map<string, Schedule[]>>(new Map());
 
     const fetchSchedules = useCallback(async (m: number, y: number) => {
+        const key = `${y}-${m}`;
+        const cached = cacheRef.current.get(key);
+        if (cached) {
+            setSchedules(cached);
+            setLoading(false);
+            return;
+        }
         setLoading(true);
         try {
             const res = await fetch(`/api/jadwal?month=${m}&year=${y}`);
             if (!res.ok) throw new Error('fetch failed');
             const data = await res.json();
+            cacheRef.current.set(key, data);
             setSchedules(data);
         } catch {
             setSchedules([]);
@@ -57,10 +68,12 @@ export default function JadwalClient({ locations }: { locations: Location[] }) {
         fetchSchedules(month, year);
     }, [month, year, fetchSchedules]);
 
-    // Client-side filter by lokasi (data already loaded)
-    const filtered = lokasiId
-        ? schedules.filter(s => s.lokasi_id === lokasiId)
-        : schedules;
+    // Client-side filter by lokasi & sisa kuota (data already loaded)
+    const filtered = schedules.filter(s => {
+        if (lokasiId && s.lokasi_id !== lokasiId) return false;
+        if (hanyaSisaKuota && (s.status === 'penuh' || s.sisa_kuota === 0)) return false;
+        return true;
+    });
 
     const grouped = filtered.reduce<Record<string, Schedule[]>>((acc, s) => {
         if (!acc[s.tanggal]) acc[s.tanggal] = [];
@@ -69,35 +82,25 @@ export default function JadwalClient({ locations }: { locations: Location[] }) {
     }, {});
 
     return (
-        <main id="main" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-            {/* Premium Header */}
-            <div className="mb-10 text-center sm:text-left border-b border-gray-100 pb-8">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-50 text-xs font-bold text-red-600 uppercase tracking-widest mb-4">
-                    <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-red-600" />
-                    </span>
-                    Kalender Donor
-                </div>
-                <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 tracking-tight mb-4">
-                    Jadwal Kegiatan
-                </h1>
-                <p className="text-gray-500 font-medium max-w-2xl mx-auto sm:mx-0 text-lg">
-                    Pilih jadwal donor darah yang sesuai dengan waktu Anda dan daftar secara online untuk mengamankan <strong className="text-gray-900">kuota harian</strong>.
-                </p>
-            </div>
+        <>
+            <PageHeader
+                badge="Kalender Donor"
+                title="Jadwal Kegiatan"
+                description={`Pilih jadwal donor darah yang sesuai dengan waktu Anda dan daftar secara online untuk mengamankan kuota harian.`}
+            />
+            <main id="main" className="page-container py-16">
 
             {/* Filter bulan */}
-            <div className="mb-4">
-                <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Bulan</p>
-                <div className="flex flex-wrap gap-1.5">
+            <div className="mb-6">
+                <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Bulan</p>
+                <div className="flex flex-wrap gap-2">
                     {MONTHS_ID.map((label, i) => {
                         const m = i + 1;
                         return (
                             <button
                                 key={m}
-                                onClick={() => { setMonth(m); setLokasiId(null); }}
-                                className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${m === month
+                                onClick={() => setMonth(m)}
+                                className={`px-4 py-2 text-xs font-medium rounded-xl border transition-all active:scale-[0.95] ${m === month
                                         ? 'bg-red-600 text-white border-red-600'
                                         : 'bg-white border-gray-200 text-gray-600 hover:border-red-300 hover:text-red-600'
                                     }`}
@@ -111,12 +114,12 @@ export default function JadwalClient({ locations }: { locations: Location[] }) {
 
             {/* Filter lokasi — instant (no fetch needed, just filter in memory) */}
             {locations.length > 0 && (
-                <div className="mb-8">
-                    <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Lokasi</p>
-                    <div className="flex flex-wrap gap-1.5">
+                <div className="mb-10">
+                    <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Lokasi</p>
+                    <div className="flex flex-wrap gap-2">
                         <button
                             onClick={() => setLokasiId(null)}
-                            className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${lokasiId === null
+                            className={`px-4 py-2 text-xs font-medium rounded-xl border transition-all active:scale-[0.95] ${lokasiId === null
                                     ? 'bg-red-600 text-white border-red-600'
                                     : 'bg-white border-gray-200 text-gray-600 hover:border-red-300'
                                 }`}
@@ -127,7 +130,7 @@ export default function JadwalClient({ locations }: { locations: Location[] }) {
                             <button
                                 key={loc.id}
                                 onClick={() => setLokasiId(loc.id)}
-                                className={`px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors ${lokasiId === loc.id
+                                className={`px-4 py-2 text-xs font-medium rounded-xl border transition-all active:scale-[0.95] ${lokasiId === loc.id
                                         ? 'bg-red-600 text-white border-red-600'
                                         : 'bg-white border-gray-200 text-gray-600 hover:border-red-300'
                                     }`}
@@ -138,6 +141,20 @@ export default function JadwalClient({ locations }: { locations: Location[] }) {
                     </div>
                 </div>
             )}
+
+            {/* Filter: Hanya sisa kuota */}
+            <div className="mb-8 flex items-center gap-3">
+              <button
+                role="switch"
+                aria-checked={hanyaSisaKuota}
+                aria-label="Hanya tampilkan jadwal yang ada sisa kuota"
+                onClick={() => setHanyaSisaKuota(p => !p)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 ${hanyaSisaKuota ? 'bg-red-600' : 'bg-gray-200'}`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${hanyaSisaKuota ? 'translate-x-6' : 'translate-x-1'}`} />
+              </button>
+              <span className="text-sm text-gray-600 font-medium">Hanya tampilkan yang ada sisa kuota</span>
+            </div>
 
             {/* Content */}
             {loading ? (
@@ -174,7 +191,7 @@ export default function JadwalClient({ locations }: { locations: Location[] }) {
                                         </div>
                                         <div className="h-px bg-gray-100 flex-1 ml-2" />
                                     </div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                                         {daySchedules.map(s => <ScheduleCard key={s.id} schedule={s} />)}
                                     </div>
                                 </div>
@@ -183,5 +200,6 @@ export default function JadwalClient({ locations }: { locations: Location[] }) {
                 </div>
             )}
         </main>
+        </>
     );
 }

@@ -1,14 +1,15 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useSidebarToggle } from '@/app/admin/layout';
+import { useSidebarToggle } from '@/lib/admin-context';
 import { TopBar } from '@/components/admin/TopBar';
 import {
     Plus, Search, Pencil, X, Loader2, Check,
-    Users, ChevronLeft, ChevronRight, Filter, RefreshCw,
+    Users, Filter, RefreshCw,
     Power, PowerOff, Shield, UserCheck, Eye, EyeOff,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { Button } from '@/components/ui/Button';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -71,7 +72,7 @@ function Toast({ msg, type, onClose }: { msg: string; type: 'success' | 'error';
         <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-lg text-sm font-medium ${type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}>
             {type === 'success' ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
             {msg}
-            <button onClick={onClose} className="ml-2 opacity-70 hover:opacity-100"><X className="w-3.5 h-3.5" /></button>
+            <button onClick={onClose} className="ml-2 p-2 opacity-70 hover:opacity-100"><X className="w-3.5 h-3.5" /></button>
         </div>
     );
 }
@@ -179,7 +180,7 @@ export default function AdminPenggunaPage() {
         }
     }
 
-    const inp = "w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all";
+    const inp = "w-full border border-[var(--color-border-muted)] rounded-xl px-3.5 py-2.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-transparent transition-all";
 
     return (
         <div className="flex flex-col min-h-full">
@@ -189,13 +190,10 @@ export default function AdminPenggunaPage() {
                 onMenuClick={toggle}
                 actions={
                     <div className="flex gap-2">
-                        <button onClick={loadData} className="p-2 rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" title="Refresh">
-                            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-red-500' : ''}`} />
-                        </button>
-                        <button onClick={openCreate} className="flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-xl hover:bg-red-700 transition-colors">
-                            <Plus className="w-4 h-4" />
+                        <Button variant="ghost" size="sm" onClick={loadData} title="Refresh" icon={<RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-red-500' : ''}`} />} />
+                        <Button onClick={openCreate} icon={<Plus className="w-4 h-4" />}>
                             <span className="hidden sm:inline">Tambah Pengguna</span>
-                        </button>
+                        </Button>
                     </div>
                 }
             />
@@ -204,17 +202,17 @@ export default function AdminPenggunaPage() {
                 {/* Search + filter */}
                 <div className="flex flex-col sm:flex-row gap-3">
                     <div className="relative flex-1">
-                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" />
                         <input type="text" placeholder="Cari nama atau email..."
                             value={search} onChange={e => setSearch(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent" />
+                            className="w-full pl-10 pr-4 py-2.5 border border-[var(--color-border-muted)] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-transparent" />
                     </div>
                     <div className="flex items-center gap-2">
-                        <Filter className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                        <Filter className="w-4 h-4 text-[var(--color-text-muted)] flex-shrink-0" />
                         {(['semua', 'superadmin', 'admin', 'petugas_lapangan'] as const).map(r => (
                             <button key={r}
                                 onClick={() => setRoleFilter(r)}
-                                className={`px-3 py-2 text-xs font-medium rounded-lg whitespace-nowrap transition-colors ${roleFilter === r ? 'bg-red-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:border-red-300'}`}>
+                                className={`px-3 py-2 text-xs font-medium rounded-lg whitespace-nowrap transition-colors ${roleFilter === r ? 'bg-red-600 text-white' : 'bg-white border border-[var(--color-border-muted)] text-[var(--color-text-secondary)] hover:border-red-300'}`}>
                                 {r === 'semua' ? 'Semua' : ROLE_LABELS[r]}
                             </button>
                         ))}
@@ -222,50 +220,50 @@ export default function AdminPenggunaPage() {
                 </div>
 
                 {/* Table */}
-                <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+                <div className="bg-white rounded-2xl border border-[var(--color-border-muted)] overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
                             <thead>
-                                <tr className="border-b border-gray-100 bg-gray-50/50">
-                                    <th className="text-left px-5 py-3.5 font-semibold text-gray-600 text-xs uppercase tracking-wide">Nama</th>
-                                    <th className="text-left px-5 py-3.5 font-semibold text-gray-600 text-xs uppercase tracking-wide hidden sm:table-cell">Email</th>
-                                    <th className="text-center px-5 py-3.5 font-semibold text-gray-600 text-xs uppercase tracking-wide">Role</th>
-                                    <th className="text-center px-5 py-3.5 font-semibold text-gray-600 text-xs uppercase tracking-wide">Status</th>
-                                    <th className="text-center px-5 py-3.5 font-semibold text-gray-600 text-xs uppercase tracking-wide hidden md:table-cell">Login Terakhir</th>
-                                    <th className="text-right px-5 py-3.5 font-semibold text-gray-600 text-xs uppercase tracking-wide">Aksi</th>
+                                <tr className="border-b border-[var(--color-border-muted)] bg-[var(--color-section-alt)]/50">
+                                    <th className="text-left px-5 py-3.5 font-semibold text-[var(--color-text-secondary)] text-xs uppercase tracking-wide">Nama</th>
+                                    <th className="text-left px-5 py-3.5 font-semibold text-[var(--color-text-secondary)] text-xs uppercase tracking-wide hidden sm:table-cell">Email</th>
+                                    <th className="text-center px-5 py-3.5 font-semibold text-[var(--color-text-secondary)] text-xs uppercase tracking-wide">Role</th>
+                                    <th className="text-center px-5 py-3.5 font-semibold text-[var(--color-text-secondary)] text-xs uppercase tracking-wide">Status</th>
+                                    <th className="text-center px-5 py-3.5 font-semibold text-[var(--color-text-secondary)] text-xs uppercase tracking-wide hidden md:table-cell">Login Terakhir</th>
+                                    <th className="text-right px-5 py-3.5 font-semibold text-[var(--color-text-secondary)] text-xs uppercase tracking-wide">Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-50">
+                            <tbody className="divide-y divide-[var(--color-section-alt)]">
                                 {loading ? (
                                     [...Array(4)].map((_, i) => (
                                         <tr key={i}>
                                             {[...Array(6)].map((_, j) => (
                                                 <td key={j} className="px-5 py-4">
-                                                    <div className="h-4 bg-gray-100 animate-pulse rounded w-full" />
+                                                    <div className="h-4 bg-[var(--color-section-alt)] animate-pulse-soft rounded w-full" />
                                                 </td>
                                             ))}
                                         </tr>
                                     ))
                                 ) : filtered.length === 0 ? (
                                     <tr>
-                                        <td colSpan={6} className="text-center py-16 text-gray-400">
-                                            <Users className="w-10 h-10 mx-auto mb-3 text-gray-200" />
+                                        <td colSpan={6} className="text-center py-16 text-[var(--color-text-muted)]">
+                                            <Users className="w-10 h-10 mx-auto mb-3 text-[var(--color-text-muted)]" />
                                             {search ? 'Tidak ada pengguna yang cocok.' : 'Belum ada pengguna.'}
                                         </td>
                                     </tr>
                                 ) : filtered.map(u => (
-                                    <tr key={u.id} className={`hover:bg-gray-50/50 transition-colors ${!u.aktif ? 'opacity-50' : ''}`}>
+                                    <tr key={u.id} className={`hover:bg-[var(--color-section-alt)]/50 transition-colors ${!u.aktif ? 'opacity-50' : ''}`}>
                                         <td className="px-5 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 bg-red-50 rounded-full flex items-center justify-center flex-shrink-0">
+                                                <div className="w-8 h-8 bg-[var(--color-primary-subtle)] rounded-full flex items-center justify-center flex-shrink-0">
                                                     {u.role === 'superadmin' ? <Shield className="w-4 h-4 text-purple-500" /> :
                                                         u.role === 'admin' ? <UserCheck className="w-4 h-4 text-blue-500" /> :
                                                             <Users className="w-4 h-4 text-green-500" />}
                                                 </div>
-                                                <span className="font-semibold text-gray-900">{u.name}</span>
+                                                <span className="font-semibold text-[var(--color-text-primary)]">{u.name}</span>
                                             </div>
                                         </td>
-                                        <td className="px-5 py-4 text-gray-500 hidden sm:table-cell">{u.email}</td>
+                                        <td className="px-5 py-4 text-[var(--color-text-muted)] hidden sm:table-cell">{u.email}</td>
                                         <td className="px-5 py-4">
                                             <div className="flex justify-center">
                                                 <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${ROLE_COLORS[u.role]}`}>
@@ -277,25 +275,25 @@ export default function AdminPenggunaPage() {
                                             <div className="flex justify-center">
                                                 <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${u.aktif
                                                     ? 'bg-green-50 text-green-700 border-green-200'
-                                                    : 'bg-gray-50 text-gray-500 border-gray-200'}`}>
+                                                    : 'bg-[var(--color-section-alt)] text-[var(--color-text-muted)] border-[var(--color-border-muted)]'}`}>
                                                     {u.aktif ? 'Aktif' : 'Nonaktif'}
                                                 </span>
                                             </div>
                                         </td>
-                                        <td className="px-5 py-4 text-center text-xs text-gray-400 hidden md:table-cell">
+                                        <td className="px-5 py-4 text-center text-xs text-[var(--color-text-muted)] hidden md:table-cell">
                                             {u.last_login
                                                 ? new Date(u.last_login).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
                                                 : '—'}
                                         </td>
                                         <td className="px-5 py-4">
                                             <div className="flex items-center justify-end gap-1">
-                                                <button onClick={() => openEdit(u)} className="p-2 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Edit">
+                                                <button onClick={() => openEdit(u)} className="p-2 rounded-lg text-[var(--color-text-muted)] hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Edit">
                                                     <Pencil className="w-4 h-4" />
                                                 </button>
                                                 <button onClick={() => setToggling(u)}
                                                     className={`p-2 rounded-lg transition-colors ${u.aktif
-                                                        ? 'text-gray-400 hover:text-amber-600 hover:bg-amber-50'
-                                                        : 'text-gray-400 hover:text-green-600 hover:bg-green-50'}`}
+                                                        ? 'text-[var(--color-text-muted)] hover:text-amber-600 hover:bg-amber-50'
+                                                        : 'text-[var(--color-text-muted)] hover:text-green-600 hover:bg-green-50'}`}
                                                     title={u.aktif ? 'Nonaktifkan' : 'Aktifkan'}>
                                                     {u.aktif ? <PowerOff className="w-4 h-4" /> : <Power className="w-4 h-4" />}
                                                 </button>
@@ -313,39 +311,39 @@ export default function AdminPenggunaPage() {
             {showForm && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => { setShowForm(false); setEditing(null); }} />
-                    <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md">
-                        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-                            <h3 className="font-bold text-gray-900">{editing ? 'Edit Pengguna' : 'Tambah Pengguna Baru'}</h3>
-                            <button onClick={() => { setShowForm(false); setEditing(null); }} className="p-2 rounded-xl text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
+                    <div className="relative bg-white rounded-2xl shadow-[var(--shadow-elevated)] w-full max-w-md">
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--color-border-muted)]">
+                            <h3 className="font-bold text-[var(--color-text-primary)]">{editing ? 'Edit Pengguna' : 'Tambah Pengguna Baru'}</h3>
+                            <button onClick={() => { setShowForm(false); setEditing(null); }} className="p-2 rounded-xl text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] hover:bg-[var(--color-section-alt)] transition-colors">
                                 <X className="w-4 h-4" />
                             </button>
                         </div>
                         <div className="p-6 space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Nama <span className="text-red-500">*</span></label>
+                                <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Nama <span className="text-red-500">*</span></label>
                                 <input type="text" required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Nama lengkap" className={inp} />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Email <span className="text-red-500">*</span></label>
+                                <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Email <span className="text-red-500">*</span></label>
                                 <input type="email" required value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="email@sipeda.id" className={inp} />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">
                                     Password {!editing && <span className="text-red-500">*</span>}
-                                    {editing && <span className="text-gray-400 font-normal">(kosongkan jika tidak diubah)</span>}
+                                    {editing && <span className="text-[var(--color-text-muted)] font-normal">(kosongkan jika tidak diubah)</span>}
                                 </label>
                                 <div className="relative">
                                     <input type={showPw ? 'text' : 'password'} value={form.password}
                                         onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
                                         placeholder={editing ? '••••••••' : 'Min. 6 karakter'} className={inp + ' pr-10'} />
                                     <button type="button" onClick={() => setShowPw(!showPw)}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)]">
                                         {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                     </button>
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Role</label>
+                                <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Role</label>
                                 <select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value as FormData['role'] }))} className={inp + ' bg-white'}>
                                     <option value="petugas_lapangan">Petugas Lapangan</option>
                                     <option value="admin">Admin</option>
@@ -353,8 +351,8 @@ export default function AdminPenggunaPage() {
                                 </select>
                             </div>
                         </div>
-                        <div className="flex gap-3 px-6 py-4 border-t border-gray-100">
-                            <button onClick={() => { setShowForm(false); setEditing(null); }} className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">Batal</button>
+                        <div className="flex gap-3 px-6 py-4 border-t border-[var(--color-border-muted)]">
+                            <button onClick={() => { setShowForm(false); setEditing(null); }} className="flex-1 py-2.5 border border-[var(--color-border-muted)] rounded-xl text-sm font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-section-alt)] transition-colors">Batal</button>
                             <button onClick={handleSave} disabled={saving || !form.name || !form.email || (!editing && !form.password)}
                                 className="flex-1 py-2.5 bg-red-600 rounded-xl text-sm font-semibold text-white hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
                                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
@@ -369,21 +367,21 @@ export default function AdminPenggunaPage() {
             {toggling && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setToggling(null)} />
-                    <div className="relative bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
+                    <div className="relative bg-white rounded-2xl shadow-[var(--shadow-elevated)] p-6 w-full max-w-sm">
                         <div className="text-center mb-5">
                             <div className={`w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 ${toggling.aktif ? 'bg-amber-50' : 'bg-green-50'}`}>
                                 {toggling.aktif ? <PowerOff className="w-6 h-6 text-amber-600" /> : <Power className="w-6 h-6 text-green-600" />}
                             </div>
-                            <h3 className="font-bold text-gray-900 mb-1">
+                            <h3 className="font-bold text-[var(--color-text-primary)] mb-1">
                                 {toggling.aktif ? 'Nonaktifkan Akun?' : 'Aktifkan Akun?'}
                             </h3>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-[var(--color-text-muted)]">
                                 <strong>{toggling.name}</strong> ({ROLE_LABELS[toggling.role]}) akan
                                 {toggling.aktif ? ' dinonaktifkan dan tidak bisa login lagi.' : ' diaktifkan dan bisa login kembali.'}
                             </p>
                         </div>
                         <div className="flex gap-3">
-                            <button onClick={() => setToggling(null)} className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">Batal</button>
+                            <button onClick={() => setToggling(null)} className="flex-1 py-2.5 border border-[var(--color-border-muted)] rounded-xl text-sm font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-section-alt)] transition-colors">Batal</button>
                             <button onClick={handleToggle} disabled={toggleLoading}
                                 className={`flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-colors disabled:opacity-60 flex items-center justify-center gap-2 ${toggling.aktif ? 'bg-amber-600 hover:bg-amber-700' : 'bg-green-600 hover:bg-green-700'}`}>
                                 {toggleLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : toggling.aktif ? <PowerOff className="w-4 h-4" /> : <Power className="w-4 h-4" />}

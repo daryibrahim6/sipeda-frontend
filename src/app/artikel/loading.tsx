@@ -6,14 +6,14 @@ export default function ArtikelLoading() {
 <main id="main" aria-busy="true">
         {/* Header dark */}
         <section className="bg-gray-950 py-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="page-container">
             <div className="h-4 w-24 bg-white/10 rounded mb-3 animate-pulse" />
             <div className="h-10 w-36 bg-white/10 rounded mb-3 animate-pulse" />
             <div className="h-6 w-80 bg-white/10 rounded animate-pulse" />
           </div>
         </section>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="page-container py-12">
           {/* Featured article skeleton */}
           <div className="grid grid-cols-1 md:grid-cols-2 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-10">
             <Skeleton className="aspect-video md:aspect-auto rounded-none h-64 md:h-auto" />

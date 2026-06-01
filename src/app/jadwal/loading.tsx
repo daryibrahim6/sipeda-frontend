@@ -3,7 +3,7 @@ import { ScheduleCardSkeleton, Skeleton } from '@/components/ui/Skeleton';
 export default function JadwalLoading() {
   return (
     <>
-<main id="main" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10" aria-busy="true">
+<main id="main" className="page-container py-10" aria-busy="true">
         {/* Header */}
         <div className="mb-8">
           <Skeleton className="h-4 w-32 mb-2" />

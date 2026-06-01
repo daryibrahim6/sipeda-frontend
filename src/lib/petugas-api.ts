@@ -3,8 +3,10 @@
  * Dipakai oleh halaman /petugas untuk pencatatan kehadiran pendonor.
  */
 
-import { supabase } from './supabase';
+import { createClient } from '@/lib/supabase-browser';
 import type { Schedule, PencatatanDonor, StatusDonor, BloodType } from './types';
+
+const supabase = createClient();
 
 // ─── Jadwal hari ini ──────────────────────────────────────────────────────────
 
@@ -34,6 +36,11 @@ export type CreatePencatatanPayload = {
     golongan_darah: BloodType | 'Tidak Tahu';
     status_donor: StatusDonor;
     catatan?: string;
+    hemoglobin?: number;
+    tensi_sistolik?: number;
+    tensi_diastolik?: number;
+    berat_badan?: number;
+    registrasi_id?: number;
 };
 
 /**
@@ -50,6 +57,7 @@ export async function createPencatatan(
             ...payload,
             catatan: payload.catatan || null,
             dicatat_oleh: adminId,
+            registrasi_id: payload.registrasi_id ?? null,
         })
         .select()
         .single();

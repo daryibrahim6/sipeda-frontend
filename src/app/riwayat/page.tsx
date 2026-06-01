@@ -2,19 +2,26 @@
 
 import { useState } from 'react';
 import {
-    Search, Loader2, Calendar, MapPin, Clock, CheckCircle2,
-    XCircle, AlertTriangle, History, Droplets, ArrowLeft, Phone, Hash, MessageCircle, Bell,
+    Search, Calendar, MapPin, Clock, CheckCircle2,
+    XCircle, AlertTriangle, History, Droplets, ArrowLeft, Phone, Hash, MessageCircle, Bell, Award,
 } from 'lucide-react';
 import { lookupDonorHistory, type DonorHistoryResult } from '@/lib/api';
 import DonorCard from '@/components/donor/DonorCard';
+import SertifikatDonor from '@/components/donor/SertifikatDonor';
 import Link from 'next/link';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { Card } from '@/components/ui/Card';
+import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
+
+import { EmptyState } from '@/components/ui/EmptyState';
 
 // ─── Status helpers ───────────────────────────────────────────────────────────
 
 function statusBadge(status: string, kehadiran: string | null) {
     if (kehadiran === 'hadir') return { label: 'Hadir ✓', cls: 'bg-green-50 text-green-700 border-green-200', icon: CheckCircle2 };
-    if (kehadiran === 'tidak_hadir') return { label: 'Tidak Hadir', cls: 'bg-red-50 text-red-700 border-red-200', icon: XCircle };
-    if (status === 'dibatalkan') return { label: 'Dibatalkan', cls: 'bg-gray-50 text-gray-500 border-gray-200', icon: XCircle };
+    if (kehadiran === 'tidak_hadir') return { label: 'Tidak Hadir', cls: 'bg-[var(--color-primary-subtle)] text-red-700 border-red-200', icon: XCircle };
+    if (status === 'dibatalkan') return { label: 'Dibatalkan', cls: 'bg-[var(--color-section-alt)] text-[var(--color-text-muted)] border-[var(--color-border-muted)]', icon: XCircle };
     if (status === 'confirmed') return { label: 'Terkonfirmasi', cls: 'bg-blue-50 text-blue-700 border-blue-200', icon: CheckCircle2 };
     return { label: 'Menunggu', cls: 'bg-amber-50 text-amber-700 border-amber-200', icon: AlertTriangle };
 }
@@ -31,6 +38,7 @@ export default function RiwayatPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [data, setData] = useState<DonorHistoryResult | null>(null);
+    const [certItem, setCertItem] = useState<DonorHistoryResult['registrasi'][number] | null>(null);
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -58,89 +66,73 @@ export default function RiwayatPage() {
     }
 
     return (
-        <main id="main">
-            {/* Hero */}
-            <section className="bg-gray-950 text-white py-16">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <p className="text-sm font-bold text-red-400 uppercase tracking-widest mb-2">Riwayat</p>
-                    <h1 className="text-4xl font-extrabold mb-3">Riwayat Donor Anda</h1>
-                    <p className="text-gray-400 max-w-xl">
-                        Lihat semua riwayat registrasi dan kegiatan donor darah Anda di SIPEDA.
-                        Masukkan nomor telepon dan kode registrasi untuk verifikasi.
-                    </p>
-                </div>
-            </section>
+    <main id="main">
+      <PageHeader
+        badge="Riwayat"
+        title="Riwayat Donor Anda"
+        description="Lihat semua riwayat registrasi dan kegiatan donor darah Anda di SIPEDA. Masukkan nomor telepon dan kode registrasi untuk verifikasi."
+      />
 
             <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 {!data ? (
                     <>
                         {/* Login Form */}
-                        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8">
+                        <Card className="p-6 sm:p-8">
                             <div className="flex items-center gap-3 mb-6">
-                                <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center">
-                                    <History className="w-5 h-5 text-red-600" />
+                                <div className="w-10 h-10 bg-[var(--color-primary-subtle)] rounded-xl flex items-center justify-center">
+                                    <History className="w-5 h-5 text-[var(--color-primary)]" />
                                 </div>
                                 <div>
-                                    <h2 className="font-bold text-gray-900">Cek Riwayat Donor</h2>
-                                    <p className="text-xs text-gray-400">Verifikasi identitas Anda untuk melihat riwayat</p>
+                                    <h2 className="font-bold text-[var(--color-text-primary)]">Cek Riwayat Donor</h2>
+                                    <p className="text-xs text-[var(--color-text-muted)]">Verifikasi identitas Anda untuk melihat riwayat</p>
                                 </div>
                             </div>
 
                             <form onSubmit={handleSubmit} className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                        <Phone className="w-3.5 h-3.5 inline mr-1.5" />
-                                        Nomor Telepon
-                                    </label>
-                                    <input
-                                        type="tel"
-                                        value={telepon}
-                                        onChange={e => setTelepon(e.target.value)}
-                                        placeholder="08xxxxxxxxxx"
-                                        required
-                                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                                    />
-                                    <p className="text-xs text-gray-400 mt-1">Nomor yang Anda gunakan saat registrasi donor.</p>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                                        <Hash className="w-3.5 h-3.5 inline mr-1.5" />
-                                        Kode Registrasi
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={kode}
-                                        onChange={e => setKode(e.target.value.toUpperCase())}
-                                        placeholder="REG-2026-XXXXX"
-                                        required
-                                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 font-mono focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                                    />
-                                    <p className="text-xs text-gray-400 mt-1">Kode yang Anda terima saat mendaftar. Gunakan kode dari registrasi manapun.</p>
-                                </div>
+                                <Input
+                                    type="tel"
+                                    label={<><Phone className="w-3.5 h-3.5 inline mr-1.5" />Nomor Telepon</>}
+                                    value={telepon}
+                                    onChange={e => setTelepon(e.target.value)}
+                                    placeholder="08xxxxxxxxxx"
+                                    required
+                                    helperText="Nomor yang Anda gunakan saat registrasi donor."
+                                />
+                                <Input
+                                    type="text"
+                                    label={<><Hash className="w-3.5 h-3.5 inline mr-1.5" />Kode Registrasi</>}
+                                    value={kode}
+                                    onChange={e => setKode(e.target.value.toUpperCase())}
+                                    placeholder="REG-2026-XXXXX"
+                                    required
+                                    className="font-mono"
+                                    helperText="Kode yang Anda terima saat mendaftar. Gunakan kode dari registrasi manapun."
+                                />
 
                                 {error && (
-                                    <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+                                    <div className="flex items-center gap-2 p-3 bg-[var(--color-primary-subtle)] border border-red-200 rounded-xl text-sm text-red-700">
                                         <XCircle className="w-4 h-4 flex-shrink-0" />
                                         {error}
                                     </div>
                                 )}
 
-                                <button
+                                <Button
                                     type="submit"
-                                    disabled={loading || !telepon.trim() || !kode.trim()}
-                                    className="w-full py-3 bg-red-600 text-white text-sm font-semibold rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                                    loading={loading}
+                                    disabled={!telepon.trim() || !kode.trim()}
+                                    className="w-full"
+                                    icon={<Search className="w-4 h-4" />}
                                 >
-                                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
                                     {loading ? 'Mencari...' : 'Lihat Riwayat'}
-                                </button>
+                                </Button>
                             </form>
-                        </div>
+                        </Card>
 
                         {/* Help */}
                         <div className="mt-6 text-center">
-                            <p className="text-sm text-gray-400">
+                            <p className="text-sm text-[var(--color-text-muted)]">
                                 Belum pernah mendaftar?{' '}
-                                <Link href="/jadwal" className="text-red-600 font-medium hover:underline">
+                                <Link href="/jadwal" className="text-[var(--color-primary)] font-medium hover:underline">
                                     Daftar donor sekarang
                                 </Link>
                             </p>
@@ -150,41 +142,41 @@ export default function RiwayatPage() {
                     /* ── History View ── */
                     <div className="space-y-6">
                         {/* Back button */}
-                        <button onClick={handleBack} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors">
+                        <button onClick={handleBack} className="flex items-center gap-1.5 px-3 py-2 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] transition-colors">
                             <ArrowLeft className="w-4 h-4" />
                             Cari lagi
                         </button>
 
                         {/* Profile card */}
-                        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                            <div className="flex items-start gap-4">
-                                <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center flex-shrink-0">
-                                    <Droplets className="w-6 h-6 text-red-600" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <h2 className="text-xl font-bold text-gray-900">{data.nama}</h2>
-                                    <div className="flex flex-wrap items-center gap-3 mt-1 text-sm text-gray-500">
-                                        <span className="flex items-center gap-1">
-                                            <Phone className="w-3.5 h-3.5" />
-                                            {data.telepon}
-                                        </span>
-                                        <span className="font-semibold text-red-600">{data.golongan_darah}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Stats row */}
-                            <div className="grid grid-cols-2 gap-3 mt-5">
-                                <div className="bg-gray-50 rounded-xl p-4 text-center">
-                                    <div className="text-2xl font-bold text-gray-900">{data.registrasi.length}</div>
-                                    <div className="text-xs text-gray-500 mt-0.5">Total Registrasi</div>
-                                </div>
-                                <div className="bg-green-50 rounded-xl p-4 text-center">
-                                    <div className="text-2xl font-bold text-green-700">{data.total_donor_berhasil}</div>
-                                    <div className="text-xs text-green-600 mt-0.5">Donor Berhasil</div>
-                                </div>
+                <Card variant="elevated" className="p-6">
+                    <div className="flex items-start gap-4">
+                        <div className="w-14 h-14 bg-[var(--color-primary-subtle)] rounded-2xl flex items-center justify-center flex-shrink-0">
+                            <Droplets className="w-6 h-6 text-[var(--color-primary)]" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <h2 className="text-xl font-bold text-[var(--color-text-primary)]">{data.nama}</h2>
+                            <div className="flex flex-wrap items-center gap-3 mt-1 text-sm text-[var(--color-text-muted)]">
+                                <span className="flex items-center gap-1">
+                                    <Phone className="w-3.5 h-3.5" />
+                                    {data.telepon}
+                                </span>
+                                <span className="font-semibold text-[var(--color-primary)]">{data.golongan_darah}</span>
                             </div>
                         </div>
+                    </div>
+
+                            {/* Stats row */}
+                    <div className="grid grid-cols-2 gap-3 mt-5">
+                        <Card variant="flush" className="bg-[var(--color-section-alt)] text-center !p-4">
+                            <div className="text-2xl font-bold text-[var(--color-text-primary)]">{data.registrasi.length}</div>
+                            <div className="text-xs text-[var(--color-text-muted)] mt-0.5">Total Registrasi</div>
+                        </Card>
+                        <Card variant="flush" className="bg-green-50 text-center !p-4">
+                            <div className="text-2xl font-bold text-green-700">{data.total_donor_berhasil}</div>
+                            <div className="text-xs text-green-600 mt-0.5">Donor Berhasil</div>
+                        </Card>
+                    </div>
+                </Card>
 
                         {/* Kartu Donor Digital */}
                         <DonorCard data={data} />
@@ -203,7 +195,7 @@ export default function RiwayatPage() {
                                 ? `🩸 Hai, saya sudah bisa donor darah lagi! Donor terakhir saya pada ${formatDate(lastHadir.jadwal.tanggal)}.\n\nCek jadwal donor:\n🔗 https://sipeda.vercel.app/jadwal`
                                 : `🩸 Reminder: Saya bisa donor darah lagi mulai ${nextStr}.\n\nCek jadwal donor nanti di:\n🔗 https://sipeda.vercel.app/jadwal`;
                             return (
-                                <div className={`rounded-2xl border p-4 ${canDonate ? 'bg-green-50 border-green-200' : 'bg-blue-50 border-blue-200'}`}>
+                                <Card variant="flush" className={`${canDonate ? 'bg-green-50 border-green-200' : 'bg-blue-50 border-blue-200'} !p-4`}>
                                     <div className="flex items-start gap-3">
                                         <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${canDonate ? 'bg-green-100' : 'bg-blue-100'}`}>
                                             <Bell className={`w-4 h-4 ${canDonate ? 'text-green-600' : 'text-blue-600'}`} />
@@ -221,7 +213,7 @@ export default function RiwayatPage() {
                                                 href={`https://wa.me/?text=${encodeURIComponent(waText)}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className={`inline-flex items-center gap-1.5 mt-2.5 px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${canDonate
+                                                className={`inline-flex items-center gap-1.5 mt-2.5 px-3 py-2 text-xs font-semibold rounded-lg active:scale-[0.95] transition-all ${canDonate
                                                         ? 'bg-green-600 text-white hover:bg-green-700'
                                                         : 'bg-blue-600 text-white hover:bg-blue-700'
                                                     }`}
@@ -231,34 +223,30 @@ export default function RiwayatPage() {
                                             </a>
                                         </div>
                                     </div>
-                                </div>
+                                </Card>
                             );
                         })()}
 
-                        {/* Timeline */}
                         <div>
-                            <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-4">
+                            <h3 className="text-sm font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide mb-4">
                                 Riwayat Registrasi ({data.registrasi.length})
                             </h3>
 
                             {data.registrasi.length === 0 ? (
-                                <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center text-gray-400">
-                                    <History className="w-8 h-8 mx-auto mb-2 text-gray-200" />
-                                    <p className="text-sm">Belum ada riwayat registrasi.</p>
-                                </div>
+                                <EmptyState icon={<History />} title="Belum ada riwayat registrasi" />
                             ) : (
                                 <div className="space-y-3">
                                     {data.registrasi.map((r) => {
                                         const badge = statusBadge(r.status, r.status_kehadiran);
                                         const Icon = badge.icon;
                                         return (
-                                            <div key={r.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:border-red-200 transition-colors">
+                                            <Card key={r.id} variant="interactive" className="p-5">
                                                 <div className="flex items-start justify-between gap-3 mb-3">
                                                     <div className="flex-1 min-w-0">
-                                                        <div className="font-semibold text-gray-900 text-sm">
+                                                        <div className="font-semibold text-[var(--color-text-primary)] text-sm">
                                                             {r.jadwal?.lokasi?.nama_lokasi ?? 'Lokasi tidak diketahui'}
                                                         </div>
-                                                        <div className="flex items-center gap-1.5 text-xs text-gray-400 mt-1">
+                                                        <div className="flex items-center gap-1.5 text-xs text-[var(--color-text-muted)] mt-1">
                                                             <MapPin className="w-3 h-3" />
                                                             {r.jadwal?.lokasi?.kecamatan ?? '-'}
                                                         </div>
@@ -269,7 +257,7 @@ export default function RiwayatPage() {
                                                     </span>
                                                 </div>
 
-                                                <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500">
+                                                <div className="flex flex-wrap items-center gap-4 text-xs text-[var(--color-text-muted)]">
                                                     <span className="flex items-center gap-1">
                                                         <Calendar className="w-3 h-3" />
                                                         {r.jadwal ? formatDate(r.jadwal.tanggal) : '-'}
@@ -278,9 +266,16 @@ export default function RiwayatPage() {
                                                         <Clock className="w-3 h-3" />
                                                         {r.jadwal ? `${r.jadwal.waktu_mulai}–${r.jadwal.waktu_selesai}` : '-'}
                                                     </span>
-                                                    <span className="font-mono text-gray-400">{r.kode_registrasi}</span>
+                                                    <span className="font-mono text-[var(--color-text-muted)]">{r.kode_registrasi}</span>
+                                                    {r.status_kehadiran === 'hadir' && (
+                                                        <button onClick={() => setCertItem(r)}
+                                                            className="ml-auto flex items-center gap-1 px-3 py-1.5 bg-red-50 text-red-700 border border-red-200 rounded-lg font-semibold hover:bg-red-100 active:scale-[0.95] transition-all">
+                                                            <Award className="w-3 h-3" />
+                                                            Sertifikat
+                                                        </button>
+                                                    )}
                                                 </div>
-                                            </div>
+                                            </Card>
                                         );
                                     })}
                                 </div>
@@ -290,12 +285,22 @@ export default function RiwayatPage() {
                         {/* CTA */}
                         <div className="text-center pt-4">
                             <Link href="/jadwal"
-                                className="inline-flex items-center gap-2 px-6 py-3 bg-red-600 text-white text-sm font-semibold rounded-xl hover:bg-red-700 transition-colors shadow-sm">
+                                className="inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold rounded-2xl bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-accent)] text-white shadow-[var(--shadow-btn-primary)] hover:from-[var(--color-primary-dark)] hover:to-[var(--color-primary)] hover:shadow-[var(--shadow-btn-primary-hover)] active:scale-[0.97] transition-all">
                                 <Droplets className="w-4 h-4" />
                                 Daftar Donor Berikutnya
                             </Link>
                         </div>
                     </div>
+                )}
+
+                {certItem && data && (
+                    <SertifikatDonor
+                        nama={data.nama}
+                        golongan_darah={data.golongan_darah}
+                        total_donor_berhasil={data.total_donor_berhasil}
+                        item={certItem}
+                        onClose={() => setCertItem(null)}
+                    />
                 )}
             </div>
         </main>

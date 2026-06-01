@@ -5,14 +5,14 @@ export default function SyaratDonorLoading() {
 <main id="main" aria-busy="true" className="animate-pulse">
                 {/* Hero */}
                 <section className="bg-gray-950 py-20">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                    <div className="page-container text-center">
                         <div className="h-4 w-24 bg-gray-800 rounded mb-4 mx-auto" />
                         <div className="h-12 w-80 bg-gray-800 rounded-lg mb-4 mx-auto" />
                         <div className="h-5 w-96 bg-gray-700 rounded mx-auto" />
                     </div>
                 </section>
 
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-12">
+                <div className="page-container py-16 space-y-12">
                     {/* Requirements grid */}
                     <div>
                         <div className="h-8 w-48 bg-gray-200 rounded-lg mb-6" />

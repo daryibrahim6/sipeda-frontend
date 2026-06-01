@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useSidebarToggle } from '@/app/admin/layout';
+import { useSidebarToggle } from '@/lib/admin-context';
 import { TopBar } from '@/components/admin/TopBar';
 import {
   Search, Download, ChevronLeft, ChevronRight,
@@ -12,6 +12,7 @@ import {
   type AdminRegistrasi,
 } from '@/lib/admin-api';
 import { formatDate } from '@/lib/utils';
+import { Button } from '@/components/ui/Button';
 
 type RegStatus = AdminRegistrasi['status'];
 const ALL_STATUSES: RegStatus[] = ['pending', 'confirmed', 'hadir', 'tidak_hadir', 'dibatalkan'];
@@ -30,7 +31,7 @@ const STATUS_COLORS: Record<RegStatus, string> = {
   confirmed: 'text-blue-700   bg-blue-50   border-blue-200',
   hadir: 'text-green-700  bg-green-50  border-green-200',
   tidak_hadir: 'text-red-700    bg-red-50    border-red-200',
-  dibatalkan: 'text-gray-500   bg-gray-50   border-gray-200',
+  dibatalkan: 'text-[var(--color-text-muted)]   bg-[var(--color-section-alt)]   border-[var(--color-border)]',
 };
 
 function exportCSV(regs: AdminRegistrasi[]) {
@@ -55,25 +56,25 @@ function exportCSV(regs: AdminRegistrasi[]) {
 
 function StatusModal({ reg, onSave, onClose }: {
   reg: AdminRegistrasi;
-  onSave: (id: number, status: RegStatus) => Promise<void>;
+  onSave: (reg: AdminRegistrasi, status: RegStatus) => Promise<void>;
   onClose: () => void;
 }) {
   const [selected, setSelected] = useState<RegStatus>(reg.status);
   const [loading, setLoading] = useState(false);
   async function handleSave() {
     setLoading(true);
-    await onSave(reg.id, selected);
+    await onSave(reg, selected);
     setLoading(false);
   }
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
-        <h3 className="font-bold text-gray-900 mb-1">Update Status</h3>
-        <p className="text-sm text-gray-500 mb-5">{reg.nama} · <span className="font-mono text-xs">{reg.kode_registrasi}</span></p>
+      <div className="relative bg-white rounded-3xl shadow-[var(--shadow-elevated)] p-6 w-full max-w-sm">
+        <h3 className="font-bold text-[var(--color-text-primary)] mb-1">Update Status</h3>
+        <p className="text-sm text-[var(--color-text-secondary)] mb-5">{reg.nama} · <span className="font-mono text-xs">{reg.kode_registrasi}</span></p>
         <div className="space-y-2 mb-6">
           {ALL_STATUSES.map(s => (
-            <label key={s} className={`flex items-center gap-3 px-4 py-3 rounded-xl border-2 cursor-pointer transition-all ${selected === s ? 'border-red-500 bg-red-50' : 'border-gray-100 hover:border-gray-200'
+            <label key={s} className={`flex items-center gap-3 px-4 py-3 rounded-2xl border-2 cursor-pointer transition-all ${selected === s ? 'border-[var(--color-primary)] bg-[var(--color-primary-subtle)]' : 'border-[var(--color-border-muted)] hover:border-[var(--color-border)] hover:bg-[var(--color-section-alt)]'
               }`}>
               <input type="radio" name="status" value={s} checked={selected === s} onChange={() => setSelected(s)} className="accent-red-600" />
               <span className={`text-sm font-medium px-2 py-0.5 rounded-full border ${STATUS_COLORS[s]}`}>{STATUS_LABELS[s]}</span>
@@ -81,9 +82,9 @@ function StatusModal({ reg, onSave, onClose }: {
           ))}
         </div>
         <div className="flex gap-3">
-          <button onClick={onClose} className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50">Batal</button>
+          <button onClick={onClose} className="flex-1 py-2.5 border border-[var(--color-border-muted)] rounded-2xl text-sm font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-section-alt)] transition-all active:scale-[0.98]">Batal</button>
           <button onClick={handleSave} disabled={loading}
-            className="flex-1 py-2.5 bg-red-600 text-white text-sm font-semibold rounded-xl hover:bg-red-700 disabled:opacity-60 flex items-center justify-center gap-2">
+            className="flex-1 py-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white text-sm font-semibold rounded-2xl hover:from-red-700 hover:to-red-800 disabled:opacity-60 flex items-center justify-center gap-2 shadow-md shadow-black/10 active:scale-[0.98] transition-all">
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
             Simpan
           </button>
@@ -95,9 +96,9 @@ function StatusModal({ reg, onSave, onClose }: {
 
 function Toast({ msg, onClose }: { msg: string; onClose: () => void }) {
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-green-600 text-white text-sm font-medium shadow-lg">
+    <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-green-600 text-white text-sm font-medium shadow-lg shadow-green-600/20">
       <Check className="w-4 h-4" />{msg}
-      <button onClick={onClose}><X className="w-3.5 h-3.5 opacity-70" /></button>
+      <button onClick={onClose} className="p-2"><X className="w-3.5 h-3.5 opacity-70" /></button>
     </div>
   );
 }
@@ -128,17 +129,35 @@ export default function AdminRegistrasiPage() {
     } finally {
       setDataLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, search, statusFilter]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
-  async function handleStatusSave(id: number, status: RegStatus) {
+  async function handleStatusSave(reg: AdminRegistrasi, status: RegStatus) {
     try {
-      await updateRegistrasiStatus(id, status);
+      await updateRegistrasiStatus(reg.id, status);
       setEditing(null);
       showToast('Status registrasi berhasil diperbarui.');
       await loadData();
+
+      const STATUS_WA_LABELS: Record<RegStatus, string> = {
+        pending: '⏳ Menunggu Konfirmasi',
+        confirmed: '✅ Dikonfirmasi',
+        hadir: '📍 Sudah Hadir',
+        tidak_hadir: '❌ Tidak Hadir',
+        dibatalkan: '🗑️ Dibatalkan',
+      };
+
+      const message =
+        `*Update Status Pendaftaran Donor Darah*\n\n` +
+        `Halo ${reg.nama},\n\n` +
+        `Status pendaftaran kamu (${reg.kode_registrasi}) sekarang: *${STATUS_WA_LABELS[status]}*\n\n` +
+        `Terima kasih telah mendukung kegiatan donor darah PMI Kabupaten Indramayu. ❤️`;
+      fetch('/api/send-wa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: reg.telepon, message }),
+      }).catch(() => {});
     } catch {
       showToast('Gagal update status.');
     }
@@ -158,13 +177,10 @@ export default function AdminRegistrasiPage() {
         onMenuClick={toggle}
         actions={
           <div className="flex gap-2">
-            <button onClick={loadData} className="p-2 rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" title="Refresh">
-              <RefreshCw className={`w-4 h-4 ${dataLoading ? 'animate-spin text-red-500' : ''}`} />
-            </button>
-            <button onClick={() => exportCSV(regs)} className="flex items-center gap-1.5 px-4 py-2 bg-white border border-gray-200 text-gray-700 text-sm font-semibold rounded-xl hover:bg-gray-50 transition-colors">
-              <Download className="w-4 h-4 text-green-600" />
+            <Button variant="ghost" size="sm" onClick={loadData} title="Refresh" icon={<RefreshCw className={`w-4 h-4 ${dataLoading ? 'animate-spin' : ''}`} />} />
+            <Button variant="secondary" size="sm" onClick={() => exportCSV(regs)} icon={<Download className="w-4 h-4" />}>
               <span className="hidden sm:inline">Export CSV</span>
-            </button>
+            </Button>
           </div>
         }
       />
@@ -182,17 +198,17 @@ export default function AdminRegistrasiPage() {
         {/* Search + filter */}
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--color-text-muted)]" />
             <input type="text" placeholder="Cari nama, kode, telepon..."
               value={search} onChange={e => { setSearch(e.target.value); setPage(1); }}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent" />
+              className="w-full pl-10 pr-4 py-2.5 border border-[var(--color-border-muted)] rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-[var(--color-primary)] transition-all" />
           </div>
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-gray-400 flex-shrink-0" />
+            <Filter className="w-4 h-4 text-[var(--color-text-muted)] flex-shrink-0" />
             <div className="flex gap-1.5 overflow-x-auto">
               {(['semua', ...ALL_STATUSES] as const).map(s => (
                 <button key={s} onClick={() => { setStatusFilter(s); setPage(1); }}
-                  className={`px-3 py-2 text-xs font-medium rounded-lg whitespace-nowrap transition-colors ${statusFilter === s ? 'bg-red-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:border-red-300'
+                  className={`px-3 py-2.5 text-xs font-medium rounded-xl whitespace-nowrap transition-all ${statusFilter === s ? 'bg-gradient-to-r from-red-600 to-red-700 text-white shadow-[var(--shadow-card)]' : 'bg-white border border-[var(--color-border-muted)] text-[var(--color-text-secondary)] hover:border-red-300 hover:text-[var(--color-primary)]'
                     }`}>
                   {s === 'semua' ? 'Semua' : STATUS_LABELS[s]}
                 </button>
@@ -202,54 +218,54 @@ export default function AdminRegistrasiPage() {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-3xl border border-[var(--color-border-muted)] overflow-hidden shadow-[var(--shadow-card)]">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-100 bg-gray-50/50">
-                  <th className="text-left px-5 py-3.5 font-semibold text-gray-600 text-xs uppercase tracking-wide">Kode</th>
-                  <th className="text-left px-5 py-3.5 font-semibold text-gray-600 text-xs uppercase tracking-wide">Nama</th>
-                  <th className="text-left px-5 py-3.5 font-semibold text-gray-600 text-xs uppercase tracking-wide hidden md:table-cell">Telepon</th>
-                  <th className="text-center px-5 py-3.5 font-semibold text-gray-600 text-xs uppercase tracking-wide hidden sm:table-cell">Gol. Darah</th>
-                  <th className="text-left px-5 py-3.5 font-semibold text-gray-600 text-xs uppercase tracking-wide hidden lg:table-cell">Jadwal</th>
-                  <th className="text-center px-5 py-3.5 font-semibold text-gray-600 text-xs uppercase tracking-wide">Status</th>
-                  <th className="text-right px-5 py-3.5 font-semibold text-gray-600 text-xs uppercase tracking-wide">Aksi</th>
+                <tr className="border-b border-[var(--color-border-muted)] bg-[var(--color-section-alt)]/50 backdrop-blur-sm sticky top-0 z-10">
+                  <th className="text-left px-5 py-3.5 font-semibold text-[var(--color-text-muted)] text-xs uppercase tracking-wide">Kode</th>
+                  <th className="text-left px-5 py-3.5 font-semibold text-[var(--color-text-muted)] text-xs uppercase tracking-wide">Nama</th>
+                  <th className="text-left px-5 py-3.5 font-semibold text-[var(--color-text-muted)] text-xs uppercase tracking-wide hidden md:table-cell">Telepon</th>
+                  <th className="text-center px-5 py-3.5 font-semibold text-[var(--color-text-muted)] text-xs uppercase tracking-wide hidden sm:table-cell">Gol. Darah</th>
+                  <th className="text-left px-5 py-3.5 font-semibold text-[var(--color-text-muted)] text-xs uppercase tracking-wide hidden lg:table-cell">Jadwal</th>
+                  <th className="text-center px-5 py-3.5 font-semibold text-[var(--color-text-muted)] text-xs uppercase tracking-wide">Status</th>
+                  <th className="text-right px-5 py-3.5 font-semibold text-[var(--color-text-muted)] text-xs uppercase tracking-wide">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-[var(--color-border-muted)]">
                 {dataLoading ? (
                   [...Array(5)].map((_, i) => (
                     <tr key={i}>
                       {[...Array(7)].map((_, j) => (
                         <td key={j} className="px-5 py-4">
-                          <div className="h-4 bg-gray-100 animate-pulse rounded w-full" />
+                          <div className="h-4 bg-[var(--color-section-alt)] animate-pulse-soft rounded w-full" />
                         </td>
                       ))}
                     </tr>
                   ))
                 ) : regs.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-16 text-gray-400">
-                      <ClipboardList className="w-10 h-10 mx-auto mb-3 text-gray-200" />
+                    <td colSpan={7} className="text-center py-16 text-[var(--color-text-muted)]">
+                      <ClipboardList className="w-10 h-10 mx-auto mb-3 text-[var(--color-border-muted)]" />
                       Tidak ada registrasi yang cocok.
                     </td>
                   </tr>
                 ) : regs.map(r => (
-                  <tr key={r.id} className="hover:bg-gray-50/50 transition-colors">
+                  <tr key={r.id} className="hover:bg-[var(--color-section-alt)]/30 transition-colors">
                     <td className="px-5 py-4">
-                      <span className="font-mono text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded-lg">{r.kode_registrasi}</span>
+                      <span className="font-mono text-xs font-semibold text-[var(--color-text-muted)] bg-[var(--color-section-alt)] px-2 py-1 rounded-lg">{r.kode_registrasi}</span>
                     </td>
                     <td className="px-5 py-4">
-                      <div className="font-semibold text-gray-900">{r.nama}</div>
-                      {r.email && <div className="text-xs text-gray-400">{r.email}</div>}
+                      <div className="font-semibold text-[var(--color-text-primary)]">{r.nama}</div>
+                      {r.email && <div className="text-xs text-[var(--color-text-muted)]">{r.email}</div>}
                     </td>
-                    <td className="px-5 py-4 hidden md:table-cell text-gray-600 text-xs">{r.telepon}</td>
+                    <td className="px-5 py-4 hidden md:table-cell text-[var(--color-text-secondary)] text-xs">{r.telepon}</td>
                     <td className="px-5 py-4 hidden sm:table-cell text-center">
-                      <span className="font-mono text-xs font-bold text-gray-700 bg-gray-100 px-2 py-1 rounded">{r.golongan_darah}</span>
+                      <span className="font-mono text-xs font-bold text-[var(--color-text-primary)] bg-[var(--color-section-alt)] px-2 py-1 rounded">{r.golongan_darah}</span>
                     </td>
                     <td className="px-5 py-4 hidden lg:table-cell">
-                      <div className="text-xs text-gray-700 font-medium">{(r.jadwal?.lokasi as { nama_lokasi?: string })?.nama_lokasi}</div>
-                      <div className="text-xs text-gray-400">{formatDate(r.jadwal?.tanggal ?? '')}</div>
+                      <div className="text-xs text-[var(--color-text-secondary)] font-medium">{(r.jadwal?.lokasi as { nama_lokasi?: string })?.nama_lokasi}</div>
+                      <div className="text-xs text-[var(--color-text-muted)]">{formatDate(r.jadwal?.tanggal ?? '')}</div>
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex justify-center">
@@ -259,7 +275,7 @@ export default function AdminRegistrasiPage() {
                     <td className="px-5 py-4">
                       <div className="flex justify-end">
                         <button onClick={() => setEditing(r)}
-                          className="px-3 py-1.5 text-xs font-medium border border-gray-200 rounded-lg text-gray-600 hover:border-red-300 hover:text-red-600 transition-colors whitespace-nowrap">
+                          className="px-3 py-2 text-xs font-medium border border-[var(--color-border-muted)] rounded-2xl text-[var(--color-text-secondary)] hover:border-red-300 hover:text-[var(--color-primary)] hover:bg-[var(--color-primary-subtle)] transition-all whitespace-nowrap">
                           Update Status
                         </button>
                       </div>
@@ -271,22 +287,22 @@ export default function AdminRegistrasiPage() {
           </div>
 
           {totalPages > 1 && (
-            <div className="flex items-center justify-between px-5 py-4 border-t border-gray-100">
-              <span className="text-xs text-gray-400">{total} registrasi · halaman {page} dari {totalPages}</span>
+            <div className="flex items-center justify-between px-5 py-4 border-t border-[var(--color-border-muted)]">
+              <span className="text-xs text-[var(--color-text-muted)]">{total} registrasi · halaman {page} dari {totalPages}</span>
               <div className="flex gap-1">
                 <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-                  className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 disabled:opacity-30 transition-colors">
+                  className="p-2 rounded-2xl text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-section-alt)] disabled:opacity-30 transition-colors">
                   <ChevronLeft className="w-4 h-4" />
                 </button>
                 <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-                  className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 disabled:opacity-30 transition-colors">
+                  className="p-2 rounded-2xl text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-section-alt)] disabled:opacity-30 transition-colors">
                   <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
             </div>
           )}
         </div>
-        <p className="text-xs text-gray-400 text-center">Export CSV akan mengunduh data sesuai filter aktif ({regs.length} baris).</p>
+        <p className="text-xs text-[var(--color-text-muted)] text-center">Export CSV akan mengunduh data sesuai filter aktif ({regs.length} baris).</p>
       </main>
 
       {editing && <StatusModal reg={editing} onSave={handleStatusSave} onClose={() => setEditing(null)} />}

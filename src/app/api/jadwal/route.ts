@@ -11,8 +11,11 @@ export async function GET(request: Request) {
         return NextResponse.json(data, {
             headers: { 'Cache-Control': 'public, max-age=60, stale-while-revalidate=300' },
         });
-    } catch (err) {
-        console.error('[/api/jadwal]', err);
-        return NextResponse.json([], { status: 200 });
-    }
+} catch (err) {
+    console.error('[/api/jadwal]', err);
+    return NextResponse.json(
+        { error: 'Gagal memuat data jadwal.' },
+        { status: 500 },
+    );
+}
 }

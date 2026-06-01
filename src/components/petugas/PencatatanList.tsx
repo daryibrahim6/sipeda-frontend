@@ -86,16 +86,16 @@ export function PencatatanList({ pencatatan, loading, onUpdate, onDelete, onRefr
 
     return (
         <div>
-            <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wide mb-2 mt-2">
+            <h3 className="text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wide mb-2 mt-2">
                 Pencatatan ({pencatatan.length})
             </h3>
 
             {loading ? (
                 <div className="flex items-center justify-center py-8">
-                    <Loader2 className="w-5 h-5 text-red-500 animate-spin" />
+                    <Loader2 className="w-5 h-5 text-[var(--color-primary)] animate-spin" />
                 </div>
             ) : pencatatan.length === 0 ? (
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center text-sm font-medium text-gray-500">
+                <div className="bg-white rounded-2xl shadow-[var(--shadow-card)] border border-[var(--color-border-muted)] p-8 text-center text-sm font-medium text-[var(--color-text-muted)]">
                     Belum ada pencatatan untuk jadwal ini.
                 </div>
             ) : (
@@ -103,12 +103,12 @@ export function PencatatanList({ pencatatan, loading, onUpdate, onDelete, onRefr
                     {pencatatan.map((p, idx) => (
                         <div key={p.id}>
                             {editingId === p.id ? (
-                                <div className="bg-red-50 rounded-2xl border border-red-200 p-4 space-y-3 shadow-sm">
+                                <div className="bg-[var(--color-primary-subtle)] rounded-2xl border border-red-200 p-4 space-y-3 shadow-[var(--shadow-card)]">
                                     <div className="flex items-center justify-between">
-                                        <span className="text-xs font-bold text-red-600 flex items-center gap-1.5">
+                                        <span className="text-xs font-bold text-[var(--color-primary)] flex items-center gap-1.5">
                                             <Edit3 className="w-4 h-4" /> Edit Pencatatan
                                         </span>
-                                        <button onClick={() => setEditingId(null)} className="p-1 text-gray-400 hover:text-gray-900 bg-white rounded-md shadow-sm">
+                                        <button onClick={() => setEditingId(null)} className="p-2 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] bg-white rounded-md shadow-[var(--shadow-card)]">
                                             <X className="w-4 h-4" />
                                         </button>
                                     </div>
@@ -116,7 +116,7 @@ export function PencatatanList({ pencatatan, loading, onUpdate, onDelete, onRefr
                                         type="text"
                                         value={editForm.nama_pendonor}
                                         onChange={e => setEditForm(f => ({ ...f, nama_pendonor: e.target.value }))}
-                                        className="w-full px-4 py-3 bg-white border-2 border-gray-100 rounded-xl text-sm font-bold text-gray-900 focus:outline-none focus:ring-4 focus:ring-red-500/10 focus:border-red-500 transition-all"
+                                        className="w-full px-4 py-3 bg-white border-2 border-[var(--color-border-muted)] rounded-xl text-sm font-bold text-[var(--color-text-primary)] focus:outline-none focus:ring-4 focus:ring-red-500/10 focus:border-[var(--color-primary)] transition-all"
                                     />
                                     <div className="grid grid-cols-5 gap-1.5">
                                         {GOLDAR_OPTIONS.map(g => (
@@ -125,8 +125,8 @@ export function PencatatanList({ pencatatan, loading, onUpdate, onDelete, onRefr
                                                 type="button"
                                                 onClick={() => setEditForm(f => ({ ...f, golongan_darah: g }))}
                                                 className={`py-2 rounded-lg text-[10px] font-bold border-2 transition-all ${editForm.golongan_darah === g
-                                                    ? 'bg-red-600 border-red-600 text-white shadow-sm'
-                                                    : 'bg-white border-gray-100 text-gray-500 hover:text-gray-900 hover:border-gray-300'
+                                                    ? 'bg-[var(--color-primary)] border-[var(--color-primary)] text-white shadow-[var(--shadow-card)]'
+                                                    : 'bg-white border-[var(--color-border-muted)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-border)]'
                                                     } ${g === 'Tidak Tahu' ? 'col-span-2' : ''}`}
                                             >
                                                 {g}
@@ -140,8 +140,8 @@ export function PencatatanList({ pencatatan, loading, onUpdate, onDelete, onRefr
                                                 type="button"
                                                 onClick={() => setEditForm(f => ({ ...f, status_donor: s.value }))}
                                                 className={`py-2 rounded-lg text-[10px] font-bold border-2 transition-all flex items-center justify-center gap-1 ${editForm.status_donor === s.value
-                                                    ? `${s.color.replace('hover:bg', 'text-white border')} text-white shadow-sm`
-                                                    : 'bg-white border-gray-100 text-gray-500 hover:text-gray-900 hover:border-gray-300'
+                                                    ? `${s.color.replace('hover:bg', 'text-white border')} text-white shadow-[var(--shadow-card)]`
+                                                    : 'bg-white border-[var(--color-border-muted)] text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-border)]'
                                                     }`}
                                             >
                                                 <s.icon className="w-3.5 h-3.5" />{s.label}
@@ -153,26 +153,26 @@ export function PencatatanList({ pencatatan, loading, onUpdate, onDelete, onRefr
                                         onChange={e => setEditForm(f => ({ ...f, catatan: e.target.value }))}
                                         rows={2}
                                         placeholder="Catatan..."
-                                        className="w-full px-4 py-2 bg-white border-2 border-gray-100 rounded-xl text-xs font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-4 focus:ring-red-500/10 focus:border-red-500 transition-all resize-none"
+                                        className="w-full px-4 py-2 bg-white border-2 border-[var(--color-border-muted)] rounded-xl text-xs font-medium text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-4 focus:ring-red-500/10 focus:border-[var(--color-primary)] transition-all resize-none"
                                     />
                                     <button
                                         onClick={handleEditSave}
                                         disabled={editSaving || !editForm.nama_pendonor.trim()}
-                                        className="w-full py-3 bg-gray-900 hover:bg-red-600 disabled:bg-gray-300 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95"
+                                        className="w-full py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 disabled:from-[var(--color-border-muted)] disabled:to-[var(--color-border-muted)] text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-red-600/20 active:scale-95"
                                     >
                                         {editSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                                         {editSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
                                     </button>
                                 </div>
                             ) : (
-                                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 px-4 py-3.5 flex items-center gap-4 transition-all hover:shadow-md">
-                                    <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-extrabold text-gray-500">
+                                <div className="bg-white rounded-2xl shadow-[var(--shadow-card)] border border-[var(--color-border-muted)] px-4 py-3.5 flex items-center gap-4 transition-all hover:shadow-[var(--shadow-elevated)]">
+                                    <div className="w-10 h-10 bg-[var(--color-section-alt)] rounded-full flex items-center justify-center flex-shrink-0 text-sm font-extrabold text-[var(--color-text-muted)]">
                                         {pencatatan.length - idx}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <div className="text-sm font-bold text-gray-900 truncate">{p.nama_pendonor}</div>
+                                        <div className="text-sm font-bold text-[var(--color-text-primary)] truncate">{p.nama_pendonor}</div>
                                         <div className="flex items-center gap-2 mt-1">
-                                            <span className="text-xs font-bold text-gray-500">{p.golongan_darah}</span>
+                                            <span className="text-xs font-bold text-[var(--color-text-muted)]">{p.golongan_darah}</span>
                                             <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold ${STATUS_BADGE[p.status_donor]}`}>
                                                 {STATUS_LABEL[p.status_donor]}
                                             </span>
@@ -181,14 +181,14 @@ export function PencatatanList({ pencatatan, loading, onUpdate, onDelete, onRefr
                                     <div className="flex items-center gap-1">
                                         <button
                                             onClick={() => startEdit(p)}
-                                            className="p-2 rounded-xl text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                                            className="p-2 rounded-xl text-[var(--color-text-muted)] hover:text-blue-600 hover:bg-blue-50 transition-colors"
                                             aria-label="Edit"
                                         >
                                             <Edit3 className="w-4 h-4" />
                                         </button>
                                         <button
                                             onClick={() => handleDelete(p.id)}
-                                            className="p-2 rounded-xl text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                                            className="p-2 rounded-xl text-[var(--color-text-muted)] hover:text-red-600 hover:bg-red-50 transition-colors"
                                             aria-label="Hapus"
                                         >
                                             <Trash2 className="w-4 h-4" />

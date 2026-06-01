@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SIPEDA — Sistem Informasi Pendonoran Darah
 
-## Getting Started
+> Platform digital donor darah untuk **PMI Kabupaten Indramayu**.
 
-First, run the development server:
+[![Stack](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org)
+[![Stack](https://img.shields.io/badge/Supabase-FFD000)](https://supabase.com)
+[![Stack](https://img.shields.io/badge/Tailwind-4-38bdf8)](https://tailwindcss.com)
+
+---
+
+## Fitur Utama
+
+- **Registrasi Donor Online** — Daftar donor tanpa datang langsung
+- **Jadwal Donor** — Lihat jadwal + sisa kuota real-time
+- **Stok Darah** — Cek ketersediaan darah per lokasi + komponen
+- **Peta Interaktif** — Temukan lokasi donor terdekat
+- **Riwayat Donor** — Cek riwayat via telepon + kode registrasi
+- **Artikel & Edukasi** — Informasi seputar donor darah
+- **Admin Panel** — Kelola jadwal, lokasi, stok, pengguna
+- **Petugas Panel** — Catat hasil donor di lapangan
+- **Rekap & Ekspor** — Excel multi-sheet untuk laporan
+
+## Tech Stack
+
+| Bagian | Teknologi |
+|---|---|
+| Framework | Next.js 16 (App Router) |
+| Bahasa | TypeScript |
+| Database | Supabase (PostgreSQL) |
+| Auth | Supabase Auth + RLS |
+| CSS | Tailwind CSS 4 |
+| Map | Leaflet (OpenStreetMap) |
+| Icons | Lucide React |
+| Deployment | Vercel |
+
+## Memulai Development
 
 ```bash
+# 1. Install dependencies
+npm install
+
+# 2. Setup environment
+cp .env.local.example .env.local
+# Isi NEXT_PUBLIC_SUPABASE_URL dan NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+# 3. Database migrations
+# Jalankan file di supabase/migrations/ di Supabase SQL Editor
+
+# 4. Jalankan development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Environment Variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+NEXT_PUBLIC_SUPABASE_URL       # Dari Supabase dashboard
+NEXT_PUBLIC_SUPABASE_ANON_KEY  # Anon key (public)
+SUPABASE_SERVICE_ROLE_KEY      # Service role key (server-only)
+NEXT_PUBLIC_SITE_URL           # URL publik (untuk OG metadata)
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Struktur Proyek
 
-## Learn More
+```
+src/
+  app/           # Next.js App Router pages
+  components/    # UI & feature components
+  lib/           # API clients, auth, types, utils
+supabase/
+  migrations/    # Database schema changes
+  seed/          # Demo data
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Lisensi
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Internal — PMI Kabupaten Indramayu.

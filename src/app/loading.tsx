@@ -36,7 +36,7 @@ export default function HomeLoading() {
 
       {/* Stats skeleton */}
       <section className="border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="page-container py-10">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[...Array(4)].map((_, i) => <StatCardSkeleton key={i} />)}
           </div>
@@ -45,7 +45,7 @@ export default function HomeLoading() {
 
       {/* Schedules skeleton */}
       <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="page-container">
           <div className="animate-pulse h-8 w-48 bg-gray-200 rounded-lg mb-10" />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {[...Array(3)].map((_, i) => <ScheduleCardSkeleton key={i} />)}
@@ -54,8 +54,8 @@ export default function HomeLoading() {
       </section>
 
       {/* Articles skeleton */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-20 bg-[var(--color-section-alt)]">
+        <div className="page-container">
           <div className="animate-pulse h-8 w-36 bg-gray-200 rounded-lg mb-10" />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[...Array(3)].map((_, i) => <ArticleCardSkeleton key={i} />)}

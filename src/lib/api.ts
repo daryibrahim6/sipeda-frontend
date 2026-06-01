@@ -6,7 +6,6 @@
  */
 
 import { supabase } from './supabase';
-import { fireAndForget } from './utils';
 import type {
   Location,
   Schedule,
@@ -43,34 +42,50 @@ export async function getStats(): Promise<SiteStats> {
 // Re-export untuk backward compatibility
 export { getDashboardStats, getUpcomingSchedules } from './admin-api';
 
+// ─── Cache untuk data jarang berubah ───────────────────────────────────────────
+
+const cache = new Map<string, { data: unknown; expires: number }>();
+function withCache<T>(key: string, ttlMs: number, fn: () => Promise<T>): Promise<T> {
+  const entry = cache.get(key);
+  if (entry && entry.expires > Date.now()) {
+    return Promise.resolve(entry.data as T);
+  }
+  return fn().then(data => {
+    cache.set(key, { data, expires: Date.now() + ttlMs });
+    return data;
+  });
+}
+
 // ─── Lokasi Donor ─────────────────────────────────────────────────────────────
 
 export async function getLocations(): Promise<Location[]> {
-  const { data: locations, error } = await supabase
-    .from('lokasi_donor')
-    .select('*')
-    .eq('aktif', true)
-    .order('nama_lokasi');
+  return withCache('getLocations', 120_000, async () => {
+    const { data: locations, error } = await supabase
+      .from('lokasi_donor')
+      .select('*')
+      .eq('aktif', true)
+      .order('nama_lokasi');
 
-  if (error) throw error;
+    if (error) throw error;
 
-  // Fetch semua stok sekaligus (bukan N+1)
-  const lokasiIds = locations.map(l => l.id);
-  const { data: stocks } = lokasiIds.length > 0
-    ? await supabase
-      .from('stok_darah')
-      .select('lokasi_id, golongan_darah, jumlah, status')
-      .in('lokasi_id', lokasiIds)
-    : { data: [] };
+    // Fetch semua stok sekaligus (bukan N+1)
+    const lokasiIds = locations.map(l => l.id);
+    const { data: stocks } = lokasiIds.length > 0
+      ? await supabase
+        .from('stok_darah')
+        .select('lokasi_id, golongan_darah, jumlah, status')
+        .in('lokasi_id', lokasiIds)
+      : { data: [] };
 
-  return locations.map(loc => ({
-    ...loc,
-    koordinat_lat: Number(loc.koordinat_lat),
-    koordinat_lng: Number(loc.koordinat_lng),
-    stok_ringkas: stocks
-      ?.filter(s => s.lokasi_id === loc.id)
-      .map(s => ({ golongan_darah: s.golongan_darah, total: s.jumlah, status: s.status })) ?? [],
-  })) as Location[];
+    return locations.map(loc => ({
+      ...loc,
+      koordinat_lat: Number(loc.koordinat_lat),
+      koordinat_lng: Number(loc.koordinat_lng),
+      stok_ringkas: stocks
+        ?.filter(s => s.lokasi_id === loc.id)
+        .map(s => ({ golongan_darah: s.golongan_darah, total: s.jumlah, status: s.status })) ?? [],
+    })) as Location[];
+  });
 }
 
 export async function getLocationById(id: number): Promise<Location | null> {
@@ -150,7 +165,7 @@ export async function getArticles(
     .from('artikel')
     .select(`
       id, judul, slug, excerpt, gambar, gambar_alt,
-      penulis, published_at, views, unggulan, kategori_id,
+      penulis, published_at, kategori_id,
       kategori:kategori_artikel (nama, slug)
     `, { count: 'exact' })
     .eq('status', 'published')
@@ -184,8 +199,6 @@ export async function getArticles(
       gambar_alt: (r.gambar_alt as string | null) ?? null,
       penulis: r.penulis as string,
       published_at: (r.published_at as string | null) ?? null,
-      views: (r.views as number) ?? 0,
-      unggulan: (r.unggulan as boolean) ?? false,
       kategori_id: (r.kategori_id as number) ?? 0,
       kategori_nama: kat?.nama ?? '',
     };
@@ -201,7 +214,7 @@ export async function getArticleBySlug(slug: string): Promise<Article | null> {
     .from('artikel')
     .select(`
       id, judul, slug, excerpt, konten, gambar, gambar_alt,
-      penulis, published_at, views, unggulan, kategori_id,
+      penulis, published_at, kategori_id,
       kategori:kategori_artikel (nama, slug)
     `)
     .eq('slug', slug)
@@ -209,12 +222,6 @@ export async function getArticleBySlug(slug: string): Promise<Article | null> {
     .single();
 
   if (error) return null;
-
-  // FIX: Atomic increment views via RPC (mencegah race condition)
-  fireAndForget(
-    supabase.rpc('increment_article_views', { article_id: data.id as number }),
-    'increment article views',
-  );
 
   const r = data as Record<string, unknown>;
   const kat = r.kategori as { nama?: string } | null;
@@ -228,8 +235,6 @@ export async function getArticleBySlug(slug: string): Promise<Article | null> {
     gambar_alt: (r.gambar_alt as string | null) ?? null,
     penulis: r.penulis as string,
     published_at: (r.published_at as string | null) ?? null,
-    views: (r.views as number) ?? 0,
-    unggulan: (r.unggulan as boolean) ?? false,
     kategori_id: (r.kategori_id as number) ?? 0,
     kategori_nama: kat?.nama ?? '',
   };
@@ -255,7 +260,7 @@ export async function getBloodStock(lokasiId?: number): Promise<BloodStock[]> {
   let query = supabase
     .from('stok_darah')
     .select(`
-      id, lokasi_id, golongan_darah, jumlah, status, updated_at,
+      id, lokasi_id, komponen_id, golongan_darah, jumlah, status, updated_at,
       batas_kritis,
       komponen:komponen_darah (kode, nama)
     `)
@@ -272,7 +277,7 @@ export async function getBloodStock(lokasiId?: number): Promise<BloodStock[]> {
     return {
       id: r.id as number,
       lokasi_id: r.lokasi_id as number,
-      komponen_id: 0,
+      komponen_id: r.komponen_id as number,
       komponen_kode: kom?.kode ?? '',
       komponen_nama: kom?.nama ?? '',
       golongan_darah: r.golongan_darah as BloodStock['golongan_darah'],
@@ -295,7 +300,7 @@ export async function getBloodStockByMultipleLocations(
   const { data, error } = await supabase
     .from('stok_darah')
     .select(`
-      id, lokasi_id, golongan_darah, jumlah, status, updated_at,
+      id, lokasi_id, komponen_id, golongan_darah, jumlah, status, updated_at,
       batas_kritis,
       komponen:komponen_darah (kode, nama)
     `)
@@ -311,7 +316,7 @@ export async function getBloodStockByMultipleLocations(
     const item: BloodStock = {
       id: r.id as number,
       lokasi_id: r.lokasi_id as number,
-      komponen_id: 0,
+      komponen_id: r.komponen_id as number,
       komponen_kode: kom?.kode ?? '',
       komponen_nama: kom?.nama ?? '',
       golongan_darah: r.golongan_darah as BloodStock['golongan_darah'],
@@ -356,39 +361,9 @@ export async function getBloodStockSummary(): Promise<{
   }));
 }
 
-// ─── FAQ ──────────────────────────────────────────────────────────────────────
-
-export async function getFAQ(): Promise<{
-  id: number; pertanyaan: string; jawaban: string; kategori: string;
-}[]> {
-  const { data, error } = await supabase
-    .from('faq')
-    .select('id, pertanyaan, jawaban, kategori')
-    .eq('aktif', true)
-    .order('kategori')
-    .order('urutan');
-
-  if (error) return [];
-  return data ?? [];
-}
-
-// ─── Testimonial ──────────────────────────────────────────────────────────────
-
-export async function getTestimonials(): Promise<{
-  id: number; nama: string; jabatan: string | null;
-  isi: string; rating: number; foto: string | null;
-}[]> {
-  const { data, error } = await supabase
-    .from('testimonial')
-    .select('id, nama, jabatan, isi, rating, foto')
-    .eq('aktif', true)
-    .order('urutan');
-
-  if (error) return [];
-  return data ?? [];
-}
-
 // ─── Registrasi ──────────────────────────────────────────────────────────────
+// FIX: Pakai anon key di client (hapus service_role).
+// Insert tetap aman karena RLS membatasi per kolom.
 
 export async function createRegistrasi(payload: {
   jadwal_id: number;
@@ -402,6 +377,31 @@ export async function createRegistrasi(payload: {
   alamat?: string;
   riwayat_donor: boolean;
 }): Promise<{ kode_registrasi: string }> {
+  // Cek interval donor — minimal 56 hari sejak donor terakhir
+  const { data: lastDonation } = await supabase
+    .from('registrasi_donor')
+    .select(`jadwal:jadwal_donor!inner(tanggal)`)
+    .eq('telepon', payload.telepon)
+    .eq('status_kehadiran', 'hadir')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single();
+
+  if (lastDonation) {
+    const jadwalArr = lastDonation.jadwal as { tanggal: string }[] | { tanggal: string } | null;
+    const jadwal = Array.isArray(jadwalArr) ? jadwalArr[0] : jadwalArr;
+    if (jadwal?.tanggal) {
+      const lastDate = new Date(jadwal.tanggal);
+      const now = new Date();
+      const diffDays = Math.floor((now.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+      if (diffDays < 56) {
+        throw new Error(
+          `Jarak antar donor minimal 56 hari. Donor terakhir Anda ${diffDays} hari yang lalu (${jadwal.tanggal}). Silakan kembali pada waktu yang ditentukan.`
+        );
+      }
+    }
+  }
+
   // Kode registrasi di-generate oleh database via DEFAULT (sequence).
   // Tidak perlu mengirim kode_registrasi dari client.
   const { data: reg, error } = await supabase
@@ -445,7 +445,8 @@ export async function getRegistrasiByKode(kode: string): Promise<{
     p_kode: kode,
   });
 
-  if (error || !data) return null;
+  if (error) throw error;
+  if (!data) return null;
   return data as {
     kode_registrasi: string;
     nama: string;
@@ -517,4 +518,24 @@ export async function lookupDonorHistory(
     registrasi: result.registrasi ?? [],
     total_donor_berhasil: result.total_donor_berhasil ?? 0,
   };
+}
+
+// ─── Batalkan Registrasi (Donor-facing) ────────────────────────────────────────
+
+export async function batalkanRegistrasi(kode: string): Promise<{ success: boolean; error?: string }> {
+  const { data, error } = await supabase.rpc('batalkan_registrasi_by_kode', {
+    p_kode: kode,
+  });
+
+  if (error) {
+    console.error('[SIPEDA:batalkanRegistrasi]', error);
+    return { success: false, error: error.message };
+  }
+
+  const result = data as { success: boolean; error: string | null };
+  if (!result.success) {
+    return { success: false, error: result.error || 'Gagal membatalkan registrasi.' };
+  }
+
+  return { success: true };
 }

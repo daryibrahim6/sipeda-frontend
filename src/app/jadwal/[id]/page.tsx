@@ -29,7 +29,7 @@ export default async function JadwalDetailPage({ params }: Props) {
   if (!schedule) notFound();
 
   return (
-    <main id="main" className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <main id="main" className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
 
       <Link href="/jadwal"
         className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-red-600 mb-8 transition-colors">

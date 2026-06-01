@@ -1,46 +1,51 @@
-import type { StockStatus, ScheduleStatus } from '@/lib/types';
+import type { ReactNode } from 'react';
 
-type Tone = 'default' | 'success' | 'warning' | 'danger' | 'info' | 'muted';
+type Variant = 'default' | 'success' | 'warning' | 'danger' | 'info' | 'premium';
 
-const toneClass: Record<Tone, string> = {
-  default: 'bg-gray-100 text-gray-700 border-gray-200',
-  success: 'bg-green-50 text-green-700 border-green-200',
-  warning: 'bg-amber-50 text-amber-700 border-amber-200',
-  danger:  'bg-red-50   text-red-700   border-red-200',
-  info:    'bg-blue-50  text-blue-700  border-blue-200',
-  muted:   'bg-gray-50  text-gray-500  border-gray-200',
+type Props = {
+  variant?: Variant;
+  children: ReactNode;
+  className?: string;
+  icon?: ReactNode;
 };
 
-export function Badge({ tone = 'default', children }: { tone?: Tone; children: React.ReactNode }) {
+const variantStyles: Record<Variant, string> = {
+  default: 'bg-[#F0EDE8] text-[#5C5348] border-[#E0DAD2]',
+  success: 'bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]',
+  warning: 'bg-[#FFFBEB] text-[#92400E] border-[#FDE68A]',
+  danger: 'bg-[var(--color-primary-subtle)] text-[var(--color-primary-dark)] border-[#FECACA]',
+  info: 'bg-[#EFF6FF] text-[#1E40AF] border-[#BFDBFE]',
+  premium: 'bg-gradient-to-r from-[#FEF3C7] to-[#FDE68A] text-[#78350F] border-[#FCD34D]',
+};
+
+export function Badge({ variant = 'default', children, className = '', icon }: Props) {
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full border ${toneClass[tone]}`}>
+    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-semibold rounded-full border leading-tight ${variantStyles[variant]} ${className}`}>
+      {icon && <span className="inline-flex">{icon}</span>}
       {children}
     </span>
   );
 }
 
-export function StockBadge({ status }: { status: StockStatus }) {
-  const map: Record<StockStatus, { tone: Tone; label: string; dot: string }> = {
-    normal:  { tone: 'success', label: 'Normal',  dot: 'bg-green-500' },
-    kritis:  { tone: 'warning', label: 'Kritis',  dot: 'bg-amber-500' },
-    kosong:  { tone: 'danger',  label: 'Kosong',  dot: 'bg-red-500'   },
-  };
-  const { tone, label, dot } = map[status];
-  return (
-    <Badge tone={tone}>
-      <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
-      {label}
-    </Badge>
-  );
+const SCHEDULE_BADGE: Record<string, { label: string; variant: Variant }> = {
+  aktif: { label: 'Aktif', variant: 'success' },
+  penuh: { label: 'Penuh', variant: 'warning' },
+  selesai: { label: 'Selesai', variant: 'default' },
+  dibatalkan: { label: 'Dibatalkan', variant: 'danger' },
+};
+
+export function ScheduleBadge({ status }: { status: string }) {
+  const def = SCHEDULE_BADGE[status] ?? { label: status, variant: 'default' as Variant };
+  return <Badge variant={def.variant}>{def.label}</Badge>;
 }
 
-export function ScheduleBadge({ status }: { status: ScheduleStatus }) {
-  const map: Record<ScheduleStatus, { tone: Tone; label: string }> = {
-    aktif:      { tone: 'success', label: 'Tersedia' },
-    penuh:      { tone: 'warning', label: 'Penuh' },
-    dibatalkan: { tone: 'danger',  label: 'Dibatalkan' },
-    selesai:    { tone: 'muted',   label: 'Selesai' },
-  };
-  const { tone, label } = map[status];
-  return <Badge tone={tone}>{label}</Badge>;
+const STOCK_BADGE: Record<string, { label: string; variant: Variant }> = {
+  normal: { label: 'Normal', variant: 'success' },
+  kritis: { label: 'Kritis', variant: 'warning' },
+  kosong: { label: 'Kosong', variant: 'danger' },
+};
+
+export function StockBadge({ status }: { status: string }) {
+  const def = STOCK_BADGE[status] ?? { label: status, variant: 'default' as Variant };
+  return <Badge variant={def.variant}>{def.label}</Badge>;
 }
