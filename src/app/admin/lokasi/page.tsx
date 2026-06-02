@@ -14,6 +14,7 @@ import {
 } from '@/lib/admin-api';
 import type { Location, LocationType } from '@/lib/types';
 import { Button } from '@/components/ui/Button';
+import { useToast } from '@/lib/toast';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -40,18 +41,6 @@ const EMPTY_FORM: FormData = {
     koordinat_lat: '', koordinat_lng: '', kontak: '', email: '',
     penanggung_jawab: '', deskripsi: '', aktif: true,
 };
-
-// ─── Toast ────────────────────────────────────────────────────────────────────
-
-function Toast({ msg, type, onClose }: { msg: string; type: 'success' | 'error'; onClose: () => void }) {
-    return (
-        <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-lg text-sm font-medium ${type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}>
-            {type === 'success' ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
-            {msg}
-            <button onClick={onClose} className="ml-2 p-2 opacity-70 hover:opacity-100"><X className="w-3.5 h-3.5" /></button>
-        </div>
-    );
-}
 
 // ─── Toggle Modal ─────────────────────────────────────────────────────────────
 
@@ -193,6 +182,7 @@ function FormModal({ editing, form, setForm, onSave, onClose, loading }: {
 
 export default function AdminLokasiPage() {
     const toggle = useSidebarToggle();
+    const { toast } = useToast();
     const [locations, setLocations] = useState<Location[]>([]);
     const [total, setTotal] = useState(0);
     const [page, setPage] = useState(1);
@@ -205,14 +195,8 @@ export default function AdminLokasiPage() {
     const [toggling, setToggling] = useState<Location | null>(null);
     const [form, setForm] = useState<FormData>(EMPTY_FORM);
     const [loading, setLoading] = useState(false);
-    const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
 
     const totalPages = Math.ceil(total / PER_PAGE);
-
-    const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
-        setToast({ msg, type });
-        setTimeout(() => setToast(null), 3500);
-    };
 
     const loadData = useCallback(async () => {
         setDataLoading(true);
@@ -221,11 +205,11 @@ export default function AdminLokasiPage() {
             setLocations(res.data);
             setTotal(res.total);
         } catch {
-            showToast('Gagal memuat data lokasi.', 'error');
+            toast('Gagal memuat data lokasi.', 'error');
         } finally {
             setDataLoading(false);
         }
-    }, [page, search, statusFilter]);
+    }, [page, search, statusFilter, toast]);
 
     useEffect(() => { loadData(); }, [loadData]);
 
@@ -260,7 +244,7 @@ export default function AdminLokasiPage() {
             const lat = parseFloat(form.koordinat_lat);
             const lng = parseFloat(form.koordinat_lng);
             if (isNaN(lat) || isNaN(lng)) {
-                showToast('Koordinat tidak valid. Masukkan angka yang benar.', 'error');
+                toast('Koordinat tidak valid. Masukkan angka yang benar.', 'error');
                 return;
             }
             const payload: AdminLocationPayload = {
@@ -279,16 +263,16 @@ export default function AdminLokasiPage() {
             };
             if (editing) {
                 await updateLocation(editing.id, payload);
-                showToast('Lokasi berhasil diperbarui.');
+                toast('Lokasi berhasil diperbarui.');
             } else {
                 await createLocation(payload);
-                showToast('Lokasi baru berhasil ditambahkan.');
+                toast('Lokasi baru berhasil ditambahkan.');
             }
             setShowForm(false);
             setEditing(null);
             await loadData();
         } catch (err) {
-            showToast((err as Error).message || 'Gagal menyimpan lokasi.', 'error');
+            toast((err as Error).message || 'Gagal menyimpan lokasi.', 'error');
         } finally {
             setLoading(false);
         }
@@ -300,10 +284,10 @@ export default function AdminLokasiPage() {
         try {
             await toggleLocationStatus(toggling.id, !toggling.aktif);
             setToggling(null);
-            showToast(`Lokasi berhasil ${toggling.aktif ? 'dinonaktifkan' : 'diaktifkan'}.`);
+            toast(`Lokasi berhasil ${toggling.aktif ? 'dinonaktifkan' : 'diaktifkan'}.`);
             await loadData();
         } catch {
-            showToast('Gagal mengubah status lokasi.', 'error');
+            toast('Gagal mengubah status lokasi.', 'error');
         } finally {
             setLoading(false);
         }
@@ -467,7 +451,6 @@ export default function AdminLokasiPage() {
             {toggling && (
                 <ToggleModal location={toggling} onConfirm={handleToggle} onCancel={() => setToggling(null)} loading={loading} />
             )}
-            {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
         </div>
     );
 }

@@ -152,9 +152,6 @@ export async function getScheduleById(id: number): Promise<Schedule | null> {
   return data as unknown as Schedule;
 }
 
-/** Alias untuk kompatibilitas import lama */
-export const getSchedule = getScheduleById;
-
 // ─── Artikel ──────────────────────────────────────────────────────────────────
 
 export async function getArticles(
@@ -241,6 +238,15 @@ export async function getArticleBySlug(slug: string): Promise<Article | null> {
   };
 }
 
+export async function getAllArticleSlugs(): Promise<string[]> {
+  const { data } = await supabase
+    .from('artikel')
+    .select('slug')
+    .eq('status', 'published')
+    .order('published_at', { ascending: false });
+  return (data ?? []).map(r => (r as { slug: string }).slug);
+}
+
 // ─── Testimonial ─────────────────────────────────────────────────────────────
 
 export async function getTestimonials(): Promise<Testimonial[]> {
@@ -266,42 +272,6 @@ export async function getAnnouncements(): Promise<Announcement[]> {
 }
 
 // ─── Stok Darah ──────────────────────────────────────────────────────────────
-
-/**
- * FIX: bulk fetch — jika lokasiId tidak diberikan, fetch semua sekaligus (bukan N+1).
- */
-export async function getBloodStock(lokasiId?: number): Promise<BloodStock[]> {
-  let query = supabase
-    .from('stok_darah')
-    .select(`
-      id, lokasi_id, komponen_id, golongan_darah, jumlah, status, updated_at,
-      batas_kritis,
-      komponen:komponen_darah (kode, nama)
-    `)
-    .order('golongan_darah');
-
-  if (lokasiId) query = query.eq('lokasi_id', lokasiId);
-
-  const { data, error } = await query;
-  if (error) throw error;
-
-  return (data ?? []).map(s => {
-    const r = s as Record<string, unknown>;
-    const kom = r.komponen as { kode?: string; nama?: string } | null;
-    return {
-      id: r.id as number,
-      lokasi_id: r.lokasi_id as number,
-      komponen_id: r.komponen_id as number,
-      komponen_kode: kom?.kode ?? '',
-      komponen_nama: kom?.nama ?? '',
-      golongan_darah: r.golongan_darah as BloodStock['golongan_darah'],
-      jumlah: r.jumlah as number,
-      jumlah_kritis: r.batas_kritis as number,
-      status: r.status as BloodStock['status'],
-      terakhir_update: r.updated_at as string,
-    };
-  });
-}
 
 /**
  * FIX: Bulk fetch stok untuk banyak lokasi sekaligus — menghapus N+1 di stok-darah page.
@@ -381,7 +351,7 @@ export async function getBloodStockSummary(): Promise<{
 // FIX: Pakai anon key di client (hapus service_role).
 // Insert tetap aman karena RLS membatasi per kolom.
 
-export async function createRegistrasi(payload: {
+export async function registerDonor(payload: {
   jadwal_id: number;
   nama: string;
   nik?: string;
@@ -438,9 +408,6 @@ export async function createRegistrasi(payload: {
 
   return { kode_registrasi: (reg as { kode_registrasi: string }).kode_registrasi };
 }
-
-/** Alias untuk kompatibilitas (RegisterForm menggunakan registerDonor) */
-export const registerDonor = createRegistrasi;
 
 // ─── Registrasi Status (untuk tracker page) ───────────────────────────────────
 // FIX: Pakai RPC function SECURITY DEFINER — anon tidak lagi bisa SELECT langsung.

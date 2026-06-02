@@ -10,6 +10,7 @@
   --text-h2: 1.75rem;
   --text-display: 3rem;
   --text-body: 1rem;
+  --animate-toast-in: toastIn 0.3s ease-out;
 }
 
 @layer utilities {
@@ -37,7 +38,11 @@
   --color-border-muted: #F0F0EF;
   --color-text-primary: #1C1917;
   --color-text-secondary: #57534E;
-  --color-text-muted: #A8A29E;
+  --color-text-muted: #78716C;
+  --color-success: #16A34A;
+  --color-error: #DC2626;
+  --color-warning: #D97706;
+  --color-info: #2563EB;
   --shadow-card: 0 4px 16px rgba(26,20,16,0.06), 0 2px 4px rgba(26,20,16,0.04);
   --shadow-elevated: 0 12px 40px rgba(26,20,16,0.07), 0 4px 12px rgba(26,20,16,0.04);
   --shadow-hover: 0 16px 48px rgba(198,40,40,0.10), 0 4px 12px rgba(26,20,16,0.06);
@@ -50,7 +55,13 @@
 
 html {
   scroll-behavior: smooth;
-  -webkit-tap-highlight-color: transparent;
+  -webkit-tap-highlight-color: rgba(198, 40, 40, 0.3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 body {
@@ -189,6 +200,16 @@ h4 {
   opacity: 0;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .stagger-1,
+  .stagger-2,
+  .stagger-3,
+  .stagger-4 {
+    opacity: 1;
+    animation: none;
+  }
+}
+
 /* ─── FAQ accordion ──────────────────────────────────────────────────────────── */
 details[open]>summary .chevron,
 details>summary .chevron {
@@ -273,6 +294,22 @@ details[open]>summary .chevron {
 .reveal-children > *.visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal-children > * {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .stagger-1,
+  .stagger-2,
+  .stagger-3,
+  .stagger-4 {
+    opacity: 1;
+    animation: none;
+  }
 }
 
 /* ─── Scrollbar hide (cross-browser) ─────────────────────────────────────── */

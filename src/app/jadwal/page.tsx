@@ -4,7 +4,7 @@ import JadwalClient from '@/components/jadwal/JadwalClient';
 
 export const metadata: Metadata = {
   title: 'Jadwal Donor Darah',
-  description: 'Daftar jadwal kegiatan donor darah di Kecamatan Indramayu.',
+  description: 'Daftar jadwal kegiatan donor darah di Kabupaten Indramayu.',
 };
 
 export default async function JadwalPage() {

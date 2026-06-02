@@ -87,14 +87,6 @@ export type BloodStockSummary = {
   status: StockStatus;
 };
 
-export type BloodStockRow = {
-  komponen_id: number;
-  komponen_nama: string;
-  komponen_kode: string;
-  golongan: Record<BloodType, { jumlah: number; status: StockStatus }>;
-  total: number;
-};
-
 // ─── Article ──────────────────────────────────────────────────────────────────
 
 export type Article = {

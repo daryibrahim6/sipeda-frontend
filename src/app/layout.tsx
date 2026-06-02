@@ -2,11 +2,12 @@ import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import { Suspense } from 'react';
 import './globals.css';
-import 'leaflet/dist/leaflet.css';
 import { NavigationProgress } from '@/components/ui/NavigationProgress';
 import { FixedHeader } from '@/components/layout/FixedHeader';
 import { PublicShell } from '@/components/layout/PublicShell';
 import { Analytics } from '@/components/Analytics';
+import { StructuredData } from '@/components/seo/StructuredData';
+import { ToastProvider } from '@/lib/toast';
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://sipeda.vercel.app';
@@ -93,6 +94,31 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         suppressHydrationWarning
         className={`${inter.variable} font-sans antialiased`}
       >
+        <StructuredData data={{
+          '@context': 'https://schema.org',
+          '@type': 'Organization',
+          name: 'PMI Kabupaten Indramayu',
+          alternateName: 'SIPEDA',
+          url: SITE_URL,
+          logo: `${SITE_URL}/logo.png`,
+          description: SITE_DESC,
+          address: { '@type': 'PostalAddress', addressLocality: 'Indramayu', addressRegion: 'Jawa Barat', addressCountry: 'ID' },
+          contactPoint: [{ '@type': 'ContactPoint', telephone: '+62-234-271648', contactType: 'customer service' }],
+          sameAs: ['https://wa.me/62234271648'],
+        }} />
+        <StructuredData data={{
+          '@context': 'https://schema.org',
+          '@type': 'WebSite',
+          name: 'SIPEDA',
+          url: SITE_URL,
+          description: SITE_DESC,
+          inLanguage: 'id',
+          potentialAction: {
+            '@type': 'SearchAction',
+            target: { '@type': 'EntryPoint', urlTemplate: `${SITE_URL}/artikel?q={search_term_string}` },
+            'query-input': 'required name=search_term_string',
+          },
+        }} />
         <Suspense fallback={null}>
           <Analytics />
         </Suspense>
@@ -115,11 +141,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           tidak pernah di-unmount saat navigasi antar halaman.
           Admin routes (/admin/*) otomatis dikecualikan.
         */}
-        <Suspense fallback={null}>
-          <PublicShell>
-            {children}
-          </PublicShell>
-        </Suspense>
+        <ToastProvider>
+          <Suspense fallback={null}>
+            <PublicShell>
+              {children}
+            </PublicShell>
+          </Suspense>
+        </ToastProvider>
       </body>
     </html>
   );

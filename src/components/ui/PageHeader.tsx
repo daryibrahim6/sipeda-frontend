@@ -30,7 +30,7 @@ export function PageHeader({ badge, title, description, actions, className = '' 
               )}
             </div>
           )}
-          <h1 className="text-h1 lg:text-display text-[var(--color-text-primary)] leading-tight animate-fade-in-up stagger-1">
+          <h1 className="text-h1 lg:text-display font-extrabold tracking-tight text-[var(--color-text-primary)] leading-tight animate-fade-in-up stagger-1">
             {title}
           </h1>
           {description && (

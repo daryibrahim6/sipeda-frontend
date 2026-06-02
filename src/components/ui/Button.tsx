@@ -30,9 +30,9 @@ const variantStyles: Record<Variant, string> = {
 };
 
 const sizeStyles: Record<Size, string> = {
-  sm: 'px-4 py-2 text-xs rounded-[var(--radius-sm)]',
-  md: 'px-5 py-2.5 text-sm rounded-[var(--radius-md)]',
-  lg: 'px-6 py-3 text-base rounded-[var(--radius-md)]',
+  sm: 'px-4 py-2 min-h-[44px] text-xs rounded-[var(--radius-sm)]',
+  md: 'px-5 py-2.5 min-h-[44px] text-sm rounded-[var(--radius-md)]',
+  lg: 'px-6 py-3 min-h-[48px] text-base rounded-[var(--radius-md)]',
 };
 
 export function Button({

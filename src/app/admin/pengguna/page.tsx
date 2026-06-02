@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase-browser';
 import { Button } from '@/components/ui/Button';
+import { useToast } from '@/lib/toast';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -66,22 +67,11 @@ async function apiCall(method: string, body?: Record<string, unknown>) {
     return json;
 }
 
-// ─── Toast ────────────────────────────────────────────────────────────────────
-
-function Toast({ msg, type, onClose }: { msg: string; type: 'success' | 'error'; onClose: () => void }) {
-    return (
-        <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-lg text-sm font-medium ${type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}>
-            {type === 'success' ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
-            {msg}
-            <button onClick={onClose} className="ml-2 p-2 opacity-70 hover:opacity-100"><X className="w-3.5 h-3.5" /></button>
-        </div>
-    );
-}
-
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function AdminPenggunaPage() {
     const toggle = useSidebarToggle();
+    const { toast } = useToast();
     const [users, setUsers] = useState<AdminUser[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
@@ -94,24 +84,17 @@ export default function AdminPenggunaPage() {
     const [toggling, setToggling] = useState<AdminUser | null>(null);
     const [toggleLoading, setToggleLoading] = useState(false);
     const [showPw, setShowPw] = useState(false);
-    const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
-
-    const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
-        setToast({ msg, type });
-        setTimeout(() => setToast(null), 3500);
-    };
-
     const loadData = useCallback(async () => {
         setLoading(true);
         try {
             const res = await apiCall('GET');
             setUsers(res.data ?? []);
         } catch {
-            showToast('Gagal memuat data pengguna.', 'error');
+            toast('Gagal memuat data pengguna.', 'error');
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [toast]);
 
     useEffect(() => { loadData(); }, [loadData]);
 
@@ -150,17 +133,17 @@ export default function AdminPenggunaPage() {
                     role: form.role,
                     ...(form.password ? { password: form.password } : {}),
                 });
-                showToast('Pengguna berhasil diperbarui.');
+                toast('Pengguna berhasil diperbarui.');
             } else {
                 if (!form.password) throw new Error('Password wajib diisi untuk akun baru.');
                 await apiCall('POST', form);
-                showToast('Pengguna baru berhasil ditambahkan.');
+                toast('Pengguna baru berhasil ditambahkan.');
             }
             setShowForm(false);
             setEditing(null);
             await loadData();
         } catch (err) {
-            showToast((err as Error).message, 'error');
+            toast((err as Error).message, 'error');
         } finally {
             setSaving(false);
         }
@@ -171,11 +154,11 @@ export default function AdminPenggunaPage() {
         setToggleLoading(true);
         try {
             await apiCall('PATCH', { id: toggling.id, aktif: !toggling.aktif });
-            showToast(`Akun ${toggling.aktif ? 'dinonaktifkan' : 'diaktifkan'}.`);
+            toast(`Akun ${toggling.aktif ? 'dinonaktifkan' : 'diaktifkan'}.`);
             setToggling(null);
             await loadData();
         } catch (err) {
-            showToast((err as Error).message, 'error');
+            toast((err as Error).message, 'error');
         } finally {
             setToggleLoading(false);
         }
@@ -393,7 +376,6 @@ export default function AdminPenggunaPage() {
                 </div>
             )}
 
-            {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
         </div>
     );
 }

@@ -104,29 +104,11 @@ async function getSessionByRoles(allowedRoles?: string[]) {
 
 // ─── Public API: Login ────────────────────────────────────────────────────────
 
-/** Login khusus admin panel — blokir petugas_lapangan */
-export async function loginAdmin(email: string, password: string) {
-  return loginWithRole(email, password, {
-    deniedRoles: ['petugas_lapangan'],
-    notFoundMessage: 'Akun ini tidak memiliki akses admin.',
-    forbiddenMessage: 'Akun petugas lapangan tidak memiliki akses admin. Silakan login di halaman petugas.',
-  });
-}
-
 /** Login unified (halaman /login) — semua role di tabel admins boleh masuk */
 export async function loginUnified(email: string, password: string) {
   return loginWithRole(email, password, {
     notFoundMessage: 'Akun ini tidak terdaftar di sistem.',
     forbiddenMessage: 'Akun ini tidak memiliki akses.',
-  });
-}
-
-/** Login petugas — hanya petugas_lapangan, admin, dan superadmin */
-export async function loginPetugas(email: string, password: string) {
-  return loginWithRole(email, password, {
-    allowedRoles: ['petugas_lapangan', 'admin', 'superadmin'],
-    notFoundMessage: 'Akun ini tidak memiliki akses petugas.',
-    forbiddenMessage: 'Akun ini tidak memiliki akses petugas lapangan.',
   });
 }
 
@@ -163,11 +145,3 @@ export async function requireAdminAuth() {
   return sessionData;
 }
 
-export async function requirePetugasAuth() {
-  const sessionData = await getPetugasSession();
-  if (!sessionData) {
-    window.location.href = '/login?expired=1';
-    return null;
-  }
-  return sessionData;
-}

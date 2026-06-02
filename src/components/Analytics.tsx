@@ -11,10 +11,12 @@ export function Analytics() {
     const searchParams = useSearchParams();
 
     useEffect(() => {
-        if (!GA_ID || typeof window === 'undefined' || !(window as any).gtag) return;
+        if (!GA_ID || typeof window === 'undefined') return;
+        const w = window as { gtag?: (...args: unknown[]) => void };
+        if (!w.gtag) return;
 
         const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : '');
-        (window as any).gtag('config', GA_ID, {
+        w.gtag('config', GA_ID, {
             page_path: url,
             page_title: document.title,
         });

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSidebarToggle } from '@/lib/admin-context';
 import { TopBar } from '@/components/admin/TopBar';
 import {
-  Plus, Pencil, Trash2, X, Check,
+  Plus, Pencil, Trash2, Check,
   Calendar, ChevronLeft, ChevronRight, Filter, RefreshCw,
 } from 'lucide-react';
 import {
@@ -19,6 +19,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { useToast } from '@/lib/toast';
 
 type FormData = {
   lokasi_id: string;
@@ -37,17 +38,6 @@ const EMPTY_FORM: FormData = {
 
 const STATUS_OPTIONS: ScheduleStatus[] = ['aktif', 'penuh', 'dibatalkan', 'selesai'];
 const PER_PAGE = 15;
-
-function Toast({ msg, type, onClose }: { msg: string; type: 'success' | 'error'; onClose: () => void }) {
-  return (
-    <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-lg text-sm font-medium ${type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
-      }`}>
-      {type === 'success' ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
-      {msg}
-      <button onClick={onClose} className="ml-2 p-2 opacity-70 hover:opacity-100"><X className="w-3.5 h-3.5" /></button>
-    </div>
-  );
-}
 
 function DeleteModal({ schedule, onConfirm, onCancel, loading }: {
   schedule: Schedule; onConfirm: () => void; onCancel: () => void; loading: boolean;
@@ -132,6 +122,7 @@ function FormModal({ editing, form, setForm, onSave, onClose, loading, locations
 
 export default function AdminJadwalPage() {
   const toggle = useSidebarToggle();
+  const { toast } = useToast();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
   const [total, setTotal] = useState(0);
@@ -144,14 +135,8 @@ export default function AdminJadwalPage() {
   const [deleting, setDeleting] = useState<Schedule | null>(null);
   const [form, setForm] = useState<FormData>(EMPTY_FORM);
   const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
 
   const totalPages = Math.ceil(total / PER_PAGE);
-
-  const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
-    setToast({ msg, type });
-    setTimeout(() => setToast(null), 3500);
-  };
 
   const loadData = useCallback(async () => {
     setDataLoading(true);
@@ -164,7 +149,7 @@ export default function AdminJadwalPage() {
       setTotal(res.total);
       if (locations.length === 0) setLocations(locs);
     } catch {
-      showToast('Gagal memuat data jadwal.', 'error');
+      toast('Gagal memuat data jadwal.', 'error');
     } finally {
       setDataLoading(false);
     }
@@ -202,16 +187,16 @@ export default function AdminJadwalPage() {
       };
       if (editing) {
         await updateSchedule(editing.id, payload);
-        showToast('Jadwal berhasil diperbarui.');
+        toast('Jadwal berhasil diperbarui.');
       } else {
         await createSchedule(payload);
-        showToast('Jadwal baru berhasil ditambahkan.');
+        toast('Jadwal baru berhasil ditambahkan.');
       }
       setShowForm(false);
       setEditing(null);
       await loadData();
     } catch (err) {
-      showToast((err as Error).message || 'Gagal menyimpan jadwal.', 'error');
+      toast((err as Error).message || 'Gagal menyimpan jadwal.', 'error');
     } finally {
       setLoading(false);
     }
@@ -223,10 +208,10 @@ export default function AdminJadwalPage() {
     try {
       await deleteSchedule(deleting.id);
       setDeleting(null);
-      showToast('Jadwal berhasil dihapus.');
+      toast('Jadwal berhasil dihapus.');
       await loadData();
     } catch {
-      showToast('Gagal menghapus jadwal.', 'error');
+      toast('Gagal menghapus jadwal.', 'error');
     } finally {
       setLoading(false);
     }
@@ -361,7 +346,6 @@ export default function AdminJadwalPage() {
       {deleting && (
         <DeleteModal schedule={deleting} onConfirm={handleDelete} onCancel={() => setDeleting(null)} loading={loading} />
       )}
-      {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 }

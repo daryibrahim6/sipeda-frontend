@@ -114,7 +114,7 @@ export function ScheduleCard({ schedule }: { schedule: Schedule }) {
           )}`}
           target="_blank"
           rel="noopener noreferrer"
-          title="Bagikan ke WhatsApp"
+          aria-label="Bagikan ke WhatsApp"
           className="flex-shrink-0 w-11 h-11 flex items-center justify-center rounded-2xl border border-[var(--color-border-muted)] text-[var(--color-text-muted)] hover:text-green-600 hover:border-green-200 hover:bg-green-50 transition-colors"
         >
           <Share2 className="w-4 h-4" />

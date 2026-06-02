@@ -5,7 +5,7 @@ import { useSidebarToggle } from '@/lib/admin-context';
 import { TopBar } from '@/components/admin/TopBar';
 import {
   Search, Download, ChevronLeft, ChevronRight,
-  ClipboardList, Check, X, Loader2, Filter, RefreshCw,
+  ClipboardList, Check, Loader2, Filter, RefreshCw,
 } from 'lucide-react';
 import {
   getAdminRegistrasi, updateRegistrasiStatus,
@@ -13,6 +13,7 @@ import {
 } from '@/lib/admin-api';
 import { formatDate } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
+import { useToast } from '@/lib/toast';
 
 type RegStatus = AdminRegistrasi['status'];
 const ALL_STATUSES: RegStatus[] = ['pending', 'confirmed', 'hadir', 'tidak_hadir', 'dibatalkan'];
@@ -94,17 +95,9 @@ function StatusModal({ reg, onSave, onClose }: {
   );
 }
 
-function Toast({ msg, onClose }: { msg: string; onClose: () => void }) {
-  return (
-    <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-green-600 text-white text-sm font-medium shadow-lg shadow-green-600/20">
-      <Check className="w-4 h-4" />{msg}
-      <button onClick={onClose} className="p-2"><X className="w-3.5 h-3.5 opacity-70" /></button>
-    </div>
-  );
-}
-
 export default function AdminRegistrasiPage() {
   const toggle = useSidebarToggle();
+  const { toast } = useToast();
   const [regs, setRegs] = useState<AdminRegistrasi[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -112,11 +105,8 @@ export default function AdminRegistrasiPage() {
   const [statusFilter, setStatusFilter] = useState<RegStatus | 'semua'>('semua');
   const [dataLoading, setDataLoading] = useState(true);
   const [editing, setEditing] = useState<AdminRegistrasi | null>(null);
-  const [toast, setToast] = useState<string | null>(null);
 
   const totalPages = Math.ceil(total / PER_PAGE);
-
-  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
   const loadData = useCallback(async () => {
     setDataLoading(true);
@@ -125,11 +115,11 @@ export default function AdminRegistrasiPage() {
       setRegs(res.data);
       setTotal(res.total);
     } catch {
-      showToast('Gagal memuat data registrasi.');
+      toast('Gagal memuat data registrasi.');
     } finally {
       setDataLoading(false);
     }
-  }, [page, search, statusFilter]);
+  }, [page, search, statusFilter, toast]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
@@ -137,7 +127,7 @@ export default function AdminRegistrasiPage() {
     try {
       await updateRegistrasiStatus(reg.id, status);
       setEditing(null);
-      showToast('Status registrasi berhasil diperbarui.');
+      toast('Status registrasi berhasil diperbarui.');
       await loadData();
 
       const STATUS_WA_LABELS: Record<RegStatus, string> = {
@@ -159,7 +149,7 @@ export default function AdminRegistrasiPage() {
         body: JSON.stringify({ phone: reg.telepon, message }),
       }).catch(() => {});
     } catch {
-      showToast('Gagal update status.');
+      toast('Gagal update status.');
     }
   }
 
@@ -306,7 +296,6 @@ export default function AdminRegistrasiPage() {
       </main>
 
       {editing && <StatusModal reg={editing} onSave={handleStatusSave} onClose={() => setEditing(null)} />}
-      {toast && <Toast msg={toast} onClose={() => setToast(null)} />}
     </div>
   );
 }

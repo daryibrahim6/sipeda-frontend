@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import { Download, X, Droplets } from 'lucide-react';
 import type { DonorHistoryItem } from '@/lib/api';
 
@@ -18,10 +18,48 @@ function fmtDate(d: string) {
   });
 }
 
+function useFocusTrap(dialogRef: React.RefObject<HTMLDivElement | null>, open: boolean, onClose: () => void) {
+  useEffect(() => {
+    if (!open) return;
+    const previous = document.activeElement as HTMLElement;
+    const selector = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
+    function trap(e: KeyboardEvent) {
+      if (e.key !== 'Tab' || !dialogRef.current) return;
+      const elements = Array.from(dialogRef.current.querySelectorAll<HTMLElement>(selector));
+      if (elements.length === 0) return;
+      const first = elements[0];
+      const last = elements[elements.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+
+    function esc(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose();
+    }
+
+    document.addEventListener('keydown', trap);
+    document.addEventListener('keydown', esc);
+    requestAnimationFrame(() => {
+      const elements = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(selector) ?? []);
+      if (elements.length > 0) elements[0].focus();
+    });
+
+    return () => {
+      document.removeEventListener('keydown', trap);
+      document.removeEventListener('keydown', esc);
+      previous?.focus();
+    };
+  }, [open, dialogRef, onClose]);
+}
+
 export default function SertifikatDonor({ nama, golongan_darah, total_donor_berhasil, item, onClose }: Props) {
   const certRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
   const [downloading, setDownloading] = useState(false);
   const [error, setError] = useState('');
+
+  useFocusTrap(dialogRef, true, onClose);
 
   const handleDownload = useCallback(async () => {
     const el = certRef.current;
@@ -83,12 +121,18 @@ export default function SertifikatDonor({ nama, golongan_darah, total_donor_berh
   const nomorSertifikat = `SIP-SK-${item.id}-${item.kode_registrasi.slice(-6)}`;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Sertifikat Donor Darah"
+      ref={dialogRef}
+    >
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
       <div className="relative max-w-lg w-full">
         {/* Close button */}
-        <button onClick={onClose} className="absolute -top-10 right-0 p-2 text-white/70 hover:text-white transition-colors">
+        <button onClick={onClose} className="absolute -top-10 right-0 p-2 text-white/70 hover:text-white transition-colors" aria-label="Tutup sertifikat">
           <X className="w-6 h-6" />
         </button>
 
@@ -233,7 +277,9 @@ export default function SertifikatDonor({ nama, golongan_darah, total_donor_berh
 
         {error && (
           <div className="mt-3 flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
-            <X className="w-4 h-4 flex-shrink-0 cursor-pointer" onClick={() => setError('')} />
+            <button onClick={() => setError('')} className="flex-shrink-0" aria-label="Tutup pesan error">
+              <X className="w-4 h-4" />
+            </button>
             {error}
           </div>
         )}

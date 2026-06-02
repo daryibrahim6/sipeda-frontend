@@ -9,6 +9,7 @@ import { getLocations } from '@/lib/api';
 import { requireAdminAuth } from '@/lib/auth';
 import type { Location } from '@/lib/types';
 import { Button } from '@/components/ui/Button';
+import { useToast } from '@/lib/toast';
 
 type StockStatus = 'normal' | 'kritis' | 'kosong';
 
@@ -51,29 +52,18 @@ function groupStok(rows: AdminStokRow[]): GroupedStok[] {
   return Array.from(map.values());
 }
 
-function Toast({ msg, onClose }: { msg: string; onClose: () => void }) {
-  return (
-    <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-green-600 text-white text-sm font-medium shadow-lg">
-      <Check className="w-4 h-4" />{msg}
-      <button onClick={onClose} className="p-2"><X className="w-3.5 h-3.5 opacity-70" /></button>
-    </div>
-  );
-}
-
 export default function AdminStokPage() {
   const toggle = useSidebarToggle();
+  const { toast } = useToast();
   const [rows, setRows] = useState<AdminStokRow[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
   const [lokasiFilter, setLokasiFilter] = useState<number | undefined>(undefined);
   const [dataLoading, setDataLoading] = useState(true);
   const [editing, setEditing] = useState<{ id: number; val: string } | null>(null);
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
 
   // Auth guard (middleware disabled — Supabase v2 uses localStorage)
   useEffect(() => { requireAdminAuth(); }, []);
-
-  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
   const loadData = useCallback(async () => {
     setDataLoading(true);
@@ -85,7 +75,7 @@ export default function AdminStokPage() {
       setRows(stok);
       if (locations.length === 0) setLocations(locs);
     } catch {
-      showToast('Gagal memuat data stok.');
+      toast('Gagal memuat data stok.');
     } finally {
       setDataLoading(false);
     }
@@ -102,10 +92,10 @@ export default function AdminStokPage() {
     try {
       await updateStokDarah(editing.id, val);
       setEditing(null);
-      showToast('Stok berhasil diperbarui.');
+      toast('Stok berhasil diperbarui.');
       await loadData();
     } catch {
-      showToast('Gagal update stok.');
+      toast('Gagal update stok.');
     } finally {
       setSaving(false);
     }
@@ -268,7 +258,6 @@ export default function AdminStokPage() {
         ))}
       </main>
 
-      {toast && <Toast msg={toast} onClose={() => setToast(null)} />}
     </div>
   );
 }

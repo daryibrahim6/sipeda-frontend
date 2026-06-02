@@ -1,5 +1,6 @@
 import withSerwistInit from '@serwist/next';
 import { withSentryConfig } from '@sentry/nextjs';
+import withBundleAnalyzer from '@next/bundle-analyzer';
 
 const withSerwist = withSerwistInit({
   swSrc: 'src/app/sw.ts',
@@ -9,6 +10,7 @@ const withSerwist = withSerwistInit({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
+    formats: ['image/avif', 'image/webp'],
     remotePatterns: [
       { protocol: 'http',  hostname: 'localhost' },
       { protocol: 'https', hostname: '*.sipeda.id' },
@@ -72,4 +74,8 @@ const sentryOptions = {
   automaticVercelMonitors: true,
 };
 
-export default withSentryConfig(withSerwist(nextConfig), sentryOptions);
+const withAnalyzer = withBundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+});
+
+export default withAnalyzer(withSentryConfig(withSerwist(nextConfig), sentryOptions));

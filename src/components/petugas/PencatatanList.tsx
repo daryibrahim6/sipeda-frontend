@@ -42,6 +42,8 @@ type PencatatanListProps = {
 
 export function PencatatanList({ pencatatan, loading, onUpdate, onDelete, onRefresh }: PencatatanListProps) {
     const [editingId, setEditingId] = useState<number | null>(null);
+    const [deleteId, setDeleteId] = useState<number | null>(null);
+    const [deleting, setDeleting] = useState(false);
     const [editForm, setEditForm] = useState({
         nama_pendonor: '',
         golongan_darah: 'Tidak Tahu' as BloodType | 'Tidak Tahu',
@@ -77,11 +79,13 @@ export function PencatatanList({ pencatatan, loading, onUpdate, onDelete, onRefr
     }
 
     async function handleDelete(id: number) {
-        if (!confirm('Hapus pencatatan ini?')) return;
+        setDeleting(true);
         try {
             await onDelete(id);
+            setDeleteId(null);
             onRefresh();
         } catch { /* handled by parent */ }
+        setDeleting(false);
     }
 
     return (
@@ -187,7 +191,7 @@ export function PencatatanList({ pencatatan, loading, onUpdate, onDelete, onRefr
                                             <Edit3 className="w-4 h-4" />
                                         </button>
                                         <button
-                                            onClick={() => handleDelete(p.id)}
+                                            onClick={() => setDeleteId(p.id)}
                                             className="p-2 rounded-xl text-[var(--color-text-muted)] hover:text-red-600 hover:bg-red-50 transition-colors"
                                             aria-label="Hapus"
                                         >
@@ -198,6 +202,28 @@ export function PencatatanList({ pencatatan, loading, onUpdate, onDelete, onRefr
                             )}
                         </div>
                     ))}
+                </div>
+            )}
+
+            {deleteId !== null && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+                    role="dialog" aria-modal="true" aria-labelledby="delete-dialog-title"
+                    onClick={() => setDeleteId(null)}
+                    onKeyDown={e => { if (e.key === 'Escape') setDeleteId(null); }}>
+                    <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl" onClick={e => e.stopPropagation()}>
+                        <h3 id="delete-dialog-title" className="text-lg font-bold text-gray-900 mb-2">Hapus Pencatatan?</h3>
+                        <p className="text-sm text-gray-500 mb-6">Data pencatatan ini akan dihapus permanen. Tindakan ini tidak dapat dibatalkan.</p>
+                        <div className="flex gap-3">
+                            <button onClick={() => setDeleteId(null)} disabled={deleting}
+                                className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                                Batal
+                            </button>
+                            <button onClick={() => deleteId !== null && handleDelete(deleteId)} disabled={deleting}
+                                className="flex-1 py-2.5 bg-red-600 rounded-xl text-sm font-semibold text-white hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+                                {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Ya, Hapus'}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

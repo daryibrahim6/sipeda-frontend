@@ -111,18 +111,20 @@ export default function Navbar() {
           <div className="relative" ref={dropRef}>
             <button
               onClick={() => setDropdownOpen(p => !p)}
+              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDropdownOpen(p => !p); } else if (e.key === 'Escape' && dropdownOpen) { setDropdownOpen(false); } }}
               className={`flex items-center gap-1 px-2 py-2 text-sm font-semibold relative nav-link-underline active:scale-[0.95] ${infoIsActive
                 ? 'text-[var(--color-primary)] active'
                 : 'text-[var(--color-text-muted)] hover:text-[var(--color-primary)]'
                 }`}
               aria-expanded={dropdownOpen}
+              aria-controls="info-dropdown"
             >
               Info
               <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {dropdownOpen && (
-              <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-48 bg-white border border-[var(--color-border)] rounded-2xl shadow-xl py-2 z-50 animate-scale-in">
+              <div id="info-dropdown" className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-48 bg-white border border-[var(--color-border)] rounded-2xl shadow-xl py-2 z-50 animate-scale-in">
                 {infoNav.map(l => (
                   <Link key={l.href} href={l.href}
                     className={`block px-5 py-2.5 text-sm font-medium border-l-2 transition-all active:scale-[0.97] ${isActive(l.href)

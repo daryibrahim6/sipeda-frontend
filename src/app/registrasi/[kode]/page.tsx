@@ -80,6 +80,8 @@ export default async function RegistrasiDetailPage({ params }: Props) {
                 Kembali
             </Link>
 
+            <h1 className="sr-only">Status Registrasi {data.kode_registrasi}</h1>
+
             {/* Status card */}
             <Card variant="flush" className={`${statusInfo.bg} !p-6 mb-6 rounded-3xl`}>
                 <div className="flex items-start gap-4">

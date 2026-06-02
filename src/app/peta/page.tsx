@@ -10,7 +10,12 @@ import MapWrapper from '@/components/map/MapWrapper';
 
 export const metadata: Metadata = {
   title: 'Peta Lokasi Donor',
-  description: 'Peta interaktif semua lokasi donor darah aktif di Kecamatan Indramayu.',
+  description: 'Peta interaktif semua lokasi donor darah aktif di Kabupaten Indramayu.',
+  alternates: { canonical: '/peta' },
+  openGraph: {
+    title: 'Peta Lokasi Donor — SIPEDA',
+    description: 'Peta interaktif semua lokasi donor darah aktif di Kabupaten Indramayu.',
+  },
 };
 
 export const revalidate = 120;

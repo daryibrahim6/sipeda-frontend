@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { getRekapPencatatan, getAdminPencatatan } from '@/lib/admin-api';
 import type { RekapPencatatan, PencatatanDonor } from '@/lib/types';
 import { useSidebarToggle } from '@/lib/admin-context';
+import { useToast } from '@/lib/toast';
 import { TopBar } from '@/components/admin/TopBar';
 import {
     RefreshCw, ClipboardCheck, Calendar,
@@ -24,30 +25,15 @@ const STATUS_LABEL: Record<string, string> = {
     tidak_memenuhi_syarat: 'Tidak Memenuhi Syarat',
 };
 
-function Toast({ msg, type, onClose }: { msg: string; type: 'success' | 'error'; onClose: () => void }) {
-    return (
-        <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-lg text-sm font-medium ${type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}>
-            {type === 'success' ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
-            {msg}
-            <button onClick={onClose} className="ml-2 p-2 opacity-70 hover:opacity-100"><X className="w-3.5 h-3.5" /></button>
-        </div>
-    );
-}
-
 export default function AdminPencatatanPage() {
+    const { toast } = useToast();
     const toggleSidebar = useSidebarToggle();
     const [rekap, setRekap] = useState<RekapPencatatan[]>([]);
     const [loading, setLoading] = useState(true);
     const [expanded, setExpanded] = useState<number | null>(null);
     const [detail, setDetail] = useState<PencatatanDonor[]>([]);
     const [loadingDetail, setLoadingDetail] = useState(false);
-    const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
     const loadReqId = useRef(0);
-
-    const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
-        setToast({ msg, type });
-        setTimeout(() => setToast(null), 3500);
-    };
 
     async function loadRekap() {
         const reqId = ++loadReqId.current;
@@ -57,13 +43,14 @@ export default function AdminPencatatanPage() {
             if (reqId !== loadReqId.current) return;
             setRekap(data);
         } catch {
-            if (reqId === loadReqId.current) showToast('Gagal memuat data.', 'error');
+            if (reqId === loadReqId.current) toast('Gagal memuat data.', 'error');
         }
         if (reqId === loadReqId.current) setLoading(false);
     }
 
     useEffect(() => {
         void Promise.resolve().then(loadRekap);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     async function toggleExpand(jadwalId: number) {
@@ -79,7 +66,7 @@ export default function AdminPencatatanPage() {
             const data = await getAdminPencatatan(jadwalId);
             if (reqId === loadReqId.current) setDetail(data);
         } catch {
-            if (reqId === loadReqId.current) showToast('Gagal memuat detail.', 'error');
+            if (reqId === loadReqId.current) toast('Gagal memuat detail.', 'error');
         }
         if (reqId === loadReqId.current) setLoadingDetail(false);
     }
@@ -360,7 +347,6 @@ export default function AdminPencatatanPage() {
                 )}
             </main>
 
-            {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
         </div>
     );
 }

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ChevronDown, HelpCircle, Search, Phone, MessageCircle } from 'lucide-react';
 import { FAQ_LIST } from '@/lib/faq-data';
+import { StructuredData } from '@/components/seo/StructuredData';
 
 export const metadata: Metadata = {
     title: 'FAQ',
@@ -33,6 +34,16 @@ export default async function FAQPage() {
     return (
         <>
             <main id="main">
+                <StructuredData data={{
+                    '@context': 'https://schema.org',
+                    '@type': 'FAQPage',
+                    mainEntity: faqs.map(f => ({
+                        '@type': 'Question',
+                        name: f.pertanyaan,
+                        acceptedAnswer: { '@type': 'Answer', text: f.jawaban },
+                    })),
+                }} />
+
                 {/* ── Header ── */}
                 <section className="bg-gray-950 text-white py-16">
                     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">

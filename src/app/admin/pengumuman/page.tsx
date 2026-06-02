@@ -14,6 +14,7 @@ import {
 import { requireAdminAuth } from '@/lib/auth';
 import { formatDate } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
+import { useToast } from '@/lib/toast';
 
 function SkeletonRow() {
   return (
@@ -22,17 +23,6 @@ function SkeletonRow() {
         <td key={i} className="px-5 py-4"><div className="h-4 bg-[var(--color-section-alt)] animate-pulse-soft rounded" /></td>
       ))}
     </tr>
-  );
-}
-
-function Toast({ msg, type, onClose }: { msg: string; type: 'success' | 'error'; onClose: () => void }) {
-  return (
-    <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-lg text-sm font-medium ${type === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
-      }`}>
-      {type === 'success' ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
-      {msg}
-      <button onClick={onClose} className="p-2"><X className="w-3.5 h-3.5 opacity-70" /></button>
-    </div>
   );
 }
 
@@ -169,6 +159,7 @@ const PER_PAGE = 10;
 
 export default function AdminPengumumanPage() {
   const toggle = useSidebarToggle();
+  const { toast } = useToast();
   const [announcements, setAnnouncements] = useState<AdminAnnouncement[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -180,14 +171,8 @@ export default function AdminPengumumanPage() {
   const [deleting, setDeleting] = useState<AdminAnnouncement | null>(null);
   const [form, setForm] = useState<FormData>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
 
   useEffect(() => { requireAdminAuth(); }, []);
-
-  function showToast(msg: string, type: 'success' | 'error' = 'success') {
-    setToast({ msg, type });
-    setTimeout(() => setToast(null), 3500);
-  }
 
   const fetchData = useCallback(async (p = page, s = search, tf = tipeFilter) => {
     setLoading(true);
@@ -196,11 +181,11 @@ export default function AdminPengumumanPage() {
       setAnnouncements(result.data);
       setTotal(result.total);
     } catch {
-      showToast('Gagal memuat data pengumuman.', 'error');
+      toast('Gagal memuat data pengumuman.', 'error');
     } finally {
       setLoading(false);
     }
-  }, [page, search, tipeFilter]);
+  }, [page, search, tipeFilter, toast]);
 
   useEffect(() => { fetchData(); }, [page, fetchData]);
   useEffect(() => { setPage(1); fetchData(1, search, tipeFilter); }, [search, tipeFilter, fetchData]);
@@ -233,17 +218,17 @@ export default function AdminPengumumanPage() {
       };
       if (editing) {
         await updateAnnouncement(editing.id, payload);
-        showToast('Pengumuman berhasil diperbarui.');
+        toast('Pengumuman berhasil diperbarui.');
       } else {
         await createAnnouncement(payload);
-        showToast('Pengumuman berhasil disimpan.');
+        toast('Pengumuman berhasil disimpan.');
       }
       setShowForm(false);
       setEditing(null);
       fetchData(1, search, tipeFilter);
       setPage(1);
     } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Gagal menyimpan.', 'error');
+      toast(err instanceof Error ? err.message : 'Gagal menyimpan.', 'error');
     } finally {
       setSaving(false);
     }
@@ -255,10 +240,10 @@ export default function AdminPengumumanPage() {
     try {
       await deleteAnnouncement(deleting.id);
       setDeleting(null);
-      showToast('Pengumuman berhasil dihapus.');
+      toast('Pengumuman berhasil dihapus.');
       fetchData(page, search, tipeFilter);
     } catch {
-      showToast('Gagal menghapus pengumuman.', 'error');
+      toast('Gagal menghapus pengumuman.', 'error');
     } finally {
       setSaving(false);
     }
@@ -384,7 +369,6 @@ export default function AdminPengumumanPage() {
         <DeleteModal announcement={deleting} onConfirm={handleDelete}
           onCancel={() => setDeleting(null)} loading={saving} />
       )}
-      {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 }

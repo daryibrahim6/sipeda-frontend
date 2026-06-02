@@ -30,8 +30,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# env files (track .env.example, ignore local env)
+.env.local
+.env.*.local
 
 # vercel
 .vercel
@@ -44,3 +45,6 @@ public/swe-worker*
 *.tsbuildinfo
 next-env.d.ts
 opencode.json
+
+# developer docs (audit notes, architecture — not for production)
+docs/

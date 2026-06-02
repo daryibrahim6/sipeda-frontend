@@ -229,7 +229,7 @@ export default function DonorCard({ data }: Props) {
             {/* Error message */}
             {downloadError && (
                 <div className="flex items-center gap-2 max-w-[400px] mx-auto p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
-                    <X className="w-4 h-4 flex-shrink-0 cursor-pointer hover:text-red-900" onClick={() => setDownloadError('')} />
+                    <button onClick={() => setDownloadError('')} aria-label="Tutup pesan error" className="flex-shrink-0"><X className="w-4 h-4 hover:text-red-900" /></button>
                     {downloadError}
                 </div>
             )}

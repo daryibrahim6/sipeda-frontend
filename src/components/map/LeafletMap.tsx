@@ -19,6 +19,7 @@ export function LeafletMap({ locations, center, zoom = 12, onSelect }: Props) {
 
     let cancelled = false;
 
+    import('leaflet/dist/leaflet.css');
     import('leaflet').then((m) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const L = (m.default || m) as any;

@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
     title: 'Halaman Tidak Ditemukan',
+    description: 'Halaman yang Anda cari tidak tersedia atau telah dipindahkan. Kembali ke beranda SIPEDA — donor darah Indramayu.',
 };
 
 export default function NotFound() {

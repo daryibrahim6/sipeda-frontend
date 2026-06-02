@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import { type ReactNode } from 'react';
 import { PengumumanDarurat } from '@/components/PengumumanDarurat';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
-import MobileBottomNav from './MobileBottomNav';
+import MobileCtaBar from './MobileCtaBar';
 import Footer from './Footer';
 
 export function PublicShell({ children }: { children: ReactNode }) {
@@ -14,17 +14,17 @@ export function PublicShell({ children }: { children: ReactNode }) {
     if (isExcluded) return <>{children}</>;
 
     return (
-        <div className={`pb-16 md:pb-0 min-h-screen flex flex-col ${
+        <div className={`pb-20 md:pb-0 min-h-screen flex flex-col ${
             pathname === '/' ? '' : 'pt-20 sm:pt-24'
         }`}>
-            <main className="flex-1 pb-16">
+            <main className="flex-1">
                 <PengumumanDarurat />
                 <ErrorBoundary>
                     {children}
                 </ErrorBoundary>
             </main>
             <Footer />
-            <MobileBottomNav />
+            <MobileCtaBar />
         </div>
     );
 }

@@ -135,7 +135,7 @@ export function PencatatanForm({ jadwalId, petugasId, onSaved, onCreatePencatata
                     <div className="w-1 h-5 bg-[var(--color-primary)] rounded-full" />
                     <h3 className="text-sm font-bold text-[var(--color-text-primary)]">Input Pendonor</h3>
                 </div>
-                <button onClick={() => { setFormOpen(false); setLookupResult(null); setKodeInput(''); setLookupError(''); setForm(f => ({ ...f, hemoglobin: '', tensi_sistolik: '', tensi_diastolik: '', berat_badan: '' })); }} className="p-2 rounded-xl text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-section-alt)] transition-colors">
+                <button onClick={() => { setFormOpen(false); setLookupResult(null); setKodeInput(''); setLookupError(''); setForm(f => ({ ...f, hemoglobin: '', tensi_sistolik: '', tensi_diastolik: '', berat_badan: '' })); }} aria-label="Tutup form" className="p-2 rounded-xl text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-section-alt)] transition-colors">
                     <X className="w-4 h-4" />
                 </button>
             </div>
@@ -226,8 +226,9 @@ export function PencatatanForm({ jadwalId, petugasId, onSaved, onCreatePencatata
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Nama Pendonor <span className="text-[var(--color-primary)]">*</span></label>
+                            <label htmlFor="field-nama" className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">Nama Pendonor <span className="text-[var(--color-primary)]">*</span></label>
                             <input
+                                id="field-nama"
                                 type="text"
                                 value={form.nama_pendonor}
                                 onChange={e => setForm(f => ({ ...f, nama_pendonor: e.target.value }))}
@@ -267,8 +268,9 @@ export function PencatatanForm({ jadwalId, petugasId, onSaved, onCreatePencatata
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div>
-                                <label className="block text-xs font-medium text-[var(--color-text-muted)] mb-1.5">HB (g/dL)</label>
+                                <label htmlFor="field-hb" className="block text-xs font-medium text-[var(--color-text-muted)] mb-1.5">HB (g/dL)</label>
                                 <input
+                                    id="field-hb"
                                     type="number" step="0.1" min="5" max="20"
                                     value={form.hemoglobin}
                                     onChange={e => setForm(f => ({ ...f, hemoglobin: e.target.value }))}
@@ -277,8 +279,9 @@ export function PencatatanForm({ jadwalId, petugasId, onSaved, onCreatePencatata
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-[var(--color-text-muted)] mb-1.5">Tensi Sistolik</label>
+                                <label htmlFor="field-tensi-sys" className="block text-xs font-medium text-[var(--color-text-muted)] mb-1.5">Tensi Sistolik</label>
                                 <input
+                                    id="field-tensi-sys"
                                     type="number" min="80" max="220"
                                     value={form.tensi_sistolik}
                                     onChange={e => setForm(f => ({ ...f, tensi_sistolik: e.target.value }))}
@@ -287,8 +290,9 @@ export function PencatatanForm({ jadwalId, petugasId, onSaved, onCreatePencatata
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-[var(--color-text-muted)] mb-1.5">Tensi Diastolik</label>
+                                <label htmlFor="field-tensi-dia" className="block text-xs font-medium text-[var(--color-text-muted)] mb-1.5">Tensi Diastolik</label>
                                 <input
+                                    id="field-tensi-dia"
                                     type="number" min="40" max="140"
                                     value={form.tensi_diastolik}
                                     onChange={e => setForm(f => ({ ...f, tensi_diastolik: e.target.value }))}
@@ -298,8 +302,9 @@ export function PencatatanForm({ jadwalId, petugasId, onSaved, onCreatePencatata
                             </div>
                         </div>
                         <div>
-                                <label className="block text-xs font-medium text-[var(--color-text-muted)] mb-1.5">Berat Badan (kg)</label>
+                                <label htmlFor="field-berat" className="block text-xs font-medium text-[var(--color-text-muted)] mb-1.5">Berat Badan (kg)</label>
                             <input
+                                id="field-berat"
                                 type="number" step="0.5" min="30" max="200"
                                 value={form.berat_badan}
                                 onChange={e => setForm(f => ({ ...f, berat_badan: e.target.value }))}

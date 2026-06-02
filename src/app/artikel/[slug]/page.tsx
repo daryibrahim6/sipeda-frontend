@@ -7,6 +7,7 @@ import DOMPurify from 'isomorphic-dompurify';
 
 import { getArticleBySlug, getArticles } from '@/lib/api';
 import { formatDate } from '@/lib/utils';
+import { StructuredData } from '@/components/seo/StructuredData';
 
 const FALLBACK_IMAGES = [
   'https://images.unsplash.com/photo-1615461066841-6116e61058f4?w=800&h=450&fit=crop',
@@ -21,13 +22,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const article = await getArticleBySlug(slug).catch(() => null);
   if (!article) return { title: 'Artikel Tidak Ditemukan' };
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://sipeda.vercel.app';
   return {
     title: article.judul,
     description: article.excerpt ?? article.judul,
+    alternates: { canonical: `${siteUrl}/artikel/${slug}` },
     openGraph: {
       title: article.judul,
       description: article.excerpt ?? '',
+      type: 'article',
+      publishedTime: article.published_at ?? undefined,
+      authors: [article.penulis],
       images: article.gambar ? [{ url: article.gambar }] : [],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: article.judul,
+      description: article.excerpt ?? '',
+      images: article.gambar ? [article.gambar] : [],
     },
   };
 }
@@ -42,12 +54,34 @@ export default async function ArtikelDetailPage({ params }: Props) {
 
   if (!article) notFound();
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://sipeda.vercel.app';
+
   const relatedArticles = related?.data
     ?.filter(a => a.slug !== slug)
     .slice(0, 3) ?? [];
 
   return (
     <main id="main">
+      <StructuredData data={{
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        headline: article.judul,
+        description: article.excerpt ?? article.judul,
+        image: article.gambar ?? undefined,
+        datePublished: article.published_at,
+        author: { '@type': 'Person', name: article.penulis },
+        publisher: { '@type': 'Organization', name: 'PMI Kabupaten Indramayu', logo: { '@type': 'ImageObject', url: `${siteUrl}/logo.png` } },
+        mainEntityOfPage: { '@type': 'WebPage', '@id': `${siteUrl}/artikel/${slug}` },
+      }} />
+      <StructuredData data={{
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Beranda', item: siteUrl },
+          { '@type': 'ListItem', position: 2, name: 'Artikel', item: `${siteUrl}/artikel` },
+          { '@type': 'ListItem', position: 3, name: article.judul },
+        ],
+      }} />
 
       {/* ── Hero / Cover ── */}
       <div className="relative">
