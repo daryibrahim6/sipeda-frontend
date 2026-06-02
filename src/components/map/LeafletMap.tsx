@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import type { Location } from '@/lib/types';
+import 'leaflet/dist/leaflet.css';
 
 type Props = {
   locations: Location[];
@@ -12,14 +13,13 @@ type Props = {
 
 export function LeafletMap({ locations, center, zoom = 12, onSelect }: Props) {
   const mapRef         = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<{ remove: () => void; invalidateSize?: () => void } | null>(null);
+  const mapInstanceRef = useRef<{ remove: () => void; invalidateSize?: () => void; _resizeObserver?: ResizeObserver } | null>(null);
 
   useEffect(() => {
     if (!mapRef.current) return;
 
     let cancelled = false;
 
-    import('leaflet/dist/leaflet.css');
     import('leaflet').then((m) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const L = (m.default || m) as any;
@@ -109,12 +109,19 @@ export function LeafletMap({ locations, center, zoom = 12, onSelect }: Props) {
       });
 
       // Fix blank tile issue when container is initially hidden
-      setTimeout(() => map.invalidateSize?.(), 100);
+      const ro = new ResizeObserver(() => map.invalidateSize?.());
+      ro.observe(mapRef.current);
+      if (mapInstanceRef.current) mapInstanceRef.current._resizeObserver = ro;
+
+      setTimeout(() => map.invalidateSize?.(), 300);
+    }).catch(() => {
+      // Leaflet gagal load — biarkan container kosong, tidak crash
     });
 
     return () => {
       cancelled = true;
       if (mapInstanceRef.current) {
+        mapInstanceRef.current._resizeObserver?.disconnect();
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
       }
@@ -126,7 +133,6 @@ export function LeafletMap({ locations, center, zoom = 12, onSelect }: Props) {
     <div
       ref={mapRef}
       className="w-full h-full rounded-2xl z-0"
-      style={{ minHeight: '400px' }}
       aria-label="Peta lokasi donor darah"
       role="application"
     />

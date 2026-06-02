@@ -179,6 +179,17 @@ h4 {
   animation: bloodPulse 2s ease-in-out infinite;
 }
 
+@keyframes progress {
+  0%   { transform: translateX(-100%); }
+  40%  { transform: translateX(-20%); }
+  60%  { transform: translateX(0%); }
+  100% { transform: translateX(100%); }
+}
+
+.animate-progress {
+  animation: progress 0.5s ease-out forwards;
+}
+
 /* ─── Staggered animation helpers ────────────────────────────────────────────── */
 .stagger-1 {
   animation-delay: 0.1s;

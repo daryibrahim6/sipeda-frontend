@@ -87,7 +87,7 @@ export default function Navbar() {
         {/* Col 1: Logo */}
         <div className="justify-self-start">
           <Link href="/" className="flex items-center gap-2 group">
-            <Image src="/logo.png" alt="SIPEDA" width={44} height={44} className="h-10 sm:h-11 w-auto group-hover:scale-105 transition-transform duration-300" />
+            <Image src="/logo.webp" alt="SIPEDA" width={44} height={44} className="h-10 sm:h-11 w-auto group-hover:scale-105 transition-transform duration-300" />
             <span className="font-extrabold tracking-tight text-[var(--color-text-primary)] group-hover:text-[var(--color-primary)] transition-colors duration-300 text-lg sm:text-xl">
               SIPEDA
             </span>

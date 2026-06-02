@@ -46,19 +46,25 @@ export function PengumumanDarurat() {
     });
   }, []);
 
-  if (!data) return null;
+  const loading = !data;
 
-  const { announcements, stockKritis } = data;
-  const darurat = announcements.filter(a => a.tipe === 'darurat');
-  const nonDarurat = announcements.filter(a => a.tipe !== 'darurat');
-  const hasStockCrisis = stockKritis > 0;
+  type AnnouncementItem = { id: number; judul: string; isi: string; tipe: string; link: string | null; link_teks: string | null };
 
-  // Filter out dismissed items
-  const activeDarurat = darurat.filter(a => !dismissedMap.has(`a-${a.id}`));
-  const activeNonDarurat = nonDarurat.filter(a => !dismissedMap.has(`a-${a.id}`));
-  const showStockCrisis = hasStockCrisis && !dismissedMap.has('stock-crisis');
+  const derived = (() => {
+    if (loading) return { activeDarurat: [] as AnnouncementItem[], activeNonDarurat: [] as AnnouncementItem[], showStockCrisis: false, stockKritis: 0 };
+    const { announcements, stockKritis } = data!;
+    const darurat = announcements.filter(a => a.tipe === 'darurat');
+    const nonDarurat = announcements.filter(a => a.tipe !== 'darurat');
+    const hasStockCrisis = stockKritis > 0;
+    const activeDarurat = darurat.filter(a => !dismissedMap.has(`a-${a.id}`));
+    const activeNonDarurat = nonDarurat.filter(a => !dismissedMap.has(`a-${a.id}`));
+    const showStockCrisis = hasStockCrisis && !dismissedMap.has('stock-crisis');
+    return { activeDarurat, activeNonDarurat, showStockCrisis, stockKritis };
+  })();
 
-  if (activeDarurat.length === 0 && !showStockCrisis && activeNonDarurat.length === 0) return null;
+  const { activeDarurat, activeNonDarurat, showStockCrisis, stockKritis } = derived;
+
+  if (!loading && activeDarurat.length === 0 && !showStockCrisis && activeNonDarurat.length === 0) return null;
 
   function handleDismiss(id: string) {
     markDismissed(id);
@@ -66,7 +72,7 @@ export function PengumumanDarurat() {
   }
 
   return (
-    <div className="relative z-50">
+    <div className={`relative z-50 ${loading ? 'min-h-[52px]' : ''}`}>
 
       {/* Stock crisis auto-banner */}
       {showStockCrisis && activeDarurat.length === 0 && (

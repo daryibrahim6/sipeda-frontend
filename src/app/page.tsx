@@ -69,7 +69,7 @@ export default async function HomePage() {
         {/* Layer 1 — Background image, terisolasi dari flex */}
         <div className="absolute inset-0 z-0">
           <Image
-            src="/hero-blood.jpg"
+                  src="/hero-blood.webp"
             alt=""
             fill
             className="object-cover"

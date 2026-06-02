@@ -21,9 +21,9 @@ function SkeletonCards() {
                             <div className="h-3 w-16 bg-gray-200 animate-pulse rounded" />
                         </div>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="flex overflow-x-auto gap-5 pb-2 -mx-4 px-4">
                         {[1, 2, 3].map(i => (
-                            <div key={i} className="h-52 bg-gray-100 animate-pulse rounded-2xl" />
+                            <div key={i} className="min-w-[300px] w-[85vw] max-w-[380px] flex-shrink-0 h-52 bg-gray-100 animate-pulse rounded-2xl" />
                         ))}
                     </div>
                 </div>
@@ -205,8 +205,12 @@ export default function JadwalClient({ locations }: { locations: Location[] }) {
                                         </div>
                                         <div className="h-px bg-gray-100 flex-1 ml-2" />
                                     </div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                                        {daySchedules.map(s => <ScheduleCard key={s.id} schedule={s} />)}
+                                    <div className="flex overflow-x-auto gap-5 pb-2 snap-x snap-mandatory scrollbar-hide -mx-4 px-4">
+                                        {daySchedules.map(s => (
+                                            <div key={s.id} className="min-w-[300px] w-[85vw] max-w-[380px] flex-shrink-0 snap-start">
+                                                <ScheduleCard schedule={s} />
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
                             );
