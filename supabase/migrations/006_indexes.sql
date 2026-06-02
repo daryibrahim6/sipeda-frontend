@@ -1,7 +1,4 @@
--- ============================================================
--- SIPEDA — Additional Indexes (006)
--- Index performa untuk query yang sering dijalankan aplikasi.
--- ============================================================
+-- 006_indexes.sql — Index performa untuk query aplikasi.
 
 -- ── JADWAL DONOR ──────────────────────────────────────────────
 

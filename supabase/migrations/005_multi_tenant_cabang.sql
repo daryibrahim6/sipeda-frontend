@@ -1,8 +1,4 @@
--- ============================================================
--- SIPEDA — Multi-tenant Cabang (005)
--- Persiapan struktur cabang untuk multi-cabang PMI.
--- Semua cabang_id nullable dan belum ada logic/RLS diaktifkan.
--- ============================================================
+-- 005_multi_tenant_cabang.sql — Tabel cabang (multi-tenant prep, belum ada RLS).
 
 CREATE TABLE IF NOT EXISTS cabang (
   id SERIAL PRIMARY KEY,

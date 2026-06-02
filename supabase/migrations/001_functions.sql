@@ -1,7 +1,4 @@
--- ============================================================
--- SIPEDA — Functions (001)
--- Semua fungsi database yang digunakan oleh trigger dan aplikasi.
--- ============================================================
+-- 001_functions.sql — Fungsi DB untuk trigger & aplikasi.
 
 -- ── Auto-update status stok ───────────────────────────────────
 

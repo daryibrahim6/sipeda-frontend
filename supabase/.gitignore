@@ -1,0 +1,5 @@
+# Local Supabase CLI dev artifacts (jika pakai `supabase start`)
+.temp/
+branches/
+*.local.sql
+*.bak

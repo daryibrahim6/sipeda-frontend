@@ -70,7 +70,7 @@ export default async function ArtikelDetailPage({ params }: Props) {
         image: article.gambar ?? undefined,
         datePublished: article.published_at,
         author: { '@type': 'Person', name: article.penulis },
-        publisher: { '@type': 'Organization', name: 'PMI Kabupaten Indramayu', logo: { '@type': 'ImageObject', url: `${siteUrl}/logo.png` } },
+        publisher: { '@type': 'Organization', name: 'PMI Kabupaten Indramayu', logo: { '@type': 'ImageObject', url: `${siteUrl}/logo.webp` } },
         mainEntityOfPage: { '@type': 'WebPage', '@id': `${siteUrl}/artikel/${slug}` },
       }} />
       <StructuredData data={{

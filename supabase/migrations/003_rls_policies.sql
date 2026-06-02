@@ -1,7 +1,4 @@
--- ============================================================
--- SIPEDA — RLS Policies (003)
--- Kebijakan keamanan per tabel berdasarkan role.
--- ============================================================
+-- 003_rls_policies.sql — Row Level Security per tabel & role.
 
 -- ── FUNCTION: Role checker untuk admin level ─────────────────
 

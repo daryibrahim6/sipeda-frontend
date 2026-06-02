@@ -3,7 +3,7 @@ import { getSchedules } from '@/lib/api';
 import { rateLimitMiddleware } from '@/lib/rate-limit';
 
 export async function GET(request: Request) {
-    const rl = rateLimitMiddleware({ maxRequests: 30, windowMs: 60_000 })(request);
+    const rl = await rateLimitMiddleware({ maxRequests: 30, windowMs: 60_000 })(request);
     if (!rl.allowed) {
         return NextResponse.json(
             { error: `Terlalu banyak permintaan. Coba lagi ${rl.retryAfter} detik lagi.` },

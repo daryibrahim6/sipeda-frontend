@@ -17,7 +17,7 @@ const nextConfig = {
     ],
   },
   reactStrictMode: true,
-  outputFileTracingRoot: 'C:/Users/daryi/sipeda-frontend',
+  outputFileTracingRoot: '.',
 
   async headers() {
     return [
@@ -48,11 +48,11 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+              "script-src 'self' 'unsafe-inline'",
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob: images.unsplash.com *.sipeda.id *.tile.openstreetmap.org tile.openstreetmap.org",
               "font-src 'self' fonts.gstatic.com fonts.googleapis.com",
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://fnfkvomcmvbtksnqagnh.supabase.co https://www.googletagmanager.com https://*.google-analytics.com",
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.googletagmanager.com https://*.google-analytics.com",
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",

@@ -1,7 +1,4 @@
--- ============================================================
--- SIPEDA — Database Cleanup (010)
--- Hapus index redundan, tidak ada perubahan skema.
--- ============================================================
+-- 010_database_cleanup.sql — Hapus index redundan (no schema change).
 
 -- ── DROP REDUNDANT INDEXES ──────────────────────────────────
 

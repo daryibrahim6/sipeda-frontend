@@ -505,9 +505,10 @@ export async function lookupDonorHistory(
 
 // ─── Batalkan Registrasi (Donor-facing) ────────────────────────────────────────
 
-export async function batalkanRegistrasi(kode: string): Promise<{ success: boolean; error?: string }> {
+export async function batalkanRegistrasi(kode: string, telepon: string): Promise<{ success: boolean; error?: string }> {
   const { data, error } = await supabase.rpc('batalkan_registrasi_by_kode', {
     p_kode: kode,
+    p_telepon: telepon,
   });
 
   if (error) {

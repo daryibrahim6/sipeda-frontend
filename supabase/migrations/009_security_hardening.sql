@@ -1,7 +1,4 @@
--- ============================================================
--- SIPEDA — Security Hardening (009)
--- FORCE RLS, TO clause fixes, WITH CHECK fixes, search_path
--- ============================================================
+-- 009_security_hardening.sql — FORCE RLS, TO clause, WITH CHECK, search_path.
 
 -- ── 1. FORCE ROW LEVEL SECURITY ─────────────────────────────
 -- Mencegah postgres (table owner) bypass RLS

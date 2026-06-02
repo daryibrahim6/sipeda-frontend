@@ -79,13 +79,13 @@ async function loginWithRole(
  */
 async function getSessionByRoles(allowedRoles?: string[]) {
   const supabase = createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return null;
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) return null;
 
   const { data: adminData } = await supabase
     .from('admins')
     .select('id, name, email, role')
-    .eq('auth_user_id', session.user.id)
+    .eq('auth_user_id', user.id)
     .single();
 
   if (!adminData) return null;
@@ -93,7 +93,7 @@ async function getSessionByRoles(allowedRoles?: string[]) {
   const role = adminData.role as string;
   if (allowedRoles && !allowedRoles.includes(role)) return null;
 
-  return { session, user: adminData };
+  return { user: adminData };
 }
 
 // ─── Public API: Login ────────────────────────────────────────────────────────

@@ -1,7 +1,4 @@
--- ============================================================
--- SIPEDA — Views & RPC Functions (004)
--- View untuk dashboard dan RPC untuk akses publik yang aman.
--- ============================================================
+-- 004_views_rpc.sql — View dashboard & RPC untuk akses publik.
 
 -- ── VIEWS ─────────────────────────────────────────────────────
 

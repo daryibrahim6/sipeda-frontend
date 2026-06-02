@@ -1,50 +1,42 @@
 'use client';
 
 import { useEffect } from 'react';
-import Link from 'next/link';
-import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 
 export default function GlobalError({
-  error,
-  reset,
+    error,
+    reset,
 }: {
-  error: Error & { digest?: string };
-  reset: () => void;
+    error: Error & { digest?: string };
+    reset: () => void;
 }) {
-  useEffect(() => {
-    console.error('[SIPEDA GlobalError]', error);
-  }, [error]);
+    useEffect(() => {
+        // Error ini muncul di Vercel Error Tracking dashboard jika fitur diaktifkan
+        console.error('[SIPEDA GlobalError]', error);
+    }, [error]);
 
-  return (
-    <html lang="id">
-      <body>
-        <div className="min-h-screen bg-[#FAFAF9] flex flex-col items-center justify-center px-4 text-center">
-          <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <AlertTriangle className="w-8 h-8 text-red-600" />
-          </div>
-
-          <h1 className="text-2xl font-bold text-gray-900 mb-3">Terjadi Kesalahan</h1>
-          <p className="text-gray-500 mb-2 max-w-md">
-            Maaf, ada masalah serius saat memuat aplikasi. Silakan coba lagi.
-          </p>
-          {error.digest && (
-            <p className="text-xs text-gray-400 font-mono mb-8">Error ID: {error.digest}</p>
-          )}
-
-          <div className="flex flex-col sm:flex-row gap-3">
-            <button onClick={reset}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-colors">
-              <RefreshCw className="w-4 h-4" />
-              Coba Lagi
-            </button>
-            <Link href="/"
-              className="inline-flex items-center gap-2 px-6 py-3 border border-gray-200 bg-white text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors">
-              <Home className="w-4 h-4" />
-              Ke Beranda
-            </Link>
-          </div>
-        </div>
-      </body>
-    </html>
-  );
+    return (
+        <html lang="id">
+            <body>
+                <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1rem', fontFamily: 'system-ui, sans-serif', textAlign: 'center' }}>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.75rem' }}>
+                        Terjadi Kesalahan Kritis
+                    </h1>
+                    <p style={{ color: '#6b7280', maxWidth: '28rem', marginBottom: '1.5rem' }}>
+                        Maaf, aplikasi mengalami masalah. Tim kami sudah mendapat notifikasi.
+                    </p>
+                    {error.digest && (
+                        <p style={{ fontSize: '0.75rem', color: '#9ca3af', fontFamily: 'monospace', marginBottom: '1.5rem' }}>
+                            Error ID: {error.digest}
+                        </p>
+                    )}
+                    <button
+                        onClick={reset}
+                        style={{ padding: '0.75rem 1.5rem', background: '#dc2626', color: 'white', fontWeight: 600, border: 'none', borderRadius: '0.75rem', cursor: 'pointer' }}
+                    >
+                        Coba Lagi
+                    </button>
+                </div>
+            </body>
+        </html>
+    );
 }

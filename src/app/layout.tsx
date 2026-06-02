@@ -2,13 +2,13 @@ import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import { Suspense } from 'react';
 import './globals.css';
-import 'leaflet/dist/leaflet.css';
 import { NavigationProgress } from '@/components/ui/NavigationProgress';
 import { FixedHeader } from '@/components/layout/FixedHeader';
 import { PublicShell } from '@/components/layout/PublicShell';
 import { Analytics } from '@/components/Analytics';
 import { StructuredData } from '@/components/seo/StructuredData';
 import { ToastProvider } from '@/lib/toast';
+import { AnnouncementBanner } from '@/components/layout/AnnouncementBanner';
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://sipeda.vercel.app';
@@ -63,14 +63,12 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     locale: 'id_ID',
     type: 'website',
-    images: [{ url: `${SITE_URL}/logo.png`, width: 512, height: 512, alt: SITE_NAME }],
   },
 
   twitter: {
     card: 'summary_large_image',
     title: `${SITE_NAME} — Donor Darah Indramayu`,
     description: SITE_DESC,
-    images: [`${SITE_URL}/logo.png`],
   },
 
   robots: {
@@ -101,7 +99,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           name: 'PMI Kabupaten Indramayu',
           alternateName: 'SIPEDA',
           url: SITE_URL,
-          logo: `${SITE_URL}/logo.png`,
+          logo: `${SITE_URL}/logo.webp`,
           description: SITE_DESC,
           address: { '@type': 'PostalAddress', addressLocality: 'Indramayu', addressRegion: 'Jawa Barat', addressCountry: 'ID' },
           contactPoint: [{ '@type': 'ContactPoint', telephone: '+62-234-271648', contactType: 'customer service' }],
@@ -132,6 +130,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </a>
         {/* Fixed header: banner + navbar */}
         <FixedHeader />
+
+        {/* Active announcements (urgent > peringatan > sukses > info) */}
+        <AnnouncementBanner />
 
         {/* Progress bar */}
         <Suspense fallback={null}>

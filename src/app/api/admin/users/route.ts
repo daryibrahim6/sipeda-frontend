@@ -58,8 +58,8 @@ async function verifySuperadmin(req: NextRequest) {
 
 // ─── GET: List all admin/petugas users ────────────────────────────────────────
 
-const rlCheck = (req: NextRequest) => {
-  const rl = rateLimitMiddleware({ maxRequests: 20, windowMs: 60_000 })(req);
+const rlCheck = async (req: NextRequest): Promise<NextResponse | null> => {
+  const rl = await rateLimitMiddleware({ maxRequests: 20, windowMs: 60_000 })(req);
   if (!rl.allowed) {
     return NextResponse.json(
       { error: `Terlalu banyak permintaan. Coba lagi ${rl.retryAfter} detik lagi.` },
@@ -70,7 +70,7 @@ const rlCheck = (req: NextRequest) => {
 };
 
 export async function GET(req: NextRequest) {
-    const rlResponse = rlCheck(req);
+    const rlResponse = await rlCheck(req);
     if (rlResponse) return rlResponse;
 
     const caller = await verifySuperadmin(req);
@@ -92,7 +92,7 @@ export async function GET(req: NextRequest) {
 // ─── POST: Create new admin/petugas user ──────────────────────────────────────
 
 export async function POST(req: NextRequest) {
-    const rlResponse = rlCheck(req);
+    const rlResponse = await rlCheck(req);
     if (rlResponse) return rlResponse;
 
     const caller = await verifySuperadmin(req);
@@ -146,7 +146,7 @@ export async function POST(req: NextRequest) {
 // ─── PUT: Update admin/petugas ────────────────────────────────────────────────
 
 export async function PUT(req: NextRequest) {
-    const rlResponse = rlCheck(req);
+    const rlResponse = await rlCheck(req);
     if (rlResponse) return rlResponse;
 
     const caller = await verifySuperadmin(req);
@@ -199,7 +199,7 @@ export async function PUT(req: NextRequest) {
 // ─── PATCH: Toggle aktif status ───────────────────────────────────────────────
 
 export async function PATCH(req: NextRequest) {
-    const rlResponse = rlCheck(req);
+    const rlResponse = await rlCheck(req);
     if (rlResponse) return rlResponse;
 
     const caller = await verifySuperadmin(req);

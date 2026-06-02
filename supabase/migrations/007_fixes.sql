@@ -1,7 +1,4 @@
--- ============================================================
--- SIPEDA — Security & Performance Fixes (007)
--- Perbaikan keamanan yang tidak mengubah skema.
--- ============================================================
+-- 007_fixes.sql — Security & performance fixes (no schema change).
 
 -- ── Revoke public access on admin functions ────────────────────
 

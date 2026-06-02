@@ -1,7 +1,4 @@
--- ============================================================
--- AUDIT FIXES — Pre-deploy patch
--- Apply via Supabase SQL Editor (read-only MCP)
--- ============================================================
+-- 008_audit_fixes.sql — Pre-deploy audit patch (4 fixes).
 
 -- Fix #1: Stok darah history trigger (audit trail was dead)
 CREATE OR REPLACE FUNCTION public.log_stok_history()

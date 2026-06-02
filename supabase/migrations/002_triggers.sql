@@ -1,7 +1,4 @@
--- ============================================================
--- SIPEDA — Triggers (002)
--- Semua trigger pada tabel, mengacu pada fungsi di 001_functions.sql.
--- ============================================================
+-- 002_triggers.sql — Trigger pada tabel (pakai fungsi dari 001).
 
 -- ── Trigger: auto-update status stok ─────────────────────────
 

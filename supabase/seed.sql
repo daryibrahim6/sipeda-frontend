@@ -1,13 +1,5 @@
--- ============================================================
--- SIPEDA — SEED DATA DEMO
--- Data realistis untuk database Indramayu.
--- Semua data fiktif — tidak ada data pendonor sesungguhnya.
--- ============================================================
-
--- ── Auth users (password: sipeda123 untuk semua) ────────────
---   1. admin@sipeda.id / superadmin
---   2. dary@sipeda.id  / admin
---   3. petugas@sipeda.id / petugas_lapangan
+-- seed.sql — Data fiktif demo (Indramayu). Bukan data produksi.
+-- Auth: admin@sipeda.id / dary@sipeda.id / petugas@sipeda.id (password: sipeda123)
 
 DO $$
 <<seed>>

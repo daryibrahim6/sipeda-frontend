@@ -143,11 +143,22 @@ export default function AdminRegistrasiPage() {
         `Halo ${reg.nama},\n\n` +
         `Status pendaftaran kamu (${reg.kode_registrasi}) sekarang: *${STATUS_WA_LABELS[status]}*\n\n` +
         `Terima kasih telah mendukung kegiatan donor darah PMI Kabupaten Indramayu. ❤️`;
-      fetch('/api/send-wa', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: reg.telepon, message }),
-      }).catch(() => {});
+
+      try {
+        const res = await fetch('/api/send-wa', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: reg.telepon, message }),
+        });
+        if (res.ok) {
+          toast('Notifikasi WA berhasil dikirim.');
+        } else {
+          const data = await res.json().catch(() => ({}));
+          toast(`WA gagal dikirim: ${data.error ?? 'unknown error'}`, 'error');
+        }
+      } catch {
+        toast('WA gagal: jaringan error', 'error');
+      }
     } catch {
       toast('Gagal update status.');
     }

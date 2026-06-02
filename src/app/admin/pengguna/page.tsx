@@ -49,8 +49,13 @@ const ROLE_COLORS: Record<string, string> = {
 
 async function getToken(): Promise<string> {
     const supabase = createClient();
-    const { data } = await supabase.auth.getSession();
-    return data.session?.access_token ?? '';
+    // 1. Ambil session untuk access token
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return '';
+    // 2. Validate session masih valid via getUser (server-side check, auto-refresh)
+    const { data: { user }, error } = await supabase.auth.getUser(session.access_token);
+    if (error || !user) return '';
+    return session.access_token;
 }
 
 async function apiCall(method: string, body?: Record<string, unknown>) {

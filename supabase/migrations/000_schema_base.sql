@@ -1,7 +1,4 @@
--- ============================================================
--- SIPEDA — Schema Dasar (000)
--- Membuat semua tipe enum, tabel, dan constraint awal.
--- ============================================================
+-- 000_schema_base.sql — Enum, 16 tabel, constraint awal.
 
 -- ── ENUMS ─────────────────────────────────────────────────────
 
