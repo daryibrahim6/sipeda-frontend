@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from 'react';
 import type { Location } from '@/lib/types';
-import 'leaflet/dist/leaflet.css';
 
 type Props = {
   locations: Location[];
@@ -113,7 +112,9 @@ export function LeafletMap({ locations, center, zoom = 12, onSelect }: Props) {
       ro.observe(mapRef.current);
       if (mapInstanceRef.current) mapInstanceRef.current._resizeObserver = ro;
 
-      setTimeout(() => map.invalidateSize?.(), 300);
+      const invalidate = () => map.invalidateSize();
+      setTimeout(invalidate, 300);
+      setTimeout(invalidate, 1000);
     }).catch(() => {
       // Leaflet gagal load — biarkan container kosong, tidak crash
     });
@@ -133,6 +134,7 @@ export function LeafletMap({ locations, center, zoom = 12, onSelect }: Props) {
     <div
       ref={mapRef}
       className="w-full h-full rounded-2xl z-0"
+      style={{ width: '100%', height: '100%' }}
       aria-label="Peta lokasi donor darah"
       role="application"
     />

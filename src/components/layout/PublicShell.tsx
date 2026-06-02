@@ -2,7 +2,6 @@
 
 import { usePathname } from 'next/navigation';
 import { type ReactNode } from 'react';
-import { PengumumanDarurat } from '@/components/PengumumanDarurat';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import MobileCtaBar from './MobileCtaBar';
 import Footer from './Footer';
@@ -18,7 +17,6 @@ export function PublicShell({ children }: { children: ReactNode }) {
             pathname === '/' ? '' : 'pt-20 sm:pt-24'
         }`}>
             <main className="flex-1">
-                <PengumumanDarurat />
                 <ErrorBoundary>
                     {children}
                 </ErrorBoundary>

@@ -3,7 +3,6 @@
 import { Component, type ReactNode } from 'react';
 import Link from 'next/link';
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
-import * as Sentry from '@sentry/nextjs';
 
 type Props = {
     children: ReactNode;
@@ -27,9 +26,7 @@ export class ErrorBoundary extends Component<Props, State> {
     }
 
     componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-        if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
-            Sentry.captureException(error, { extra: { errorInfo } });
-        }
+        console.error('[SIPEDA ErrorBoundary]', error, errorInfo);
         this.props.onError?.(error, errorInfo);
     }
 

@@ -4,12 +4,10 @@
 -- Semua data fiktif — tidak ada data pendonor sesungguhnya.
 -- ============================================================
 
--- ── Auth users (via Supabase Dashboard atau API) ──────────────
--- Seed ini mengasumsikan auth.users sudah dibuat manual:
+-- ── Auth users (password: sipeda123 untuk semua) ────────────
 --   1. admin@sipeda.id / superadmin
---   2. petugas@sipeda.id / petugas_lapangan
---   3. bunga@sipeda.id / admin
--- Jika belum, buat dulu di Authentication > Users > Add User
+--   2. dary@sipeda.id  / admin
+--   3. petugas@sipeda.id / petugas_lapangan
 
 DO $$
 <<seed>>

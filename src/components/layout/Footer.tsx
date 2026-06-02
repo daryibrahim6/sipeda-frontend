@@ -56,7 +56,7 @@ export default function Footer() {
           {/* Brand */}
           <div className="md:col-span-1">
             <div className="flex items-center gap-2.5 mb-4">
-            <Image src="/logo.webp" alt="SIPEDA" width={40} height={40} className="h-10 w-auto" />
+            <Image src="/logo.webp" alt="SIPEDA" width={40} height={40} className="h-10 w-auto" style={{ width: 'auto', height: 'auto' }} />
               <span className="text-white font-bold text-base">SIPEDA</span>
             </div>
             <p className="text-sm leading-relaxed text-gray-500 mb-5">

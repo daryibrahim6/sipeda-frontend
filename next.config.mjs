@@ -1,5 +1,4 @@
 import withSerwistInit from '@serwist/next';
-import { withSentryConfig } from '@sentry/nextjs';
 import withBundleAnalyzer from '@next/bundle-analyzer';
 
 const withSerwist = withSerwistInit({
@@ -18,6 +17,7 @@ const nextConfig = {
     ],
   },
   reactStrictMode: true,
+  outputFileTracingRoot: 'C:/Users/daryi/sipeda-frontend',
 
   async headers() {
     return [
@@ -52,7 +52,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob: images.unsplash.com *.sipeda.id *.tile.openstreetmap.org tile.openstreetmap.org",
               "font-src 'self' fonts.gstatic.com fonts.googleapis.com",
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://fnfkvomcmvbtksnqagnh.supabase.co https://*.ingest.sentry.io https://www.googletagmanager.com https://*.google-analytics.com",
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://fnfkvomcmvbtksnqagnh.supabase.co https://www.googletagmanager.com https://*.google-analytics.com",
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",
@@ -64,18 +64,8 @@ const nextConfig = {
   },
 };
 
-const sentryOptions = {
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
-  silent: !process.env.CI,
-  hideSourceMaps: true,
-  widenClientFileUpload: true,
-  disableLogger: true,
-  automaticVercelMonitors: true,
-};
-
 const withAnalyzer = withBundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 });
 
-export default withAnalyzer(withSentryConfig(withSerwist(nextConfig), sentryOptions));
+export default withAnalyzer(withSerwist(nextConfig));
