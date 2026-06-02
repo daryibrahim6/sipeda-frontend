@@ -58,7 +58,7 @@ export default async function HomePage() {
     <main id="main">
 
       {/* ── HERO ── */}
-      <section className="relative w-full h-dvh min-h-[480px] overflow-hidden">
+      <section className="relative w-full h-dvh min-h-[480px] overflow-hidden bg-[#0a0a0a]">
 
         {/* Layer 1 — Background image, terisolasi dari flex */}
         <div className="absolute inset-0 z-0">
