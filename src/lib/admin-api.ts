@@ -42,15 +42,6 @@ export {
 } from './admin-artikel';
 
 export {
-  getAdminAnnouncements,
-  createAnnouncement,
-  updateAnnouncement,
-  deleteAnnouncement,
-  type AdminAnnouncement,
-  type AdminAnnouncementPayload,
-} from './admin-pengumuman';
-
-export {
   getAdminLocations,
   createLocation,
   updateLocation,

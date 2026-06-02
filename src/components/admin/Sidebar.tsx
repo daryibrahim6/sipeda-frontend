@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   Droplets, LayoutDashboard, Calendar, Tally4,
   ClipboardList, FileText, LogOut, X, ChevronRight,
-  User, ClipboardCheck, MapPin, Users, Megaphone,
+  User, ClipboardCheck, MapPin, Users,
 } from 'lucide-react';
 // FIX: clearToken dan getUser TIDAK ADA di auth.ts (sudah dihapus saat migrasi ke Supabase Auth).
 // Sidebar lama: import { clearToken, getUser } from '@/lib/auth' → runtime crash
@@ -16,7 +16,6 @@ import { useEffect, useState } from 'react';
 
 const navItems = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/admin/pengumuman', label: 'Pengumuman', icon: Megaphone },
   { href: '/admin/lokasi', label: 'Lokasi Donor', icon: MapPin },
   { href: '/admin/jadwal', label: 'Jadwal Donor', icon: Calendar },
   { href: '/admin/stok-darah', label: 'Stok Darah', icon: Tally4 },

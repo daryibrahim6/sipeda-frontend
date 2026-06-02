@@ -10,14 +10,13 @@ import type {
   Location,
   Schedule,
   Article,
-  Announcement,
   SiteStats,
   BloodStockItem,
   Testimonial,
 } from './types';
 
 // ─── Re-export types yang sering dipakai ─────────────────────────────────────
-export type { Location, Schedule, Article, Announcement, SiteStats, Testimonial };
+export type { Location, Schedule, Article, SiteStats, Testimonial };
 
 // ─── BloodStock public (alias dari BloodStockItem) ────────────────────────────
 export type BloodStock = BloodStockItem;
@@ -258,17 +257,6 @@ export async function getTestimonials(): Promise<Testimonial[]> {
 
   if (error) throw error;
   return data ?? [];
-}
-
-// ─── Pengumuman ───────────────────────────────────────────────────────────────
-
-export async function getAnnouncements(): Promise<Announcement[]> {
-  const { data, error } = await supabase
-    .from('v_pengumuman_aktif')
-    .select('id, judul, isi, tipe, link, link_teks');
-
-  if (error) return [];
-  return (data ?? []) as Announcement[];
 }
 
 // ─── Stok Darah ──────────────────────────────────────────────────────────────

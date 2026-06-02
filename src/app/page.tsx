@@ -13,7 +13,6 @@ import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { BLOOD_ORDER, STOCK_BAR_COLORS, STOCK_TEXT_COLORS, STOCK_LABEL } from '@/lib/constants';
 import { RevealWrapper } from '@/components/ui/RevealWrapper';
-import { AnnouncementBanner } from '@/components/layout/AnnouncementBanner';
 import { ArticleImagePlaceholder } from '@/components/ui/ArticleImagePlaceholder';
 
 export const metadata: Metadata = {
@@ -57,9 +56,6 @@ export default async function HomePage() {
 
   return (
     <main id="main">
-
-      {/* ── Pengumuman (homepage only) ── */}
-      <AnnouncementBanner />
 
       {/* ── HERO ── */}
       <section className="relative w-full h-dvh min-h-[480px] overflow-hidden">

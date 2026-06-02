@@ -133,17 +133,6 @@ export type Cabang = {
   created_at: string;
 };
 
-// ─── Announcement ─────────────────────────────────────────────────────────────
-
-export type Announcement = {
-  id: number;
-  judul: string;
-  isi: string;
-  tipe: 'info' | 'sukses' | 'peringatan' | 'darurat';
-  link: string | null;
-  link_teks: string | null;
-};
-
 // ─── Pencatatan Donor ─────────────────────────────────────────────────────────
 
 export type StatusDonor = 'berhasil' | 'gagal' | 'tidak_memenuhi_syarat';
