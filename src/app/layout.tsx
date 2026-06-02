@@ -8,7 +8,6 @@ import { PublicShell } from '@/components/layout/PublicShell';
 import { Analytics } from '@/components/Analytics';
 import { StructuredData } from '@/components/seo/StructuredData';
 import { ToastProvider } from '@/lib/toast';
-import { AnnouncementBanner } from '@/components/layout/AnnouncementBanner';
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://sipeda.vercel.app';
@@ -63,12 +62,14 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     locale: 'id_ID',
     type: 'website',
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'SIPEDA — Donor Darah Indramayu' }],
   },
 
   twitter: {
     card: 'summary_large_image',
     title: `${SITE_NAME} — Donor Darah Indramayu`,
     description: SITE_DESC,
+    images: ['/opengraph-image'],
   },
 
   robots: {
@@ -128,11 +129,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           Langsung ke konten
         </a>
-        {/* Fixed header: banner + navbar */}
+        {/* Fixed header: navbar */}
         <FixedHeader />
-
-        {/* Active announcements (urgent > peringatan > sukses > info) */}
-        <AnnouncementBanner />
 
         {/* Progress bar */}
         <Suspense fallback={null}>

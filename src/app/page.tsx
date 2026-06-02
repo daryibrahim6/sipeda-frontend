@@ -13,6 +13,8 @@ import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { BLOOD_ORDER, STOCK_BAR_COLORS, STOCK_TEXT_COLORS, STOCK_LABEL } from '@/lib/constants';
 import { RevealWrapper } from '@/components/ui/RevealWrapper';
+import { AnnouncementBanner } from '@/components/layout/AnnouncementBanner';
+import { ArticleImagePlaceholder } from '@/components/ui/ArticleImagePlaceholder';
 
 export const metadata: Metadata = {
   title: 'SIPEDA — Sistem Informasi Pendonoran Darah',
@@ -53,15 +55,11 @@ export default async function HomePage() {
     (a, b) => BLOOD_ORDER.indexOf(a.golongan_darah) - BLOOD_ORDER.indexOf(b.golongan_darah)
   );
 
-  const FALLBACK_IMAGES = [
-    'https://images.unsplash.com/photo-1615461066841-6116e61058f4?w=680&h=383&fit=crop',
-    'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=680&h=383&fit=crop',
-    'https://images.unsplash.com/photo-1559757175-5700dde675bc?w=680&h=383&fit=crop',
-    'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=680&h=383&fit=crop',
-  ];
-
   return (
     <main id="main">
+
+      {/* ── Pengumuman (homepage only) ── */}
+      <AnnouncementBanner />
 
       {/* ── HERO ── */}
       <section className="relative w-full h-dvh min-h-[480px] overflow-hidden">
@@ -161,7 +159,7 @@ export default async function HomePage() {
       )}
 
       {/* ── STOCK PREVIEW ── */}
-      <section className="py-16 sm:py-20 lg:py-24">
+      <section className="py-16 sm:py-20 lg:py-24 bg-[var(--color-section-alt)]">
         <RevealWrapper className="page-container">
           {sortedBlood.length > 0 ? (
             <div className="p-6 sm:p-8 bg-white rounded-3xl border border-[var(--color-border-muted)] ring-1 ring-black/[0.03] shadow-[var(--shadow-card)] card-shadow-hover hover:border-[var(--color-primary-light)]">
@@ -232,7 +230,7 @@ export default async function HomePage() {
       </section>
 
       {/* ── LOKASI ── */}
-      <section className="py-16 sm:py-20 lg:py-24">
+      <section className="py-16 sm:py-20 lg:py-24 bg-[var(--color-section-alt)]">
         <RevealWrapper className="page-container">
           {locations.length > 0 && (
             <>
@@ -382,22 +380,26 @@ export default async function HomePage() {
           {/* Mobile: vertical grid. Desktop: horizontal scroll */}
           <div className="md:overflow-x-auto md:pb-4 md:-mb-4 md:scrollbar-hide">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 px-4 sm:px-6 lg:px-8 md:flex md:gap-6 md:w-max md:mx-auto">
-              {featuredArticles.map((a, i) => (
+              {featuredArticles.map((a) => (
                 <Link
                   key={a.id}
                   href={`/artikel/${a.slug}`}
                   className="group w-full md:w-[340px] md:flex-shrink-0 bg-white rounded-3xl overflow-hidden border border-[var(--color-border-muted)] shadow-sm hover:-translate-y-1.5 hover:shadow-xl hover:border-[var(--color-primary-light)] transition-all duration-300 active:scale-[0.98]"
                 >
                   <div className="aspect-[16/9] overflow-hidden bg-[var(--color-section-alt)]">
-                    <Image
-                      src={a.gambar || FALLBACK_IMAGES[i % FALLBACK_IMAGES.length]}
-                      alt={a.gambar_alt ?? a.judul}
-                      width={340}
-                      height={191}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                      loading="lazy"
-                      sizes="(max-width: 640px) 300px, 340px"
-                    />
+                    {a.gambar ? (
+                      <Image
+                        src={a.gambar}
+                        alt={a.gambar_alt ?? a.judul}
+                        width={340}
+                        height={191}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                        loading="lazy"
+                        sizes="(max-width: 640px) 300px, 340px"
+                      />
+                    ) : (
+                      <ArticleImagePlaceholder />
+                    )}
                   </div>
                   <div className="p-5">
                     <h3 className="font-bold text-[var(--color-text-primary)] leading-snug mb-2 line-clamp-2 group-hover:text-[var(--color-primary)] transition-colors">

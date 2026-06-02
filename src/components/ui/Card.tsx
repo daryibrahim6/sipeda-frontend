@@ -11,9 +11,9 @@ type Props = HTMLAttributes<HTMLDivElement> & {
 const base = 'transition-all duration-300 ease-out';
 
 const variantStyles: Record<Variant, string> = {
-  default: `${base} bg-white border border-[var(--color-border-muted)] rounded-[var(--radius-card)] p-6 card-shadow`,
-  interactive: `${base} bg-white border border-[var(--color-border-muted)] rounded-[var(--radius-card)] p-6 cursor-pointer card-shadow card-shadow-hover border-l-[3px] border-l-transparent hover:border-l-[var(--color-primary)] hover:border-[var(--color-border)]`,
-  elevated: `${base} bg-white border border-[var(--color-border-muted)] rounded-[var(--radius-card)] p-6 shadow-[var(--shadow-elevated)] card-shadow-hover`,
+  default: `${base} bg-white border border-[var(--color-border-muted)] ring-1 ring-black/[0.04] rounded-[var(--radius-card)] p-6 card-shadow`,
+  interactive: `${base} bg-white border border-[var(--color-border-muted)] ring-1 ring-black/[0.04] rounded-[var(--radius-card)] p-6 cursor-pointer card-shadow card-shadow-hover border-l-[3px] border-l-transparent hover:border-l-[var(--color-primary)] hover:border-[var(--color-border)]`,
+  elevated: `${base} bg-white border border-[var(--color-border-muted)] ring-1 ring-black/[0.04] rounded-[var(--radius-card)] p-6 shadow-[var(--shadow-elevated)] card-shadow-hover`,
   flush: `bg-transparent border-none p-0 rounded-none`,
 };
 

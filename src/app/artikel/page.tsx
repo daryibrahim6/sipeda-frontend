@@ -6,13 +6,7 @@ import { getArticles } from '@/lib/api';
 import { formatDate } from '@/lib/utils';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { EmptyState } from '@/components/ui/EmptyState';
-
-const FALLBACK_IMAGES = [
-  'https://images.unsplash.com/photo-1615461066841-6116e61058f4?w=680&h=383&fit=crop',
-  'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=680&h=383&fit=crop',
-  'https://images.unsplash.com/photo-1559757175-5700dde675bc?w=680&h=383&fit=crop',
-  'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=680&h=383&fit=crop',
-];
+import { ArticleImagePlaceholder } from '@/components/ui/ArticleImagePlaceholder';
 
 export const metadata: Metadata = {
   title: 'Artikel',
@@ -52,14 +46,18 @@ export default async function ArtikelPage({
                 {articles.map(a => (
               <Link key={a.id} href={`/artikel/${a.slug}`} className="group bg-white border border-[var(--color-border-muted)] rounded-[var(--radius-card)] shadow-[var(--shadow-elevated)] overflow-hidden cursor-pointer hover:border-[var(--color-primary-light)] hover:shadow-[var(--shadow-hover)] transition-all duration-200">
                     <div className="aspect-video overflow-hidden bg-[var(--color-section-alt)]">
-                      <Image
-                        src={a.gambar || FALLBACK_IMAGES[articles.indexOf(a) % FALLBACK_IMAGES.length]}
-                        alt={a.gambar_alt ?? a.judul}
-                        width={680}
-                        height={383}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                      />
+                      {a.gambar ? (
+                        <Image
+                          src={a.gambar}
+                          alt={a.gambar_alt ?? a.judul}
+                          width={680}
+                          height={383}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        />
+                      ) : (
+                        <ArticleImagePlaceholder />
+                      )}
                     </div>
                     <div className="p-5">
                       <h3 className="text-base font-semibold text-gray-900 leading-snug group-hover:text-red-700 transition-colors mb-2 line-clamp-2">

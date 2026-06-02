@@ -136,7 +136,7 @@ export function LeafletMap({ locations, center, zoom = 12, onSelect }: Props) {
     <div
       ref={mapRef}
       className="w-full h-full rounded-2xl z-0"
-      style={{ width: '100%', height: '100%' }}
+      style={{ width: '100%', height: '100%', minHeight: '300px' }}
       aria-label="Peta lokasi donor darah"
       role="application"
     />

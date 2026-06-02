@@ -13,7 +13,6 @@ const nextConfig = {
     remotePatterns: [
       { protocol: 'http',  hostname: 'localhost' },
       { protocol: 'https', hostname: '*.sipeda.id' },
-      { protocol: 'https', hostname: 'images.unsplash.com' },
     ],
   },
   reactStrictMode: true,
@@ -50,7 +49,7 @@ const nextConfig = {
               "default-src 'self'",
               "script-src 'self' 'unsafe-inline'",
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob: images.unsplash.com *.sipeda.id *.tile.openstreetmap.org tile.openstreetmap.org",
+              "img-src 'self' data: blob: *.sipeda.id *.tile.openstreetmap.org tile.openstreetmap.org a.tile.openstreetmap.org b.tile.openstreetmap.org c.tile.openstreetmap.org",
               "font-src 'self' fonts.gstatic.com fonts.googleapis.com",
               "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.googletagmanager.com https://*.google-analytics.com",
               "frame-ancestors 'none'",

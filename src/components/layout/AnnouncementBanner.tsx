@@ -64,13 +64,12 @@ export function AnnouncementBanner() {
   }, [isExcluded]);
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY_PREFIX);
+    const stored = sessionStorage.getItem(STORAGE_KEY_PREFIX);
     if (stored) {
       try {
         const arr = JSON.parse(stored) as number[];
-        const recent = arr.filter(id => Date.now() - id < 1000 * 60 * 60 * 24);
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        setDismissed(new Set(recent));
+        setDismissed(new Set(arr));
       } catch {}
     }
   }, []);
@@ -86,7 +85,7 @@ export function AnnouncementBanner() {
     next.add(top.id);
     setDismissed(next);
     const arr = Array.from(next);
-    localStorage.setItem(STORAGE_KEY_PREFIX, JSON.stringify(arr));
+    sessionStorage.setItem(STORAGE_KEY_PREFIX, JSON.stringify(arr));
   }
 
   return (
