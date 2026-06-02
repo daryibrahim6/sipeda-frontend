@@ -48,3 +48,8 @@ opencode.json
 
 # developer docs (audit notes, architecture — not for production)
 docs/
+ARCHITECTURE.md
+DESIGN_SYSTEM.md
+FEATURES.md
+PROJECT_BRIEF.md
+ROADMAP.md
