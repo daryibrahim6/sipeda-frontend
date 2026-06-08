@@ -8,6 +8,7 @@ import { PublicShell } from '@/components/layout/PublicShell';
 import { Analytics } from '@/components/Analytics';
 import { StructuredData } from '@/components/seo/StructuredData';
 import { ToastProvider } from '@/lib/toast';
+import { DonorChatbot } from '@/components/ui/DonorChatbot';
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://sipeda.vercel.app';
@@ -148,6 +149,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </PublicShell>
           </Suspense>
         </ToastProvider>
+        <DonorChatbot />
       </body>
     </html>
   );
