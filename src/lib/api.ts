@@ -385,13 +385,23 @@ export async function registerDonor(payload: {
     .single();
 
   if (error) {
+    console.error('[SIPEDA:registerDonor] Supabase error:', {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+    });
     if (error.code === '23505') {
       // Unique constraint violation: telepon + jadwal_id
       if (error.message?.includes('telepon') || error.message?.includes('jadwal')) {
         throw new Error('Nomor WhatsApp ini sudah terdaftar untuk jadwal tersebut.');
       }
     }
-    throw new Error('Gagal mendaftar. Silakan coba lagi.');
+    // RLS violation — anon user tidak punya INSERT policy
+    if (error.code === '42501' || error.message?.includes('row-level security')) {
+      throw new Error('Sistem sedang dalam perbaikan. Silakan coba beberapa saat lagi.');
+    }
+    throw new Error(`Gagal mendaftar: ${error.message || 'Silakan coba lagi.'}`);
   }
 
   return { kode_registrasi: (reg as { kode_registrasi: string }).kode_registrasi };
