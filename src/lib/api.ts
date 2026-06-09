@@ -5,7 +5,7 @@
  * File ini HANYA berisi fungsi-fungsi query ke Supabase.
  */
 
-import { supabase } from './supabase';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type {
   Location,
   Schedule,
@@ -14,6 +14,24 @@ import type {
   BloodStockItem,
   Testimonial,
 } from './types';
+
+/**
+ * Pilih Supabase client yang benar berdasarkan environment:
+ * - Browser → createBrowserClient dari supabase-browser.ts (singleton, cookie-based)
+ * - Server  → singleton dari supabase.ts (persistSession: false)
+ *
+ * Ini mencegah duplikat GoTrueClient saat api.ts di-bundle ke client.
+ */
+function getSupabase(): SupabaseClient {
+  if (typeof window !== 'undefined') {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { createClient } = require('./supabase-browser') as { createClient: () => SupabaseClient };
+    return createClient();
+  }
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { supabase: serverClient } = require('./supabase') as { supabase: SupabaseClient };
+  return serverClient;
+}
 
 // ─── Re-export types yang sering dipakai ─────────────────────────────────────
 export type { Location, Schedule, Article, SiteStats, Testimonial };
@@ -24,7 +42,7 @@ export type BloodStock = BloodStockItem;
 // ─── Stats homepage ───────────────────────────────────────────────────────────
 
 export async function getStats(): Promise<SiteStats> {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from('v_stats')
     .select('*')
     .single();
@@ -60,7 +78,7 @@ function withCache<T>(key: string, ttlMs: number, fn: () => Promise<T>): Promise
 
 export async function getLocations(): Promise<Location[]> {
   return withCache('getLocations', 120_000, async () => {
-    const { data: locations, error } = await supabase
+    const { data: locations, error } = await getSupabase()
       .from('lokasi_donor')
       .select('*')
       .eq('aktif', true)
@@ -71,7 +89,7 @@ export async function getLocations(): Promise<Location[]> {
     // Fetch semua stok sekaligus (bukan N+1)
     const lokasiIds = locations.map(l => l.id);
     const { data: stocks } = lokasiIds.length > 0
-      ? await supabase
+      ? await getSupabase()
         .from('stok_darah')
         .select('lokasi_id, golongan_darah, jumlah, status')
         .in('lokasi_id', lokasiIds)
@@ -89,7 +107,7 @@ export async function getLocations(): Promise<Location[]> {
 }
 
 export async function getLocationById(id: number): Promise<Location | null> {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from('lokasi_donor')
     .select('*')
     .eq('id', id)
@@ -114,7 +132,7 @@ export async function getSchedules(month?: number, year?: number): Promise<Sched
   const start = `${y}-${String(m).padStart(2, '0')}-01`;
   const end = new Date(y, m, 0).toISOString().split('T')[0];
 
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from('jadwal_donor')
     .select(`
       id, lokasi_id, tanggal, waktu_mulai, waktu_selesai,
@@ -135,7 +153,7 @@ export async function getSchedules(month?: number, year?: number): Promise<Sched
 
 /** FIX: tersedia sebagai getScheduleById DAN getSchedule (alias) */
 export async function getScheduleById(id: number): Promise<Schedule | null> {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from('jadwal_donor')
     .select(`
       id, lokasi_id, tanggal, waktu_mulai, waktu_selesai,
@@ -158,7 +176,7 @@ export async function getArticles(
   perPage = 9,
   kategoriSlug?: string,
 ): Promise<{ data: Article[]; total: number; totalPages: number }> {
-  let query = supabase
+  let query = getSupabase()
     .from('artikel')
     .select(`
       id, judul, slug, excerpt, gambar, gambar_alt,
@@ -169,7 +187,7 @@ export async function getArticles(
     .order('published_at', { ascending: false });
 
   if (kategoriSlug) {
-    const { data: kat } = await supabase
+    const { data: kat } = await getSupabase()
       .from('kategori_artikel')
       .select('id')
       .eq('slug', kategoriSlug)
@@ -207,7 +225,7 @@ export async function getArticles(
 }
 
 export async function getArticleBySlug(slug: string): Promise<Article | null> {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from('artikel')
     .select(`
       id, judul, slug, excerpt, konten, gambar, gambar_alt,
@@ -238,7 +256,7 @@ export async function getArticleBySlug(slug: string): Promise<Article | null> {
 }
 
 export async function getAllArticleSlugs(): Promise<string[]> {
-  const { data } = await supabase
+  const { data } = await getSupabase()
     .from('artikel')
     .select('slug')
     .eq('status', 'published')
@@ -249,7 +267,7 @@ export async function getAllArticleSlugs(): Promise<string[]> {
 // ─── Testimonial ─────────────────────────────────────────────────────────────
 
 export async function getTestimonials(): Promise<Testimonial[]> {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from('testimonial')
     .select('id, nama, foto, jabatan, isi, rating')
     .eq('aktif', true)
@@ -269,7 +287,7 @@ export async function getBloodStockByMultipleLocations(
 ): Promise<Record<number, BloodStock[]>> {
   if (lokasiIds.length === 0) return {};
 
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from('stok_darah')
     .select(`
       id, lokasi_id, komponen_id, golongan_darah, jumlah, status, updated_at,
@@ -309,7 +327,7 @@ export async function getBloodStockSummary(): Promise<{
   total: number;
   status: 'normal' | 'kritis' | 'kosong';
 }[]> {
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from('stok_darah')
     .select('golongan_darah, jumlah, batas_kritis')
     .order('golongan_darah');
@@ -352,7 +370,7 @@ export async function registerDonor(payload: {
   riwayat_donor: boolean;
 }): Promise<{ kode_registrasi: string }> {
   // Cek interval donor — minimal 56 hari sejak donor terakhir
-  const { data: lastDonation } = await supabase
+  const { data: lastDonation } = await getSupabase()
     .from('registrasi_donor')
     .select(`jadwal:jadwal_donor!inner(tanggal)`)
     .eq('telepon', payload.telepon)
@@ -378,7 +396,7 @@ export async function registerDonor(payload: {
 
   // Kode registrasi di-generate oleh database via DEFAULT (sequence).
   // Tidak perlu mengirim kode_registrasi dari client.
-  const { data: reg, error } = await supabase
+  const { data: reg, error } = await getSupabase()
     .from('registrasi_donor')
     .insert(payload)
     .select('kode_registrasi')
@@ -422,7 +440,7 @@ export async function getRegistrasiByKode(kode: string): Promise<{
     lokasi: { nama_lokasi: string; alamat: string; kecamatan: string };
   };
 } | null> {
-  const { data, error } = await supabase.rpc('lookup_registrasi_by_kode', {
+  const { data, error } = await getSupabase().rpc('lookup_registrasi_by_kode', {
     p_kode: kode,
   });
 
@@ -477,7 +495,7 @@ export async function lookupDonorHistory(
   telepon: string,
   kode: string,
 ): Promise<DonorHistoryResult | null> {
-  const { data, error } = await supabase.rpc('lookup_donor_history', {
+  const { data, error } = await getSupabase().rpc('lookup_donor_history', {
     p_telepon: telepon,
     p_kode: kode,
   });
@@ -504,7 +522,7 @@ export async function lookupDonorHistory(
 // ─── Batalkan Registrasi (Donor-facing) ────────────────────────────────────────
 
 export async function batalkanRegistrasi(kode: string, telepon: string): Promise<{ success: boolean; error?: string }> {
-  const { data, error } = await supabase.rpc('batalkan_registrasi_by_kode', {
+  const { data, error } = await getSupabase().rpc('batalkan_registrasi_by_kode', {
     p_kode: kode,
     p_telepon: telepon,
   });
