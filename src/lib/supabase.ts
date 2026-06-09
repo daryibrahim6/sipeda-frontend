@@ -1,6 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl  = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 if (!supabaseUrl || !supabaseAnon) {
@@ -10,29 +10,28 @@ if (!supabaseUrl || !supabaseAnon) {
   );
 }
 
-/**
- * Supabase client untuk public/browser & server components.
- * Gunakan ini di mana saja kecuali operasi admin yang butuh bypass RLS.
- */
-export const supabase = createClient(supabaseUrl, supabaseAnon, {
-  auth: {
-    // Persist session di browser (localStorage)
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-  },
-});
+// Singleton — satu instance untuk seluruh app (server-side / api.ts)
+let _supabase: ReturnType<typeof createSupabaseClient> | null = null;
 
-/**
- * Supabase admin client — bypass Row Level Security.
- * HANYA untuk Server Actions / API Routes, JANGAN pakai di client component.
- */
+export const supabase = (() => {
+  if (_supabase) return _supabase;
+  _supabase = createSupabaseClient(supabaseUrl, supabaseAnon, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+  });
+  return _supabase;
+})();
+
+// Admin client — bypass RLS, HANYA untuk Server Actions / API Routes
 export function createAdminClient() {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!serviceKey) {
     throw new Error('[SIPEDA] SUPABASE_SERVICE_ROLE_KEY tidak ditemukan di environment');
   }
-  return createClient(supabaseUrl, serviceKey, {
+  return createSupabaseClient(supabaseUrl, serviceKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 }
