@@ -36,7 +36,10 @@ const values = [
 ];
 
 const team = [
-  { name: 'Dary Ibrahim Akram', role: 'Pengembang Sistem & Frontend', initial: 'DI' },
+  { name: 'Dary Ibrahim Akram', role: 'Full Stack Developer', initial: 'DI' },
+  { name: 'Bunga Purwaningsih', role: 'UI/UX Designer', initial: 'BP' },
+  { name: 'Chairani Nayu Nainggolan', role: 'Backend Developer', initial: 'CN' },
+  { name: 'Muhammad Rijal Marzuq', role: 'Database & DevOps', initial: 'RM' },
   { name: 'PMI Kabupaten Indramayu', role: 'Mitra & Pengelola Data', initial: 'PM' },
 ];
 
